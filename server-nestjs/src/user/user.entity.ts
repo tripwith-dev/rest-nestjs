@@ -1,5 +1,6 @@
+import { CategoryEntity } from 'src/category/category.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity('user')
 export class UserEntity extends CommonEntity {
@@ -23,4 +24,10 @@ export class UserEntity extends CommonEntity {
 
   @Column({ nullable: true })
   profileImage: string;
+
+  @OneToMany(
+    () => CategoryEntity,
+    (category) => category.user
+  )
+  categories: CategoryEntity[]
 }
