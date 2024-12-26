@@ -25,6 +25,9 @@ npm i
 npm i --save @nestjs/swagger swagger-ui-express
 npm i --save @nestjs/typeorm typeorm
 npm i --save class-validator class-transformer
+npm i --save @nestjs/config
+npm i @nestjs/schedule
+npm i --save mysql2
 ```
 
 **3. `.eslintrc.js/prettier rule`**
