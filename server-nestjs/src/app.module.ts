@@ -3,9 +3,10 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
+import { CategoryEntity } from './category/category.entity';
+import { CategoryModule } from './category/category.module';
 import { UserEntity } from './user/user.entity';
 import { UserModule } from './user/user.module';
-import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { CategoryModule } from './category/category.module';
       database: process.env.DB_NAME,
       synchronize: true, // 배포환경에서는 false
       logging: true,
-      entities: [UserEntity],
+      entities: [UserEntity, CategoryEntity],
       autoLoadEntities: true,
     }),
     UserModule,

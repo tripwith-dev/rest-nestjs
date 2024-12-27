@@ -25,9 +25,6 @@ export class UserEntity extends CommonEntity {
   @Column({ nullable: true })
   profileImage: string;
 
-  @OneToMany(
-    () => CategoryEntity,
-    (category) => category.user
-  )
-  categories: CategoryEntity[]
+  @OneToMany(() => CategoryEntity, (category) => category.user)
+  categories: CategoryEntity[];
 }
