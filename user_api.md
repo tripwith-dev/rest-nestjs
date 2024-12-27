@@ -78,6 +78,7 @@
         "profileImage": "xxx/xxx/xxx.png",
         "nickname": "테스트_계정_닉네임",
         "introduce": "한줄 소개",
+        "createdAt": 2024-12-12,
         "categories": [
             {
                 "categoryId": 1,
