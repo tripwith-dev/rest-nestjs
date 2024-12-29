@@ -2,21 +2,22 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ArticleModule } from './about-article/article/article.module';
+import { ArticlecommentModule } from './about-article/articlecomment/articlecomment.module';
+import { CategoryEntity } from './about-plan/category/category.entity';
+import { CategoryModule } from './about-plan/category/category.module';
+import { DestinationModule } from './about-plan/destination/destination.module';
+import { PlanDestinationModule } from './about-plan/plan-destination/plan-destination.module';
+import { PlanModule } from './about-plan/plan/plan.module';
+import { PlancommentModule } from './about-plan/plancomment/plancomment.module';
+import { PlandetailModule } from './about-plan/plandetail/plandetail.module';
+import { AuthModule } from './about-user/auth/auth.module';
+import { SettingsModule } from './about-user/settings/settings.module';
+import { UserEntity } from './about-user/user/user.entity';
+import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
-import { CategoryEntity } from './category/category.entity';
-import { CategoryModule } from './category/category.module';
-import { UserEntity } from './user/user.entity';
-import { UserModule } from './user/user.module';
-import { DestinationModule } from './destination/destination.module';
-import { PlanDestinationModule } from './plan-destination/plan-destination.module';
-import { SettingsModule } from './settings/settings.module';
-import { PlanModule } from './plan/plan.module';
-import { PlandetailModule } from './plandetail/plandetail.module';
+import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
 import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
-import { PlancommentModule } from './plancomment/plancomment.module';
-import { ArticleModule } from './article/article.module';
-import { ArticlecommentModule } from './articlecomment/articlecomment.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ArticlecommentModule } from './articlecomment/articlecomment.module';
     PlancommentModule,
     ArticleModule,
     ArticlecommentModule,
+    UserLikeArticleModule,
   ],
   controllers: [AppController],
 })

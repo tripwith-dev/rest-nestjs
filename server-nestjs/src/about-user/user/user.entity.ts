@@ -1,4 +1,4 @@
-import { CategoryEntity } from 'src/category/category.entity';
+import { CategoryEntity } from 'src/about-plan/category/category.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 

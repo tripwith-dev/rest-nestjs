@@ -7,16 +7,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { ConfirmUserDto } from 'src/user/dtos/user.comfirm.dto';
-import { LoginUserDto } from 'src/user/dtos/user.login.req.dto';
-import { RegisterUserDto } from 'src/user/dtos/user.register.req.dto';
-import { UserRepository } from 'src/user/user.repository';
-import { UserService } from 'src/user/user.service';
 import {
   validateNickname,
   validatePassword,
   validateUsername,
 } from 'src/utils/validateUserInput';
+import { ConfirmUserDto } from '../user/dtos/user.comfirm.dto';
+import { LoginUserDto } from '../user/dtos/user.login.req.dto';
+import { RegisterUserDto } from '../user/dtos/user.register.req.dto';
+import { UserRepository } from '../user/user.repository';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
