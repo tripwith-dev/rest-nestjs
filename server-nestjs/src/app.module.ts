@@ -8,6 +8,15 @@ import { CategoryEntity } from './category/category.entity';
 import { CategoryModule } from './category/category.module';
 import { UserEntity } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { DestinationModule } from './destination/destination.module';
+import { PlanDestinationModule } from './plan-destination/plan-destination.module';
+import { SettingsModule } from './settings/settings.module';
+import { PlanModule } from './plan/plan.module';
+import { PlandetailModule } from './plandetail/plandetail.module';
+import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
+import { PlancommentModule } from './plancomment/plancomment.module';
+import { ArticleModule } from './article/article.module';
+import { ArticlecommentModule } from './articlecomment/articlecomment.module';
 
 @Module({
   imports: [
@@ -30,6 +39,15 @@ import { UserModule } from './user/user.module';
     UserModule,
     CategoryModule,
     AuthModule,
+    DestinationModule,
+    PlanDestinationModule,
+    SettingsModule,
+    PlanModule,
+    PlandetailModule,
+    UserLikePlanModule,
+    PlancommentModule,
+    ArticleModule,
+    ArticlecommentModule,
   ],
   controllers: [AppController],
 })
