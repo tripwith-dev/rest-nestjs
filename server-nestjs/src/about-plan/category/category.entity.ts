@@ -1,3 +1,4 @@
+import { IsNotEmpty, IsString } from 'class-validator';
 import { UserEntity } from 'src/about-user/user/user.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import {
@@ -5,18 +6,25 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PlanEntity } from '../plan/plan.entity';
 
-@Entity('category') // db에 저장될 테이블 이름
+@Entity('category')
 export class CategoryEntity extends CommonEntity {
-  @PrimaryGeneratedColumn() // 자동으로 NOT NULL 포함
-  categoryId: number; //카테고리ID
+  @PrimaryGeneratedColumn()
+  categoryId: number;
 
-  @Column({ nullable: false })
+  @Column({ length: 20 })
+  @IsNotEmpty()
+  @IsString()
   categoryTitle: string;
 
   @ManyToOne(() => UserEntity, (user) => user.categories)
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
+
+  @OneToMany(() => PlanEntity, (plan) => plan.category)
+  plans: PlanEntity[];
 }

@@ -9,8 +9,8 @@ import { CategoryModule } from './about-plan/category/category.module';
 import { DestinationModule } from './about-plan/destination/destination.module';
 import { PlanDestinationModule } from './about-plan/plan-destination/plan-destination.module';
 import { PlanModule } from './about-plan/plan/plan.module';
-import { PlancommentModule } from './about-plan/plancomment/plancomment.module';
-import { PlandetailModule } from './about-plan/plandetail/plandetail.module';
+import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
+import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
 import { SettingsModule } from './about-user/settings/settings.module';
 import { UserEntity } from './about-user/user/user.entity';
@@ -44,9 +44,9 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     PlanDestinationModule,
     SettingsModule,
     PlanModule,
-    PlandetailModule,
+    PlanDetailModule,
     UserLikePlanModule,
-    PlancommentModule,
+    PlanCommentModule,
     ArticleModule,
     ArticlecommentModule,
     UserLikeArticleModule,
