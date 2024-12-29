@@ -1,0 +1,111 @@
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
+import { ConfirmUserDto } from 'src/user/dtos/user.comfirm.dto';
+import { LoginUserDto } from 'src/user/dtos/user.login.req.dto';
+import { RegisterUserDto } from 'src/user/dtos/user.register.req.dto';
+import { UserRepository } from 'src/user/user.repository';
+import { UserService } from 'src/user/user.service';
+import {
+  validateNickname,
+  validatePassword,
+  validateUsername,
+} from 'src/utils/validateUserInput';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly userRepository: UserRepository,
+    private readonly configService: ConfigService,
+  ) {}
+
+  /**
+   * 회원가입
+   */
+  async register(userRegisterDto: RegisterUserDto) {
+    const { email, password, username, nickname } = userRegisterDto;
+
+    // email 중복 확인
+    const isEmailExist = await this.userRepository.existsByEmail(email);
+    if (isEmailExist) {
+      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+    }
+
+    // 유효성 검사
+    validatePassword(password);
+    validateUsername(username);
+    validateNickname(nickname);
+
+    // 닉네임 중복 확인
+    const isNicknameExist =
+      await this.userRepository.existsByNickname(nickname);
+    if (isNicknameExist) {
+      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
+    }
+
+    // user 데이터 생성
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.userService.createUser({
+      email,
+      password: hashedPassword,
+      username,
+      nickname,
+    });
+
+    return user;
+  }
+
+  /**
+   * 로그인
+   */
+  async jwtLogIn(userLoginDto: LoginUserDto, response: Response) {
+    const { user, jwt } = await this.verifyUserAndSignJwt(
+      userLoginDto.email,
+      userLoginDto.password,
+    );
+
+    response.cookie('jwt', jwt, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
+
+    const loginUser = await this.userService.findUserByUserId(user.id);
+
+    return { loginUser, jwt };
+  }
+
+  /**
+   * id, password 확인 + jwt 생성
+   */
+  async verifyUserAndSignJwt(
+    email: LoginUserDto['email'],
+    password: LoginUserDto['password'],
+  ): Promise<{ jwt: string; user: ConfirmUserDto }> {
+    const user = await this.userService.findUserByEmail(email);
+    if (!user)
+      throw new UnauthorizedException('해당 이메일 계정은 존재하지 않습니다.');
+
+    if (!(await bcrypt.compare(password, user.password)))
+      throw new UnauthorizedException('로그인에 실패하였습니다.');
+
+    try {
+      const jwt = await this.jwtService.signAsync(
+        { sub: user.id },
+        { secret: this.configService.get('JWT_SECRET') },
+      );
+      return { user, jwt };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+}

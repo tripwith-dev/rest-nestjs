@@ -7,10 +7,10 @@ export class CategoryEntity extends CommonEntity {
   @PrimaryColumn() // 자동으로 NOT NULL 포함
   categoryId: number; //카테고리ID
 
-  @Column({ nullable: false})
+  @Column({ nullable: false })
   categoryTitle: string;
 
-  @ManyToOne(()=> UserEntity, (user)=> user.categories)
-  @JoinColumn({name: 'userId' })
+  @ManyToOne(() => UserEntity, (user) => user.categories)
+  @JoinColumn({ name: 'userId' })
   user: UserEntity;
 }

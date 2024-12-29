@@ -7,10 +7,10 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /**
-   * 테스트용
+   * <테스트용>
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  @Get('check/:userId')
+  @Get('verify-users/:userId')
   async findUserByUserId(
     @Param('userId') userId,
   ): Promise<UserEntity | undefined> {

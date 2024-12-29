@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { timeSince } from 'src/utils/timeSince';
+import { RegisterUserDto } from './dtos/user.register.req.dto';
 import { UserEntity } from './user.entity';
 import { UserRepository } from './user.repository';
 
@@ -45,5 +50,53 @@ export class UserService {
       ...user,
       createdTimeSince: timeSince(user.createdAt),
     };
+  }
+
+  /**
+   * user 생성
+   */
+  async createUser(userRegisterDto: RegisterUserDto): Promise<UserEntity> {
+    const createdUser = await this.userRepository.createUser(userRegisterDto);
+
+    if (!createdUser) {
+      throw new BadRequestException('회원가입에 실패하였습니다.');
+    }
+
+    const user = await this.userRepository.findUserByUserId(createdUser.id);
+
+    if (!user) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    return user;
+  }
+
+  /**
+   * 사용자 서브 정보로 유효성 검사를 위한 사용자 조회
+   */
+  async getUserBySubForValidate(sub: string): Promise<UserEntity | undefined> {
+    const user = await this.userRepository.getUserBySubForValidate(sub);
+
+    if (!user) {
+      throw new NotFoundException(
+        '인증 오류 : 해당하는 사용자를 찾을 수 없습니다.',
+      );
+    }
+
+    return user;
+  }
+
+  /**
+   * 사용자 서브 정보로 유효성 검사를 위한 사용자 조회
+   * 이메일로 유저 조회
+   */
+  async findUserByEmail(email: string): Promise<any | null> {
+    const user = await this.userRepository.findUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    return user;
   }
 }
