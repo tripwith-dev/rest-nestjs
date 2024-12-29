@@ -56,31 +56,33 @@ export class UserService {
    * user 생성
    */
   async createUser(userRegisterDto: RegisterUserDto): Promise<UserEntity> {
-    const createdUser = await this.userRepository.createUser(userRegisterDto);
+    try {
+      const createdUser = await this.userRepository.createUser(userRegisterDto);
 
-    if (!createdUser) {
-      throw new BadRequestException('회원가입에 실패하였습니다.');
+      if (!createdUser) {
+        throw new BadRequestException('회원가입에 실패하였습니다.');
+      }
+
+      return await this.findUserByUserId(createdUser.id);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('회원가입 처리 중 오류가 발생했습니다.');
     }
-
-    const user = await this.userRepository.findUserByUserId(createdUser.id);
-
-    if (!user) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    return user;
   }
 
   /**
    * 사용자 서브 정보로 유효성 검사를 위한 사용자 조회
    */
-  async getUserBySubForValidate(sub: string): Promise<UserEntity | undefined> {
-    const user = await this.userRepository.getUserBySubForValidate(sub);
+  async validateUserBySub(sub: string): Promise<UserEntity> {
+    const user = await this.userRepository.validateUserBySub(sub);
 
     if (!user) {
-      throw new NotFoundException(
-        '인증 오류 : 해당하는 사용자를 찾을 수 없습니다.',
-      );
+      throw new NotFoundException('인증 실패: 사용자를 찾을 수 없습니다.');
     }
 
     return user;

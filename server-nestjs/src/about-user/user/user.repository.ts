@@ -60,7 +60,7 @@ export class UserRepository {
    * @param sub 사용자 서브 정보.
    * @returns 주어진 서브 정보를 가진 사용자 객체를 반환.
    */
-  async getUserBySubForValidate(sub: string): Promise<UserEntity | undefined> {
+  async validateUserBySub(sub: string): Promise<UserEntity | undefined> {
     return await this.repository
       .createQueryBuilder('user')
       .where('user.id = :sub', { sub })
