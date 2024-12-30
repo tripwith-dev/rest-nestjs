@@ -79,7 +79,7 @@ export class AuthService {
       secure: true,
     });
 
-    const loginUser = await this.userService.findUserByUserId(user.id);
+    const loginUser = await this.userService.findUserById(user.id);
 
     return { loginUser, jwt };
   }

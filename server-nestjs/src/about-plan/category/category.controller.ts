@@ -31,9 +31,7 @@ export class CategoryController {
 
   @Get(':categoryId')
   async findCategoryById(@Param('categoryId') categoryId: number) {
-    return await this.categoryService.findOneTravelCategoryFilteringPrivate(
-      categoryId,
-    );
+    return await this.categoryService.findCategoryById(categoryId);
   }
 
   @UseGuards(JwtAuthGuard)

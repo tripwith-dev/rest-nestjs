@@ -63,7 +63,7 @@ export class UserService {
         throw new BadRequestException('회원가입에 실패하였습니다.');
       }
 
-      return await this.findUserByUserId(createdUser.id);
+      return await this.findUserById(createdUser.id);
     } catch (error) {
       if (
         error instanceof NotFoundException ||

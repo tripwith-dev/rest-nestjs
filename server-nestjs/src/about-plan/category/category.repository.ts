@@ -31,35 +31,14 @@ export class CategoryRepository {
     return await this.repository.save(travelCategory);
   }
 
-  async findOneTravelCategory(categoryId: number) {
+  async findCategoryById(categoryId: number) {
     const travelCategory = await this.repository
-      .createQueryBuilder('travelcategory')
-      .leftJoinAndSelect('travelcategory.user', 'user')
-      .leftJoinAndSelect('travelcategory.plans', 'plan')
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.plans', 'plan')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .where('travelcategory.categoryId = :categoryId', { categoryId })
-      .andWhere('travelcategory.isDeleted = false')
-      .select([
-        'travelcategory.categoryId',
-        'travelcategory.categoryTitle',
-        'travelcategory.createdAt',
-        'travelcategory.createdTimeSince',
-        'travelcategory.isDeleted',
-        'user.id',
-        'user.nickname',
-        'plan.planId',
-        'plan.planTitle',
-        'plan.planMainImage',
-        'plan.status',
-        'plan.travelStartDate',
-        'plan.travelEndDate',
-        'plan.totalExpenses',
-        'planDestinations.planId',
-        'planDestinations.destinationId',
-        'destination.destinationId',
-        'destination.destinationName',
-      ])
+      .where('category.categoryId = :categoryId', { categoryId })
+      .andWhere('category.isDeleted = false')
       .getOne();
 
     if (travelCategory) {

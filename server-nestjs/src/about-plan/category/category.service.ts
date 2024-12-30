@@ -25,56 +25,39 @@ export class CategoryService {
    * @returns 생성된 여행 카테고리 엔티티
    * @throws HttpException - 카테고리 제목이 50자를 초과하거나 중복될 경우
    */
-  async createCategory(
-    createTravelCategoryDto: CreateCategoryDto,
-    userId: number,
-  ) {
-    const user = await this.userService.findUserByUserId(userId);
+  async createCategory(createCategoryDto: CreateCategoryDto, userId: number) {
+    const user = await this.userService.findUserById(userId);
 
-    if (createTravelCategoryDto.categoryTitle.length > 20) {
+    if (createCategoryDto.categoryTitle.length > 20) {
       throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
     }
 
     // 중복 확인(본인 카테고리 내에서)
     await this.checkDuplicateTitleWhenCreate(
       userId,
-      createTravelCategoryDto.categoryTitle,
+      createCategoryDto.categoryTitle,
     );
 
     // 카테고리 생성
-    const travelCategory = await this.categoryRepository.createCategory(
+    const category = await this.categoryRepository.createCategory(
       user,
-      createTravelCategoryDto,
+      createCategoryDto,
     );
 
     // 생성된 카테고리 반환
-    return await this.findOneTravelCategory(travelCategory.categoryId);
+    return await this.findCategoryById(category.categoryId);
   }
 
-  /**
-   * 특정 카테고리를 ID로 조회하는 메서드
-   * @param categoryId - 조회할 카테고리 ID
-   * @returns 조회된 카테고리 엔티티
-   * @throws HttpException - 카테고리를 찾을 수 없는 경우
-   */
-  async findOneTravelCategory(categoryId: number) {
-    const travelCategory =
-      await this.categoryRepository.findOneTravelCategory(categoryId);
+  async findCategoryById(categoryId: number) {
+    const category = await this.categoryRepository.findCategoryById(categoryId);
 
-    if (!travelCategory) {
+    if (!category) {
       throw new NotFoundException(
         `${categoryId}에 해당하는 카테고리를 찾을 수 없습니다.`,
       );
     }
 
-    return travelCategory;
-  }
-
-  async findOneTravelCategoryFilteringPrivate(categoryId: number) {
-    const travelCategory =
-      await this.categoryRepository.findOneTravelCategory(categoryId);
-
-    return travelCategory;
+    return category;
   }
 
   /**
@@ -108,7 +91,7 @@ export class CategoryService {
     categoryId: number,
     updateTravelCategoryDto: UpdateCategoryDto,
   ) {
-    const category = await this.findOneTravelCategory(categoryId);
+    const category = await this.findCategoryById(categoryId);
 
     // 업데이트 요소가 있는지 확인. 없으면 메서드 중단
     const hasChanges = this.hasChanges(category, updateTravelCategoryDto);
@@ -137,7 +120,7 @@ export class CategoryService {
       updateTravelCategoryDto, // destinations를 제외한 데이터로 업데이트
     );
 
-    return await this.findOneTravelCategory(categoryId);
+    return await this.findCategoryById(categoryId);
   }
 
   /**
@@ -216,7 +199,7 @@ export class CategoryService {
    * @throws HttpException - 카테고리를 찾을 수 없는 경우
    */
   async softDeletedTravelCategory(categoryId: number): Promise<any> {
-    const category = await this.findOneTravelCategory(categoryId);
+    const category = await this.findCategoryById(categoryId);
     if (category) {
       await this.categoryRepository.softDeletedTravelCategory(categoryId);
       return { message: '성공적으로 삭제되었습니다.' };
