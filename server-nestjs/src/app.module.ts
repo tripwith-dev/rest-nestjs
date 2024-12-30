@@ -18,6 +18,7 @@ import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
 import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
 import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
+import { CategoryController } from './category/category.controller';
 
 @Module({
   imports: [
@@ -51,6 +52,6 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     ArticlecommentModule,
     UserLikeArticleModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, CategoryController],
 })
 export class AppModule {}
