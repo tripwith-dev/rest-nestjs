@@ -46,7 +46,7 @@ export class UserRepository {
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  async findUserByUserId(userId): Promise<UserEntity> {
+  async findUserById(userId): Promise<UserEntity> {
     return await this.repository
       .createQueryBuilder('user')
       .where('user.id = :userId', { userId: userId })

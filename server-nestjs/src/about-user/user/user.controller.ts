@@ -11,10 +11,8 @@ export class UserController {
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
   @Get('verify-users/:userId')
-  async findUserByUserId(
-    @Param('userId') userId,
-  ): Promise<UserEntity | undefined> {
-    return await this.userService.findUserByUserId(userId);
+  async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
+    return await this.userService.findUserById(userId);
   }
 
   /**
