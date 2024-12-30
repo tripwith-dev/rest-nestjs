@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArticleModule } from './about-article/article/article.module';
-import { ArticlecommentModule } from './about-article/articlecomment/articlecomment.module';
+import { ArticleCommentModule } from './about-article/articlecomment/articlecomment.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
 import { CategoryModule } from './about-plan/category/category.module';
 import { DestinationModule } from './about-plan/destination/destination.module';
@@ -16,9 +16,9 @@ import { SettingsModule } from './about-user/settings/settings.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
+import { LoggerMiddleware } from './common/logger/logger.middleware';
 import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
 import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
-import { CategoryController } from './category/category.controller';
 
 @Module({
   imports: [
@@ -49,9 +49,14 @@ import { CategoryController } from './category/category.controller';
     UserLikePlanModule,
     PlanCommentModule,
     ArticleModule,
-    ArticlecommentModule,
+    ArticleCommentModule,
     UserLikeArticleModule,
   ],
-  controllers: [AppController, CategoryController],
+  controllers: [AppController],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    // 소비자에게 LoggerMiddleware 제공, 전체 엔드포인트에 대해서 LoggerMiddleware 실행
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
