@@ -30,8 +30,12 @@ export class CategoryController {
   }
 
   @Get(':categoryId')
-  async findCategoryById(@Param('categoryId') categoryId: number) {
-    return await this.categoryService.findCategoryById(categoryId);
+  async findCategoryWithPlansByCategoryId(
+    @Param('categoryId') categoryId: number,
+  ) {
+    return await this.categoryService.findCategoryWithPlansByCategoryId(
+      categoryId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

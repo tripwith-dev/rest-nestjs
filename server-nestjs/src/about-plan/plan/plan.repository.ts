@@ -33,11 +33,11 @@ export class PlanRepository {
    */
   async findPlanById(planId: number): Promise<PlanEntity | undefined> {
     const travelContainer = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .where('travelplan.planId = :planId', { planId })
-      .andWhere('travelplan.isDeleted = false')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
       .getOne();
 
     // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
@@ -59,13 +59,13 @@ export class PlanRepository {
     planId: number,
   ): Promise<PlanEntity | undefined> {
     const travelContainer = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .where('travelplan.planId = :planId', { planId })
+      .where('plan.planId = :planId', { planId })
       .andWhere('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
+      .andWhere('plan.isDeleted = false')
       .getOne();
 
     // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
@@ -212,10 +212,10 @@ export class PlanRepository {
    */
   async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
     return await this.repository
-      .createQueryBuilder('travelPlan')
-      .leftJoinAndSelect('travelPlan.details', 'detail')
-      .where('travelPlan.planId = :planId', { planId })
-      .andWhere('travelPlan.isDeleted = false')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.details', 'detail')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
       .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
       .orderBy('detail.endTime', 'ASC')
       .getOne();

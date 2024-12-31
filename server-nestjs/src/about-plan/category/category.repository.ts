@@ -34,6 +34,32 @@ export class CategoryRepository {
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
+      .leftJoinAndSelect('category.user', 'user')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
+      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .addSelect(['user.id'])
+      .where('category.categoryId = :categoryId', { categoryId })
+      .andWhere('category.isDeleted = false')
+      .getOne();
+
+    if (travelCategory) {
+      // travelCategory의 createdTimeSince 필드를 변환
+      const transformedTravelCategory = {
+        ...travelCategory,
+        createdTimeSince: timeSince(travelCategory.createdAt),
+      };
+
+      return transformedTravelCategory;
+    }
+
+    return null;
+  }
+
+  async findCategoryWithPlansByCategoryId(
+    categoryId: number,
+  ): Promise<CategoryEntity> {
+    const travelCategory = await this.repository
+      .createQueryBuilder('category')
       .leftJoinAndSelect('category.plans', 'plan')
       .leftJoinAndSelect('category.user', 'user')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')

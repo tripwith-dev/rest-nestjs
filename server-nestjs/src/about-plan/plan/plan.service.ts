@@ -107,24 +107,24 @@ export class PlanService {
     planId: number,
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity | undefined> {
-    const travelPlan = await this.planRepository.findPlanById(planId);
+    const plan = await this.planRepository.findPlanById(planId);
 
-    if (!travelPlan) {
+    if (!plan) {
       throw new NotFoundException(
         `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
       );
     }
 
     // 통화 변환
-    if (travelPlan.totalExpenses) {
-      travelPlan.totalExpenses = convertTotalExpenses(
-        travelPlan.totalExpenses,
+    if (plan.totalExpenses) {
+      plan.totalExpenses = convertTotalExpenses(
+        plan.totalExpenses,
         Currency.KRW, // default는 KRW
         currency,
       );
     }
 
-    return travelPlan;
+    return plan;
   }
 
   /**

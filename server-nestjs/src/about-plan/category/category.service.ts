@@ -39,11 +39,28 @@ export class CategoryService {
       createCategoryDto,
     );
 
-    return await this.findCategoryById(category.categoryId);
+    return await this.findCategoryWithPlansByCategoryId(category.categoryId);
   }
 
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findCategoryById(categoryId);
+
+    if (!category) {
+      throw new NotFoundException(
+        `${categoryId}에 해당하는 카테고리를 찾을 수 없습니다.`,
+      );
+    }
+
+    return category;
+  }
+
+  async findCategoryWithPlansByCategoryId(
+    categoryId: number,
+  ): Promise<CategoryEntity> {
+    const category =
+      await this.categoryRepository.findCategoryWithPlansByCategoryId(
+        categoryId,
+      );
 
     if (!category) {
       throw new NotFoundException(
