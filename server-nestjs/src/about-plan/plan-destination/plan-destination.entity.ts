@@ -1,9 +1,10 @@
+import { CommonEntity } from 'src/common/entity/common.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { DestinationEntity } from '../destination/destination.entity';
 import { PlanEntity } from '../plan/plan.entity';
 
 @Entity('plandestination')
-export class PlanDestinationEntity {
+export class PlanDestinationEntity extends CommonEntity {
   @PrimaryColumn()
   destinationId: number;
 

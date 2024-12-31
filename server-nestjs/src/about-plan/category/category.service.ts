@@ -42,7 +42,7 @@ export class CategoryService {
     return await this.findCategoryById(category.categoryId);
   }
 
-  async findCategoryById(categoryId: number) {
+  async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findCategoryById(categoryId);
 
     if (!category) {
@@ -51,12 +51,7 @@ export class CategoryService {
       );
     }
 
-    const transformedCategory = {
-      ...category,
-      user: { id: category.user.id },
-    };
-
-    return transformedCategory;
+    return category;
   }
 
   /**

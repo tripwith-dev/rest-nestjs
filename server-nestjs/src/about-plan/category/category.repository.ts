@@ -31,13 +31,14 @@ export class CategoryRepository {
     return await this.repository.save(travelCategory);
   }
 
-  async findCategoryById(categoryId: number) {
+  async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.plans', 'plan')
       .leftJoinAndSelect('category.user', 'user')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .addSelect(['user.id'])
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();
@@ -52,7 +53,7 @@ export class CategoryRepository {
       return transformedTravelCategory;
     }
 
-    return null; // travelCategory가 없는 경우 null 반환
+    return null;
   }
 
   /**
