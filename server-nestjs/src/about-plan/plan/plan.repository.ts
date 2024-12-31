@@ -15,10 +15,7 @@ export class PlanRepository {
   ) {}
 
   /**
-   * 여행 컨테이너를 생성하는 리포지토리 로직
-   * @param user 사용자 엔티티
-   * @param createTravelPlanDto 여행 컨테이너 생성 DTO
-   * @returns 생성된 여행 컨테이너 엔티티를 반환
+   * 여행 계획 생성
    */
   async createTravelPlan(
     category: CategoryEntity,
@@ -32,11 +29,35 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 계획을 조회하는 리포지토리 로직
-   * @param planId 여행 계획 ID
-   * @returns 조회된 여행 계획 엔티티를 반환
+   * 특정 여행 계획을 조회
    */
   async findPlanById(planId: number): Promise<PlanEntity | undefined> {
+    const travelContainer = await this.repository
+      .createQueryBuilder('travelplan')
+      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .where('travelplan.planId = :planId', { planId })
+      .andWhere('travelplan.isDeleted = false')
+      .getOne();
+
+    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
+    if (travelContainer) {
+      return {
+        ...travelContainer,
+        createdTimeSince: timeSince(travelContainer.createdAt),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * 특정 여행 계획과 카테고리까지 조회
+   * 업데이트 시에 중복 확인을 위해서 사용
+   */
+  async findPlanWithCategoryById(
+    planId: number,
+  ): Promise<PlanEntity | undefined> {
     const travelContainer = await this.repository
       .createQueryBuilder('travelplan')
       .leftJoinAndSelect('travelplan.category', 'category')
@@ -56,6 +77,11 @@ export class PlanRepository {
     }
   }
 
+  /**
+   * 좋아요 top10
+   * 동점일 경우 최신 순 조회
+   * 메인페이지 배너에서 사용됨
+   */
   async findTopTenTravelPlan(): Promise<PlanEntity[]> {
     const travelPlans = await this.repository
       .createQueryBuilder('travelplan')
@@ -76,6 +102,10 @@ export class PlanRepository {
     }));
   }
 
+  /**
+   * <테스트용>
+   * 모든 plan 조회
+   */
   async findAllTravelPlans(): Promise<PlanEntity[]> {
     const travelPlans = await this.repository
       .createQueryBuilder('travelplan')
@@ -93,34 +123,8 @@ export class PlanRepository {
   }
 
   /**
-   * 특정(+상태 PUBLIC인 카테고리) 여행 계획을 조회하는 리포지토리 로직
-   * @param planId 여행 계획 ID
-   * @returns 조회된 여행 계획 엔티티를 반환
-   */
-  async findOnePublicTravelPlan(
-    planId: number,
-  ): Promise<PlanEntity | undefined> {
-    const travelContainer = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .where('travelplan.planId = :planId', { planId })
-      .andWhere('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
-      .getOne();
-
-    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
-    if (travelContainer) {
-      return {
-        ...travelContainer,
-        createdTimeSince: timeSince(travelContainer.createdTimeSince),
-      };
-    }
-  }
-
-  /**
-   * 특정 카테고리의 모든 여행 계획을 조회하는 리포지토리 로직
-   * @param categoryId 카테고리 id
-   * @returns 특정 카테고리의 여행 계획 엔티티 배열을 반환
+   * 특정 카테고리의 모든 여행 계획을 조회
+   * 카테고리 내에 중복되는 planTitle이 있는지 확인할 때 사용
    */
   async findPlansByCategoryId(categoryId: number): Promise<PlanEntity[]> {
     const travelPlans = await this.repository
@@ -143,10 +147,7 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 계획을 업데이트하는 리포지토리 로직
-   * @param planId 여행 계획 ID
-   * @param updateTravelPlanDto 업데이트 데이터 DTO
-   * @returns void
+   * 특정 여행 계획을 업데이트
    */
   async updatePlan(
     planId: number,
@@ -160,10 +161,7 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 계획의 totalExpenses를 업데이트하는 리포지토리 로직
-   * @param planId 여행 계획 ID
-   * @param totalExpenses 업데이트할 총 비용
-   * @returns void
+   * 특정 여행 계획의 totalExpenses를 업데이트
    */
   async updateTotalExpenses(
     planId: number,
@@ -177,9 +175,7 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 컨테이너를 소프트 삭제하는 리포지토리 로직
-   * @param planId 여행 계획 ID
-   * @returns void
+   * 특정 여행 컨테이너를 소프트 삭제
    */
   async softDeletedTravelPlan(planId: number): Promise<void> {
     await this.repository.update(planId, {
@@ -189,11 +185,32 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 계획의의 모든 detail들의 위치와 제목 정보를 가져옴
-   * @param planId 여행 계획 ID
-   * @returns 여행 디테일의 장소(location)와 위치(title) 배열을 반환
+   * 삭제된 plan 조회
    */
-  async findDetailTitlesAndLocationOfPlan(planId: number): Promise<PlanEntity> {
+  async findDeletedPlanById(planId: number): Promise<PlanEntity | undefined> {
+    const travelContainer = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
+      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = true')
+      .getOne();
+
+    if (travelContainer) {
+      return {
+        ...travelContainer,
+        createdTimeSince: timeSince(travelContainer.createdAt),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * 특정 여행 계획의 모든 detail 정보를 가져옴
+   * plan 페이지에서 detail이 보여야 하기에 필요한 로직
+   */
+  async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
     return await this.repository
       .createQueryBuilder('travelPlan')
       .leftJoinAndSelect('travelPlan.details', 'detail')
@@ -202,47 +219,6 @@ export class PlanRepository {
       .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
       .orderBy('detail.endTime', 'ASC')
       .getOne();
-  }
-
-  /**
-   * 특정 여행 계획의 여행 디테일들의 가격들을 반환
-   * @param planId 여행 계획 ID
-   * @returns 여행 디테일 엔티티 배열을 반환
-   */
-  async findDetailsPriceForContainer(planId: number): Promise<PlanEntity> {
-    const plan = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.details', 'detail')
-      .where('travelplan.planId = :planId', { planId })
-      .andWhere('travelplan.isDeleted = false')
-      .andWhere('detail.isDeleted = false')
-      // travelStartDate, travelEndDate와 detail의 YYYYMMDD 부분만 비교
-      // 아래 로직 때문에 plan 자체가 null로 반환될 수도 있음.
-      .andWhere(
-        'SUBSTRING(detail.startTime, 1, 8) >= travelplan.travelStartDate',
-      )
-      .andWhere('SUBSTRING(detail.endTime, 1, 8) <= travelplan.travelEndDate')
-      .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
-      .select([
-        'travelplan.planId',
-        'travelplan.travelStartDate',
-        'travelplan.travelEndDate',
-        'travelplan.isDeleted',
-        'detail.detailId',
-        'detail.price',
-        'detail.currency',
-        'detail.startTime',
-        'detail.endTime',
-        'detail.isDeleted',
-      ])
-      .getOne();
-
-    // details가 없을 경우 빈 배열을 할당
-    if (plan && !plan.details) {
-      plan.details = [];
-    }
-
-    return plan;
   }
 
   async updateMainImage(

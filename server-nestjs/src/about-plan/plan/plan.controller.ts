@@ -23,13 +23,10 @@ import { PlanService } from './plan.service';
 
 @Controller('plans')
 export class PlanController {
-  constructor(private readonly travelPlanService: PlanService) {}
+  constructor(private readonly planService: PlanService) {}
 
   /**
    * 새로운 여행 컨테이너를 생성하는 엔드포인트
-   * @param createTravelContainerDto 여행 컨테이너 생성 DTO
-   * @param req 요청 객체
-   * @returns 생성된 여행 컨테이너 객체를 반환
    */
   @UseGuards(JwtAuthGuard)
   @Post('create')
@@ -37,7 +34,7 @@ export class PlanController {
     @Body() createTravelPlanDto: CreatePlanDto,
     @Query('categoryId') categoryId: number,
   ) {
-    return await this.travelPlanService.createTravelPlan(
+    return await this.planService.createTravelPlan(
       categoryId,
       createTravelPlanDto,
     );
@@ -45,12 +42,6 @@ export class PlanController {
 
   /**
    * 특정 여행 계획을 조회하는 엔드포인트
-   * 계획의 카테고리가 PRIVATE일 수도 있기 때문에 자신의 컨테이너가 맞는지 확인해야함.
-   * 로그인한 사용자는 자신의 PRIVATE 카테고리의 계획 또한 조회할 수 있고,
-   * 로그인하지 않은 사용자는 PUBLIC 카테고리의 계획만 조회할 수 있음
-   * @param planId 여행 계획 ID
-   * @param req 요청 객체
-   * @returns 조회된 여행 컨테이너 객체를 반환
    */
   @Get(':planId')
   async findPlanById(
@@ -58,10 +49,7 @@ export class PlanController {
     @Request() req?: any,
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
-    const travelPlan = await this.travelPlanService.findPlanById(
-      planId,
-      currency,
-    );
+    const travelPlan = await this.planService.findPlanById(planId, currency);
 
     return travelPlan;
   }
@@ -70,32 +58,26 @@ export class PlanController {
   async findTopTenTravelPlans(
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
-    return await this.travelPlanService.findTopTenTravelPlan(currency);
+    return await this.planService.findTopTenTravelPlan(currency);
   }
 
   @Get('all/plans')
   async findAllTravelPlans(
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
-    return await this.travelPlanService.findAllTravelPlans(currency);
+    return await this.planService.findAllTravelPlans(currency);
   }
 
   /**
    * 특정 여행 계획을 업데이트하는 엔드포인트
-   * @param planId 여행 계획 ID
-   * @param updateTravelPlanDto 여행 컨테이너 업데이트 DTO
-   * @returns 업데이트된 여행 계획 객체를 반환
    */
   @UseGuards(JwtAuthGuard)
   @Patch(':planId/update')
-  async updateTravelContainer(
+  async updatePlan(
     @Param('planId') planId: number,
     @Body() updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ) {
-    return this.travelPlanService.updateTravelPlan(
-      planId,
-      updatePlanWithDestinationDto,
-    );
+    return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
   }
 
   /**
@@ -106,7 +88,7 @@ export class PlanController {
   @UseGuards(JwtAuthGuard)
   @Patch(':planId/delete')
   async softDeletedTravelPlan(@Param('planId') planId: number) {
-    return this.travelPlanService.softDeletedTravelPlan(planId);
+    return this.planService.softDeletedTravelPlan(planId);
   }
 
   /**
@@ -116,9 +98,7 @@ export class PlanController {
    */
   @Get(':planId/details')
   async findDetailTitlesAndLocationOfPlan(@Param('planId') planId: number) {
-    return await this.travelPlanService.findDetailTitlesAndLocationOfPlan(
-      planId,
-    );
+    return await this.planService.findPlanWithDetailByPlanId(planId);
   }
 
   /**
@@ -132,10 +112,7 @@ export class PlanController {
     @Param('planId') planId: number,
     @Query('currency') currency: Currency,
   ): Promise<number> {
-    return await this.travelPlanService.calculateTotalExpenses(
-      planId,
-      currency,
-    );
+    return await this.planService.calculateTotalExpenses(planId, currency);
   }
 
   @Patch(':planId/main-image')
@@ -153,13 +130,13 @@ export class PlanController {
     }
     const mainImageUrl = file.path;
     console.log(mainImageUrl);
-    return await this.travelPlanService.addMainImage(planId, mainImageUrl);
+    return await this.planService.addMainImage(planId, mainImageUrl);
   }
 
   @Delete(':planId/main-image')
   @UseGuards(JwtAuthGuard)
   async deleteMainImage(@Param('planId') planId: number) {
-    return await this.travelPlanService.deleteMainImage(planId);
+    return await this.planService.deleteMainImage(planId);
   }
 
   /**
@@ -172,7 +149,7 @@ export class PlanController {
   @Post(':planId/like')
   async addLike(@Param('planId') planId: number, @Request() req: any) {
     const userId = req.user.id;
-    return await this.travelPlanService.addLike(planId, userId);
+    return await this.planService.addLike(planId, userId);
   }
 
   /**
@@ -185,6 +162,6 @@ export class PlanController {
   @Delete(':planId/like')
   async removeLike(@Param('planId') planId: number, @Request() req: any) {
     const userId = req.user.id;
-    return await this.travelPlanService.removeLike(planId, userId);
+    return await this.planService.removeLike(planId, userId);
   }
 }

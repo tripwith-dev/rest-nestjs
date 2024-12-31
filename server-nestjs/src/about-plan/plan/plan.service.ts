@@ -20,20 +20,29 @@ import { PlanRepository } from './plan.repository';
 @Injectable()
 export class PlanService {
   constructor(
-    private readonly travelPlanRepository: PlanRepository,
-    private readonly travelCategoryService: CategoryService,
+    private readonly planRepository: PlanRepository,
+    private readonly categoryService: CategoryService,
     private readonly destinationService: DestinationService,
     private readonly planDestinationService: PlanDestinationService,
     private readonly userPlanLikeRepository: UserLikePlanRepository,
   ) {}
 
+  /**
+   * 여행 계획 생성
+   *
+   * @param categoryId - 여행 계획이 속할 카테고리 ID
+   * @param createTravelPlanDto - 생성할 여행 계획 정보 (제목, 일정, 여행지 등 포함)
+   * @returns {Promise<PlanEntity>} - 생성된 여행 계획 엔티티
+   * @throws {BadRequestException} - 제목 길이가 30자를 초과한 경우 또는 동일 카테고리 내 제목이 중복된 경우
+   * @throws {Error} - 날짜 유효성 검사 실패 또는 여행지 생성/조회 실패 시 발생할 수 있음
+   */
   async createTravelPlan(
     categoryId: number,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
-    const category =
-      await this.travelCategoryService.findCategoryById(categoryId);
+    const category = await this.categoryService.findCategoryById(categoryId);
 
+    // 1. 제목 제약 조건 확인
     if (
       createTravelPlanDto.planTitle &&
       createTravelPlanDto.planTitle.length > 30
@@ -41,19 +50,22 @@ export class PlanService {
       throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
     }
 
+    // 2. 특정 카테고리 내에 planTitle 중복 확인
     await this.checkDuplicateTitle(categoryId, createTravelPlanDto.planTitle);
 
+    // 3. 계획 일정 검증
     this.validateDates(
       createTravelPlanDto.travelStartDate,
       createTravelPlanDto.travelEndDate,
     );
 
-    const travelPlan = await this.travelPlanRepository.createTravelPlan(
+    // 4. plan 생성
+    const plan = await this.planRepository.createTravelPlan(
       category,
       createTravelPlanDto,
     );
 
-    // 여행지 데이터 처리
+    // 5. 여행지 데이터 처리
     if (
       createTravelPlanDto.destinations &&
       createTravelPlanDto.destinations.length > 0
@@ -61,34 +73,41 @@ export class PlanService {
       for (const destination of createTravelPlanDto.destinations) {
         const destinationName = destination.destination.destinationName;
 
-        // Destination이 이미 존재하는지 확인
+        // 5-1. Destination이 이미 존재하는지 확인
         let destinationEntity =
           await this.destinationService.findOneByDestinationName(
             destinationName,
           );
 
-        // 존재하지 않는다면 새로 생성
+        // 5-2. 존재하지 않는다면 새로 생성
         if (!destinationEntity) {
           destinationEntity =
             await this.destinationService.createDestination(destinationName);
         }
 
-        // CategoryDestination 관계 생성
+        // 5-3. CategoryDestination 관계 생성
         await this.planDestinationService.createPlanDestination(
-          travelPlan,
+          plan,
           destinationEntity,
         );
       }
     }
 
-    return await this.findPlanById(travelPlan.planId);
+    return await this.findPlanById(plan.planId);
   }
 
+  /**
+   * 여행 계획 조회
+   * @param planId - 조회할 여행 계획의 ID
+   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
+   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 또는 undefined
+   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
+   */
   async findPlanById(
     planId: number,
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity | undefined> {
-    const travelPlan = await this.travelPlanRepository.findPlanById(planId);
+    const travelPlan = await this.planRepository.findPlanById(planId);
 
     if (!travelPlan) {
       throw new NotFoundException(
@@ -108,28 +127,50 @@ export class PlanService {
     return travelPlan;
   }
 
+  /**
+   * 여행 계획과 카테고리까지 조회
+   * @param planId - 조회할 여행 계획의 ID
+   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
+   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
+   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
+   */
+  async findPlanWithCategoryById(
+    planId: number,
+    currency: Currency = Currency.KRW,
+  ): Promise<PlanEntity | undefined> {
+    const travelPlan =
+      await this.planRepository.findPlanWithCategoryById(planId);
+
+    if (!travelPlan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    // 통화 변환
+    if (travelPlan.totalExpenses) {
+      travelPlan.totalExpenses = convertTotalExpenses(
+        travelPlan.totalExpenses,
+        Currency.KRW, // default는 KRW
+        currency,
+      );
+    }
+
+    return travelPlan;
+  }
+
+  /**
+   * 좋아요 Top 10 여행 계획 조회
+   * 동점일 경우 최신 순으로 정렬
+   * 메인페이지 배너에서 사용됨.
+   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
+   * @returns {Promise<PlanEntity[]>} - 좋아요 순위 상위 10개의 여행 계획 목록
+   * @throws {Error} - 여행 계획 데이터를 조회하거나 처리 중 오류가 발생할 경우
+   */
   async findTopTenTravelPlan(
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity[]> {
-    const travelPlans = await this.travelPlanRepository.findTopTenTravelPlan();
-
-    for (const plan of travelPlans) {
-      if (plan && plan.totalExpenses) {
-        plan.totalExpenses = convertTotalExpenses(
-          plan.totalExpenses,
-          Currency.KRW,
-          currency,
-        );
-      }
-    }
-
-    return travelPlans;
-  }
-
-  async findAllTravelPlans(
-    currency: Currency = Currency.KRW,
-  ): Promise<PlanEntity[]> {
-    const travelPlans = await this.travelPlanRepository.findAllTravelPlans();
+    const travelPlans = await this.planRepository.findTopTenTravelPlan();
 
     for (const plan of travelPlans) {
       if (plan && plan.totalExpenses) {
@@ -145,16 +186,41 @@ export class PlanService {
   }
 
   /**
-   * 특정 여행 컨테이너를 업데이트하는 서비스 로직
-   * @param planId 여행 계획 ID
-   * @param updateTravelContainerDto 여행 컨테이너 업데이트 DTO
-   * @returns 업데이트된 여행 컨테이너 객체를 반환
+   * <테스트용>
+   * 모든 plan 조회
    */
-  async updateTravelPlan(
+  async findAllTravelPlans(
+    currency: Currency = Currency.KRW,
+  ): Promise<PlanEntity[]> {
+    const travelPlans = await this.planRepository.findAllTravelPlans();
+
+    for (const plan of travelPlans) {
+      if (plan && plan.totalExpenses) {
+        plan.totalExpenses = convertTotalExpenses(
+          plan.totalExpenses,
+          Currency.KRW,
+          currency,
+        );
+      }
+    }
+
+    return travelPlans;
+  }
+
+  /**
+   * 특정 여행 계획을 업데이트
+   * @param planId - 업데이트할 여행 계획의 ID
+   * @param updatePlanWithDestinationDto - 업데이트할 여행 계획의 데이터 (계획 제목, 일정, 목적지 등)
+   * @returns {Promise<PlanEntity>} - 업데이트된 여행 계획 엔티티
+   * @throws {BadRequestException} - 제목이 30자를 초과하거나 중복된 경우
+   * @throws {NotFoundException} - 여행 계획이 존재하지 않을 경우
+   * @throws {InternalServerErrorException} - 계획을 업데이트하는 중에 문제가 발생한 경우
+   */
+  async updatePlan(
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanById(planId);
+    const plan = await this.findPlanWithCategoryById(planId);
     if (plan) {
       // 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
       const hasChanges = this.hasChanges(plan, updatePlanWithDestinationDto);
@@ -193,7 +259,7 @@ export class PlanService {
 
       // 4. 위 조건이 문제 없으면 여행지를 제외한 데이터들만 변경
       const { destinations, ...planData } = updatePlanWithDestinationDto;
-      await this.travelPlanRepository.updatePlan(planId, planData);
+      await this.planRepository.updatePlan(planId, planData);
 
       // 5. destination 업데이트 (destinationName만 보내기 위해 map 함수 사용)
       const destinationNames =
@@ -222,9 +288,11 @@ export class PlanService {
   }
 
   /**
-   * 카테고리의 destination 태그를 업데이트하는 메서드
-   * @param category - 업데이트 대상 카테고리 엔티티
-   * @param newDestinations - 업데이트할 destination 목록
+   * 카테고리의 destination 태그를 업데이트
+   * @param plan - 업데이트 대상이 되는 여행 계획 엔티티
+   * @param newDestinations - 업데이트할 새로운 목적지 이름 배열
+   * @returns {Promise<void>} - 처리 완료 후 반환값 없음
+   * @throws {Error} - 목적지 추가 또는 삭제 처리 중 발생하는 문제
    */
   private async updateDestinationTags(
     plan: PlanEntity,
@@ -286,15 +354,18 @@ export class PlanService {
   }
 
   /**
-   * 특정 여행 계획을 소프트 삭제하는 서비스 로직
-   * @param planId 여행 계획 ID
-   * @returns void
+   * 특정 여행 계획을 소프트 삭제
+   * @param planId - 소프트 삭제할 여행 계획의 고유 ID
+   * @returns {Promise<{ message: string; plan: PlanEntity }>} - 삭제 성공 메시지와 삭제된 계획 데이터
+   * @throws {InternalServerErrorException} - 해당 ID의 여행 계획이 존재하지 않을 경우 발생
    */
-  async softDeletedTravelPlan(planId: number): Promise<any> {
-    const travelPlan = await this.findPlanById(planId);
-    if (travelPlan) {
-      await this.travelPlanRepository.softDeletedTravelPlan(planId);
-      return { message: '성공적으로 삭제되었습니다.' };
+  async softDeletedTravelPlan(
+    planId: number,
+  ): Promise<{ message: string; plan: PlanEntity }> {
+    const plan = await this.findPlanById(planId);
+    if (plan) {
+      await this.planRepository.softDeletedTravelPlan(planId);
+      return { message: '성공적으로 삭제되었습니다.', plan };
     } else {
       throw new InternalServerErrorException(
         `${planId}에 해당하는 여행 계획을 삭제할 수 없습니다.`,
@@ -304,16 +375,17 @@ export class PlanService {
 
   /**
    * plan을 생성 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
-   * @param categoryId 카테고리 ID
-   * @param planTitle 계획 제목
-   * @returns void
+   * @param categoryId - 확인할 카테고리의 ID
+   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
+   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
+   * @returns {Promise<void>} - 반환값 없음
    */
   private async checkDuplicateTitle(
     categoryId: number,
     planTitle: string,
   ): Promise<void> {
     const existingPlans =
-      await this.travelPlanRepository.findPlansByCategoryId(categoryId);
+      await this.planRepository.findPlansByCategoryId(categoryId);
 
     // 하나라도 중복 요소가 있으면 예외처리
     if (
@@ -326,10 +398,11 @@ export class PlanService {
 
   /**
    * plan을 업데이트 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
-   * @param categoryId 카테고리 ID
-   * @param planId 제외할 계획 ID (업데이트할 계획 ID)
-   * @param planTitle 컨테이너 제목
-   * @returns void
+   * @param categoryId - 확인할 카테고리의 ID
+   * @param planId - 현재 업데이트하려는 여행 계획의 ID
+   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
+   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
+   * @returns {Promise<void>} - 반환값 없음
    */
   private async checkDuplicateTitleWhenUpdate(
     categoryId: number,
@@ -337,7 +410,7 @@ export class PlanService {
     planTitle: string,
   ): Promise<void> {
     const existingPlans =
-      await this.travelPlanRepository.findPlansByCategoryId(categoryId);
+      await this.planRepository.findPlansByCategoryId(categoryId);
 
     const isDuplicate = existingPlans.some(
       (plan) => plan.planTitle === planTitle && plan.planId !== planId,
@@ -398,10 +471,8 @@ export class PlanService {
    * @param planId 여행 계획 ID
    * @returns 여행 디테일 제목 리스트를 반환
    */
-  async findDetailTitlesAndLocationOfPlan(planId: number) {
-    return await this.travelPlanRepository.findDetailTitlesAndLocationOfPlan(
-      planId,
-    );
+  async findPlanWithDetailByPlanId(planId: number) {
+    return await this.planRepository.findPlanWithDetailByPlanId(planId);
   }
 
   /**
@@ -414,8 +485,7 @@ export class PlanService {
     planId: number,
     targetCurrency: Currency,
   ): Promise<number> {
-    const plan =
-      await this.travelPlanRepository.findDetailsPriceForContainer(planId);
+    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
 
     const exchangeRates = {
       USD: 1,
@@ -462,10 +532,7 @@ export class PlanService {
       );
       console.log(`전체 비용 계산 ${planId}: ${totalExpenses}`);
 
-      await this.travelPlanRepository.updateTotalExpenses(
-        planId,
-        totalExpenses,
-      );
+      await this.planRepository.updateTotalExpenses(planId, totalExpenses);
       console.log(`전체 비용 업데이트 됨 ${planId}`);
     } catch (error) {
       console.error(`전체비용 업데이트 안됨 ${planId}:`, error);
@@ -483,7 +550,7 @@ export class PlanService {
     planId: number,
     mainImageUrl: string,
   ): Promise<PlanEntity> {
-    await this.travelPlanRepository.updateMainImage(planId, mainImageUrl);
+    await this.planRepository.updateMainImage(planId, mainImageUrl);
     return await this.findPlanById(planId);
   }
   /**
@@ -495,7 +562,7 @@ export class PlanService {
   async deleteMainImage(planId: number): Promise<PlanEntity> {
     const plan = await this.findPlanById(planId);
 
-    await this.travelPlanRepository.deleteMainImage(plan);
+    await this.planRepository.deleteMainImage(plan);
     return await this.findPlanById(planId);
   }
 
@@ -504,7 +571,10 @@ export class PlanService {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async addLike(planId: number, userId: number): Promise<{ message: string }> {
+  async addLike(
+    planId: number,
+    userId: number,
+  ): Promise<{ message: string; plan: PlanEntity }> {
     const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
       planId,
       userId,
@@ -515,8 +585,13 @@ export class PlanService {
     }
 
     await this.userPlanLikeRepository.addLike(planId, userId);
+    const plan = await this.findPlanById(planId);
 
-    return { message: '좋아요가 추가되었습니다.' };
+    if (!plan) {
+      throw new NotFoundException('여행 계획을 찾을 수 없습니다.');
+    }
+
+    return { message: '좋아요가 추가되었습니다.', plan };
   }
 
   /**
@@ -527,7 +602,7 @@ export class PlanService {
   async removeLike(
     planId: number,
     userId: number,
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; plan: PlanEntity }> {
     const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
       planId,
       userId,
@@ -538,7 +613,12 @@ export class PlanService {
     }
 
     await this.userPlanLikeRepository.removeLike(planId, userId);
+    const plan = await this.findPlanById(planId);
 
-    return { message: '좋아요가 제거되었습니다.' };
+    if (!plan) {
+      throw new NotFoundException('여행 계획을 찾을 수 없습니다.');
+    }
+
+    return { message: '좋아요가 추가되었습니다.', plan };
   }
 }
