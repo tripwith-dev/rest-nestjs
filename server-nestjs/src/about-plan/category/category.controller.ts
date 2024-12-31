@@ -36,11 +36,11 @@ export class CategoryController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':categoryId/update')
-  async updateTravelCategory(
+  async updateCategory(
     @Param('categoryId') categoryId: number,
     @Body() updateTravelCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoryService.updateTravelCategory(
+    return this.categoryService.updateCategory(
       categoryId,
       updateTravelCategoryDto,
     );
@@ -48,7 +48,7 @@ export class CategoryController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':categoryId/delete')
-  async deleteTravelCategory(@Param('categoryId') categoryId: number) {
-    return this.categoryService.softDeletedTravelCategory(categoryId);
+  async softDeletedCategory(@Param('categoryId') categoryId: number) {
+    return this.categoryService.softDeletedCategory(categoryId);
   }
 }

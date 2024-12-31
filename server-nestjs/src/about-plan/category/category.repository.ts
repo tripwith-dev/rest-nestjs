@@ -35,6 +35,7 @@ export class CategoryRepository {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.plans', 'plan')
+      .leftJoinAndSelect('category.user', 'user')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.categoryId = :categoryId', { categoryId })
@@ -67,13 +68,7 @@ export class CategoryRepository {
       .where('travelcategory.user.id = :userId', { userId })
       .andWhere('travelcategory.isDeleted = false')
       .orderBy('travelcategory.createdAt', 'DESC')
-      .select([
-        'travelcategory.categoryId',
-        'travelcategory.categoryTitle',
-        'travelcategory.createdAt',
-        'travelcategory.createdTimeSince',
-        'travelcategory.updatedAt',
-      ])
+      .select(['travelcategory.categoryId', 'travelcategory.categoryTitle'])
       .getMany();
 
     // 각 카테고리의 createdTimeSince 필드를 변환하여 반환
@@ -89,7 +84,7 @@ export class CategoryRepository {
    * @param updateTravelCategoryDto - 업데이트할 정보 DTO
    * @returns void
    */
-  async updateTravelCategory(
+  async updateCategory(
     categoryId: number,
     // 업데이트 dto에서 여행지 태그는 제외하고 나머지만 업데이트 예정
     updateTravelCategoryDto: UpdateCategoryDto,
@@ -106,7 +101,7 @@ export class CategoryRepository {
    * @param containerId 여행 컨테이너 ID
    * @returns void
    */
-  async softDeletedTravelCategory(categoryId: number): Promise<void> {
+  async softDeletedCategory(categoryId: number): Promise<void> {
     await this.repository.update(categoryId, {
       isDeleted: true,
       deletedAt: new Date(),
