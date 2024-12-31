@@ -139,7 +139,7 @@ export class PlanService {
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity | undefined> {
     const travelPlan =
-      await this.planRepository.findPlanWithCategoryById(planId);
+      await this.planRepository.findPlanWithCategoryByPlanId(planId);
 
     if (!travelPlan) {
       throw new NotFoundException(

@@ -54,9 +54,7 @@ export class PlanDetailEntity extends CommonEntity {
   @Column({ nullable: true })
   notes?: string;
 
-  @ManyToOne(() => PlanEntity, (plan) => plan.details, {
-    cascade: ['insert', 'update', 'remove'],
-  })
+  @ManyToOne(() => PlanEntity, (plan) => plan.details)
   @JoinColumn({ name: 'planId' })
   plan: PlanEntity;
 }

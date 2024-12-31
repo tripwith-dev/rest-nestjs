@@ -52,10 +52,36 @@ export class PlanRepository {
   }
 
   /**
+   * 특정 여행 계획을 조회
+   */
+  async findPlanWithDetailsById(
+    planId: number,
+  ): Promise<PlanEntity | undefined> {
+    const travelContainer = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.details', 'details')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
+      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
+    if (travelContainer) {
+      return {
+        ...travelContainer,
+        createdTimeSince: timeSince(travelContainer.createdAt),
+      };
+    }
+
+    return null;
+  }
+
+  /**
    * 특정 여행 계획과 카테고리까지 조회
    * 업데이트 시에 중복 확인을 위해서 사용
    */
-  async findPlanWithCategoryById(
+  async findPlanWithCategoryByPlanId(
     planId: number,
   ): Promise<PlanEntity | undefined> {
     const travelContainer = await this.repository
