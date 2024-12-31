@@ -55,7 +55,7 @@ describe('UserService', () => {
     it('should return user details excluding password with createdTimeSince', async () => {
       mockUserRepository.findUserByUserId.mockResolvedValue(mockUserById);
 
-      const result = await userService.findUserByUserId(5);
+      const result = await userService.findUserById(5);
 
       expect(result).toEqual({
         createdAt: mockUserById.createdAt,
@@ -71,16 +71,16 @@ describe('UserService', () => {
         introduce: '안녕하세요! 저는 유저5입니다.',
         profileImage: 'https://example.com/image5.jpg',
       });
-      expect(userRepository.findUserByUserId).toHaveBeenCalledWith(5);
+      expect(userRepository.findUserById).toHaveBeenCalledWith(5);
     });
 
     it('should throw NotFoundException if user is not found', async () => {
       mockUserRepository.findUserByUserId.mockResolvedValue(undefined);
 
-      await expect(userService.findUserByUserId(5)).rejects.toThrow(
+      await expect(userService.findUserById(5)).rejects.toThrow(
         NotFoundException,
       );
-      expect(userRepository.findUserByUserId).toHaveBeenCalledWith(5);
+      expect(userRepository.findUserById).toHaveBeenCalledWith(5);
     });
   });
 
