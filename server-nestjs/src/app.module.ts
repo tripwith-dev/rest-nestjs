@@ -12,7 +12,6 @@ import { PlanModule } from './about-plan/plan/plan.module';
 import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
-import { SettingsModule } from './about-user/settings/settings.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
@@ -43,7 +42,6 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     AuthModule,
     DestinationModule,
     PlanDestinationModule,
-    SettingsModule,
     PlanModule,
     PlanDetailModule,
     UserLikePlanModule,
