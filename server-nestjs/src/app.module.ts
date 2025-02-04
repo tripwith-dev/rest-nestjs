@@ -12,12 +12,14 @@ import { PlanModule } from './about-plan/plan/plan.module';
 import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
+import { AvatarController } from './about-user/avatar/avatar.controller';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
 import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
 import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
+import { AvatarModule } from './about-user/avatar/avatar.module';
 
 @Module({
   imports: [
@@ -49,8 +51,9 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     ArticleModule,
     ArticleCommentModule,
     UserLikeArticleModule,
+    AvatarModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AvatarController],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
