@@ -35,8 +35,6 @@ export class CategoryRepository {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.avatar', 'avatar')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
       .addSelect(['avatar.avatarId'])
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')

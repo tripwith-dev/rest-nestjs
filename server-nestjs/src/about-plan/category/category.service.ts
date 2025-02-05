@@ -44,7 +44,7 @@ export class CategoryService {
       createCategoryDto,
     );
 
-    return await this.findCategoryWithPlansByCategoryId(category.categoryId);
+    return await this.findCategoryById(category.categoryId);
   }
 
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
