@@ -1,12 +1,19 @@
 import { CategoryEntity } from 'src/about-plan/category/category.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { UserLikePlanEntity } from 'src/user-like-plan/user-like-plan.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserEntity } from '../user/user.entity';
 
-@Entity('user')
-export class UserEntity extends CommonEntity {
+@Entity('avatar')
+export class AvatarEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  avatarId: number;
 
   @Column({ nullable: false, unique: true, length: 20 })
   nickname: string;
@@ -17,7 +24,10 @@ export class UserEntity extends CommonEntity {
   @Column({ nullable: true })
   profileImage: string;
 
-  @OneToMany(() => CategoryEntity, (category) => category.user)
+  @OneToOne(() => UserEntity, (user) => user.avatar)
+  user: UserEntity;
+
+  @OneToMany(() => CategoryEntity, (category) => category.avatar)
   categories: CategoryEntity[];
 
   @OneToMany(() => UserLikePlanEntity, (like) => like.user)

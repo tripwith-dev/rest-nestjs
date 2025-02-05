@@ -1,4 +1,5 @@
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { UserEntity } from 'src/about-user/user/user.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
@@ -10,7 +11,7 @@ export class UserLikePlanEntity {
   @PrimaryColumn()
   planId: number;
 
-  @ManyToOne(() => UserEntity, (user) => user.likePlans, {
+  @ManyToOne(() => AvatarEntity, (avatar) => avatar.likePlans, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })

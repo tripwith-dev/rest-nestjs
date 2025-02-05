@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import { UserEntity } from 'src/about-user/user/user.entity';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import {
   Column,
@@ -21,9 +21,9 @@ export class CategoryEntity extends CommonEntity {
   @IsString()
   categoryTitle: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.categories)
-  @JoinColumn({ name: 'userId' })
-  user: UserEntity;
+  @ManyToOne(() => AvatarEntity, (avatar) => avatar.categories)
+  @JoinColumn({ name: 'avatarId' })
+  avatar: AvatarEntity;
 
   @OneToMany(() => PlanEntity, (plan) => plan.category)
   plans: PlanEntity[];

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/about-user/user/user.entity';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { timeSince } from 'src/utils/timeSince';
 import { Repository } from 'typeorm';
 import { CategoryEntity } from './category.entity';
@@ -21,12 +21,12 @@ export class CategoryRepository {
    * @returns 생성된 여행 카테고리 엔티티를 반환
    */
   async createCategory(
-    user: UserEntity,
+    avatar: AvatarEntity,
     createTravelCategoryDto: CreateCategoryDto,
   ): Promise<CategoryEntity> {
     const travelCategory = this.repository.create({
       ...createTravelCategoryDto,
-      user,
+      avatar,
     });
     return await this.repository.save(travelCategory);
   }

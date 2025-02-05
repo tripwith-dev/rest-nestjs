@@ -12,17 +12,19 @@ import {
   validatePassword,
   validateUsername,
 } from 'src/utils/validateUserInput';
+import { AvatarService } from '../avatar/avatar.service';
 import { ConfirmUserDto } from '../user/dtos/user.comfirm.dto';
 import { LoginUserDto } from '../user/dtos/user.login.req.dto';
-import { RegisterUserDto } from '../user/dtos/user.register.req.dto';
 import { UserRepository } from '../user/user.repository';
 import { UserService } from '../user/user.service';
+import { RegisterDto } from './dtos/register.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly avatarService: AvatarService,
     private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
   ) {}
@@ -30,8 +32,9 @@ export class AuthService {
   /**
    * 회원가입
    */
-  async register(userRegisterDto: RegisterUserDto) {
-    const { email, password, username, nickname } = userRegisterDto;
+  async register(registerDto: RegisterDto) {
+    const { email, password, username } = registerDto.user;
+    const { nickname } = registerDto.avatar;
 
     // email 중복 확인
     const isEmailExist = await this.userRepository.existsByEmail(email);
@@ -45,8 +48,7 @@ export class AuthService {
     validateNickname(nickname);
 
     // 닉네임 중복 확인
-    const isNicknameExist =
-      await this.userRepository.existsByNickname(nickname);
+    const isNicknameExist = await this.avatarService.existsByNickname(nickname);
     if (isNicknameExist) {
       throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
     }
@@ -58,8 +60,11 @@ export class AuthService {
       email,
       password: hashedPassword,
       username,
-      nickname,
     });
+
+    if (user) {
+      await this.avatarService.createAvatar(registerDto.avatar, user);
+    }
 
     return user;
   }
