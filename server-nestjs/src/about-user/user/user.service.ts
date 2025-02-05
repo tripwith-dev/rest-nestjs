@@ -17,8 +17,10 @@ export class UserService {
    * 사용자가 생성한 카테고리도 같이 볼 수 있음.
    * 다른 사람도 볼 수 있는 기본 정보만 리턴.
    */
-  async findUserById(userId: number): Promise<UserEntity | undefined> {
-    const user = await this.userRepository.findUserById(userId);
+  async findUserWithAvatarByUserId(
+    userId: number,
+  ): Promise<UserEntity | undefined> {
+    const user = await this.userRepository.findUserWithAvatarByUserId(userId);
 
     if (!user) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
@@ -32,6 +34,24 @@ export class UserService {
         ...user.avatar,
         createdTimeSince: timeSince(user.avatar.createdAt),
       },
+    };
+  }
+
+  /**
+   * 사용자 계정 정보에서 사용됨
+   * email, 이름 등 계정 정보 조회
+   */
+  async findUserById(userId: number): Promise<UserEntity | undefined> {
+    const user = await this.userRepository.findUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    // createdTimeSince 적용 후 반환
+    return {
+      ...user,
+      createdTimeSince: timeSince(user.createdAt),
     };
   }
 
@@ -67,7 +87,7 @@ export class UserService {
         throw new BadRequestException('회원가입에 실패하였습니다.');
       }
 
-      return await this.findUserById(createdUser.id);
+      return await this.findUserWithAvatarByUserId(createdUser.id);
     } catch (error) {
       if (
         error instanceof NotFoundException ||

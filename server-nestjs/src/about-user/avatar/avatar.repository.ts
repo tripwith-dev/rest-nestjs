@@ -23,10 +23,33 @@ export class AvatarRepository {
    * 사용자 페이지에서 사용됨.
    * 프로필(아바타)에 대한 모든 정보를 반환함
    */
+  async findAvatarWithCategoryByAvatarId(
+    avatarId: number,
+  ): Promise<AvatarEntity> {
+    return await this.repository
+      .createQueryBuilder('avatar')
+      .leftJoinAndSelect('avatar.categories', 'category')
+      .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
+      .andWhere('avatar.isDeleted = false')
+      .select([
+        'avatar.avatarId',
+        'avatar.profileImage',
+        'avatar.nickname',
+        'avatar.introduce',
+        'avatar.createdAt',
+        'avatar.createdTimeSince',
+        'category.categoryId',
+        'category.categoryTitle',
+      ])
+      .getOne();
+  }
+
+  /**
+   * 프로필 정보만 조회
+   */
   async findAvatarById(avatarId: number): Promise<AvatarEntity> {
     return await this.repository
       .createQueryBuilder('avatar')
-      //   .leftJoinAndSelect('avatar.categories', 'category')
       .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
       .andWhere('avatar.isDeleted = false')
       .getOne();

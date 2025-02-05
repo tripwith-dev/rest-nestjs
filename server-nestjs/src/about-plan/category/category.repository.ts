@@ -34,10 +34,10 @@ export class CategoryRepository {
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
-      .leftJoinAndSelect('category.user', 'user')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .addSelect(['user.id'])
+      .addSelect(['avatar.avatarId'])
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();
@@ -61,10 +61,10 @@ export class CategoryRepository {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.plans', 'plan')
-      .leftJoinAndSelect('category.user', 'user')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .addSelect(['user.id'])
+      .addSelect(['avatar.avatarId'])
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();
@@ -87,15 +87,15 @@ export class CategoryRepository {
    * @param userId 사용자 ID
    * @returns 특정 사용자의 여행 카테고리 엔티티 배열을 반환
    */
-  async findUserTravelCategoriesByUserId(
-    userId: number,
+  async findCategoriesOfAvatarByAvatarId(
+    avatarId: number,
   ): Promise<CategoryEntity[]> {
     const travelCategories = await this.repository
-      .createQueryBuilder('travelcategory')
-      .where('travelcategory.user.id = :userId', { userId })
-      .andWhere('travelcategory.isDeleted = false')
-      .orderBy('travelcategory.createdAt', 'DESC')
-      .select(['travelcategory.categoryId', 'travelcategory.categoryTitle'])
+      .createQueryBuilder('category')
+      .where('category.avatar.avatarId = :avatarId', { avatarId })
+      .andWhere('category.isDeleted = false')
+      .orderBy('category.createdAt', 'DESC')
+      .select(['category.categoryId', 'category.categoryTitle'])
       .getMany();
 
     // 각 카테고리의 createdTimeSince 필드를 변환하여 반환

@@ -1,4 +1,5 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 
@@ -11,19 +12,19 @@ export class UserController {
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
   @Get('verify-users/:userId')
-  async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
-    return await this.userService.findUserById(userId);
+  async findUserByIdForVerify(
+    @Param('userId') userId,
+  ): Promise<UserEntity | undefined> {
+    return await this.userService.findUserWithAvatarByUserId(userId);
   }
 
   /**
-   * 사용자 페이지에서 사용됨.
-   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
-   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
+   * 사용자 계정 정보에서 사용됨
+   * email, 이름 등 계정 정보 조회
    */
-  @Get(':userId')
-  async findUserWithCategoryByUserId(
-    @Param('userId') userId,
-  ): Promise<UserEntity | undefined> {
-    return await this.userService.findUserWithCategoryByUserId(userId);
+  @Get('/:userId')
+  @UseGuards(JwtAuthGuard)
+  async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
+    return await this.userService.findUserById(userId);
   }
 }

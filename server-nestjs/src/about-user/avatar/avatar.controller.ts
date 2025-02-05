@@ -1,4 +1,32 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../jwt/jwt.guard';
+import { AvatarEntity } from './avatar.entity';
+import { AvatarService } from './avatar.service';
 
-@Controller('avatar')
-export class AvatarController {}
+@Controller('avatars')
+export class AvatarController {
+  constructor(private readonly avatarService: AvatarService) {}
+
+  /**
+   * 사용자 페이지에서 사용됨.
+   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
+   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
+   */
+  @Get(':avatarId')
+  async findAvatarWithCategoryByAvatarId(
+    @Param('avatarId') userId,
+  ): Promise<AvatarEntity | undefined> {
+    return await this.avatarService.findAvatarWithCategoryByAvatarId(userId);
+  }
+
+  /**
+   * 사용자 프로필 설정 페이지에서 사용됨.
+   */
+  @Get(':avatarId/profile')
+  @UseGuards(JwtAuthGuard)
+  async findAvatarById(
+    @Param('avatarId') userId,
+  ): Promise<AvatarEntity | undefined> {
+    return await this.avatarService.findAvatarById(userId);
+  }
+}

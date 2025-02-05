@@ -46,10 +46,21 @@ export class UserRepository {
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  async findUserById(userId): Promise<UserEntity> {
+  async findUserWithAvatarByUserId(userId): Promise<UserEntity> {
     return await this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
+      .where('user.id = :userId', { userId: userId })
+      .andWhere('user.isDeleted = false')
+      .getOne();
+  }
+
+  /**
+   * 사용자 패스워드를 제외한 모든 정보 가져옴.
+   */
+  async findUserById(userId): Promise<UserEntity> {
+    return await this.repository
+      .createQueryBuilder('user')
       .where('user.id = :userId', { userId: userId })
       .andWhere('user.isDeleted = false')
       .getOne();

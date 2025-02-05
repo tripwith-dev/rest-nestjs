@@ -66,7 +66,9 @@ export class AuthService {
       await this.avatarService.createAvatar(registerDto.avatar, registeredUser);
     }
 
-    const user = await this.userService.findUserById(registeredUser.id);
+    const user = await this.userService.findUserWithAvatarByUserId(
+      registeredUser.id,
+    );
 
     return user;
   }
@@ -86,7 +88,9 @@ export class AuthService {
       secure: true,
     });
 
-    const loginUser = await this.userService.findUserById(user.id);
+    const loginUser = await this.userService.findUserWithAvatarByUserId(
+      user.id,
+    );
 
     return { loginUser, jwt };
   }
