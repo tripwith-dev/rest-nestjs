@@ -56,15 +56,17 @@ export class AuthService {
     // user 데이터 생성
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.userService.createUser({
+    const registeredUser = await this.userService.createUser({
       email,
       password: hashedPassword,
       username,
     });
 
-    if (user) {
-      await this.avatarService.createAvatar(registerDto.avatar, user);
+    if (registeredUser) {
+      await this.avatarService.createAvatar(registerDto.avatar, registeredUser);
     }
+
+    const user = await this.userService.findUserById(registeredUser.id);
 
     return user;
   }

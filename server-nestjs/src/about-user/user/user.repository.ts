@@ -49,6 +49,7 @@ export class UserRepository {
   async findUserById(userId): Promise<UserEntity> {
     return await this.repository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar')
       .where('user.id = :userId', { userId: userId })
       .andWhere('user.isDeleted = false')
       .getOne();

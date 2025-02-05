@@ -28,6 +28,10 @@ export class UserService {
     return {
       ...user,
       createdTimeSince: timeSince(user.createdAt),
+      avatar: {
+        ...user.avatar,
+        createdTimeSince: timeSince(user.avatar.createdAt),
+      },
     };
   }
 
