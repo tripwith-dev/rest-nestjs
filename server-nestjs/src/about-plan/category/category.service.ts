@@ -25,6 +25,8 @@ export class CategoryService {
    */
   async createCategory(createCategoryDto: CreateCategoryDto, userId: number) {
     const user = await this.userService.findUserWithAvatarByUserId(userId);
+
+    // 카테고리는 아바타와 연결되어야 함
     const avatar = await this.avatarService.findAvatarById(
       user.avatar.avatarId,
     );
