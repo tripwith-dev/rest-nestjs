@@ -1,4 +1,5 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarService } from './avatar.service';
@@ -23,7 +24,7 @@ export class AvatarController {
    * 사용자 프로필 설정 페이지에서 사용됨.
    */
   @Get(':avatarId/profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   async findAvatarById(
     @Param('avatarId') userId,
   ): Promise<AvatarEntity | undefined> {

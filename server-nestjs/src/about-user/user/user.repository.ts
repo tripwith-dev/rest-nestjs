@@ -75,6 +75,7 @@ export class UserRepository {
   async validateUserBySub(sub: string): Promise<UserEntity | undefined> {
     return await this.repository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar')
       .where('user.id = :sub', { sub })
       .getOne();
   }
