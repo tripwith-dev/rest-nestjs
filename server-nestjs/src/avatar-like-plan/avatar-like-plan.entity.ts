@@ -1,9 +1,19 @@
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { CommonEntity } from 'src/common/entity/common.entity';
+import {
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('like')
-export class AvatarLikePlanEntity {
+export class AvatarLikePlanEntity extends CommonEntity {
+  @PrimaryGeneratedColumn()
+  likeId: number;
+
   @PrimaryColumn()
   avatarId: number;
 

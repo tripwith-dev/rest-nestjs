@@ -612,7 +612,7 @@ export class PlanService {
       throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
     }
 
-    await this.avatarLikePlanRepository.removeLike(planId, avatarId);
+    await this.avatarLikePlanRepository.softDeleteLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {

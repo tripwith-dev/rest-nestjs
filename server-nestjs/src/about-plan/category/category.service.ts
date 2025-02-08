@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AvatarService } from 'src/about-user/avatar/avatar.service';
-import { UserService } from 'src/about-user/user/user.service';
 import { CategoryEntity } from './category.entity';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -16,7 +15,6 @@ import { UpdateCategoryDto } from './dtos/category.update.dto';
 export class CategoryService {
   constructor(
     private readonly categoryRepository: CategoryRepository,
-    private readonly userService: UserService,
     private readonly avatarService: AvatarService,
   ) {}
 
