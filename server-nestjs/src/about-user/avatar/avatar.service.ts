@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { timeSince } from 'src/utils/timeSince';
+import { validateNickname } from 'src/utils/validateUserInput';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarRepository } from './avatar.repository';
 import { CreateAvatarDto } from './dtos/avatar.create.dto';
+import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 
 @Injectable()
 export class AvatarService {
@@ -61,5 +68,28 @@ export class AvatarService {
     user: UserEntity,
   ): Promise<AvatarEntity> {
     return await this.avatarRepository.createAvatar(createAvatarDto, user);
+  }
+
+  async updateNickname(
+    avatarId: number,
+    updateNicknameDto: UpdateNicknameDto,
+  ): Promise<AvatarEntity | undefined> {
+    const avatar = await this.findAvatarById(avatarId);
+
+    validateNickname(updateNicknameDto.nickname);
+
+    if (avatar.nickname === updateNicknameDto.nickname) {
+      throw new BadRequestException('동일한 닉네임으로 변경할 수 없습니다.');
+    }
+
+    const isNicknameExist = await this.existsByNickname(
+      updateNicknameDto.nickname,
+    );
+    if (isNicknameExist) {
+      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
+    }
+
+    await this.avatarRepository.updateNickname(avatarId, updateNicknameDto);
+    return await this.findAvatarById(avatarId);
   }
 }

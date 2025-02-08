@@ -1,8 +1,9 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarService } from './avatar.service';
+import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 
 @Controller('avatars')
 export class AvatarController {
@@ -15,9 +16,9 @@ export class AvatarController {
    */
   @Get(':avatarId')
   async findAvatarWithCategoryByAvatarId(
-    @Param('avatarId') userId,
+    @Param('avatarId') avatarId,
   ): Promise<AvatarEntity | undefined> {
-    return await this.avatarService.findAvatarWithCategoryByAvatarId(userId);
+    return await this.avatarService.findAvatarWithCategoryByAvatarId(avatarId);
   }
 
   /**
@@ -26,8 +27,17 @@ export class AvatarController {
   @Get(':avatarId/profile')
   @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   async findAvatarById(
-    @Param('avatarId') userId,
+    @Param('avatarId') avatarId,
   ): Promise<AvatarEntity | undefined> {
-    return await this.avatarService.findAvatarById(userId);
+    return await this.avatarService.findAvatarById(avatarId);
+  }
+
+  @Patch(':avatarId/nickname')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async updateNickname(
+    @Param('avatarId') avatarId,
+    @Body() updateNicknameDto: UpdateNicknameDto,
+  ): Promise<AvatarEntity | undefined> {
+    return await this.avatarService.updateNickname(avatarId, updateNicknameDto);
   }
 }
