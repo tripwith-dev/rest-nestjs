@@ -19,9 +19,9 @@ import { AvatarModule } from './about-user/avatar/avatar.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
+import { AvatarLikeArticleModule } from './avatar-like-article/user-like-article.module';
+import { AvatarLikePlanModule } from './avatar-like-plan/avatar-like-plan.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
-import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
-import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
 
 @Module({
   imports: [
@@ -52,11 +52,11 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     PlanDestinationModule,
     PlanModule,
     PlanDetailModule,
-    UserLikePlanModule,
+    AvatarLikePlanModule,
     PlanCommentModule,
     ArticleModule,
     ArticleCommentModule,
-    UserLikeArticleModule,
+    AvatarLikeArticleModule,
     AvatarModule,
   ],
   controllers: [AppController, AvatarController],

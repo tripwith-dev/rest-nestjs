@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserLikePlanRepository } from 'src/user-like-plan/user-like-plan.repository';
+import { AvatarLikePlanRepository } from 'src/avatar-like-plan/avatar-like-plan.repository';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { CategoryService } from '../category/category.service';
 import { DestinationService } from '../destination/destination.service';
@@ -24,7 +24,7 @@ export class PlanService {
     private readonly categoryService: CategoryService,
     private readonly destinationService: DestinationService,
     private readonly planDestinationService: PlanDestinationService,
-    private readonly userPlanLikeRepository: UserLikePlanRepository,
+    private readonly avatarLikePlanRepository: AvatarLikePlanRepository,
   ) {}
 
   /**
@@ -575,7 +575,7 @@ export class PlanService {
     planId: number,
     userId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
       userId,
     );
@@ -584,7 +584,7 @@ export class PlanService {
       throw new ConflictException('이미 좋아요를 누른 여행 계획입니다.');
     }
 
-    await this.userPlanLikeRepository.addLike(planId, userId);
+    await this.avatarLikePlanRepository.addLike(planId, userId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {
@@ -603,7 +603,7 @@ export class PlanService {
     planId: number,
     userId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
       userId,
     );
@@ -612,7 +612,7 @@ export class PlanService {
       throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
     }
 
-    await this.userPlanLikeRepository.removeLike(planId, userId);
+    await this.avatarLikePlanRepository.removeLike(planId, userId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {

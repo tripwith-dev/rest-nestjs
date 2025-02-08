@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
 import { DataSource, Repository } from 'typeorm';
-import { UserLikePlanEntity } from './user-like-plan.entity';
+import { AvatarLikePlanEntity } from './avatar-like-plan.entity';
 
 @Injectable()
-export class UserLikePlanRepository {
+export class AvatarLikePlanRepository {
   constructor(
-    @InjectRepository(UserLikePlanEntity)
-    private readonly repository: Repository<UserLikePlanEntity>,
+    @InjectRepository(AvatarLikePlanEntity)
+    private readonly repository: Repository<AvatarLikePlanEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -49,7 +49,7 @@ export class UserLikePlanRepository {
   async removeLike(planId: number, userId: number): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
       // 좋아요 제거
-      await manager.delete(UserLikePlanEntity, { planId, userId });
+      await manager.delete(AvatarLikePlanEntity, { planId, userId });
 
       // likesCount 감소
       await manager.decrement(PlanEntity, { planId }, 'likesCount', 1);

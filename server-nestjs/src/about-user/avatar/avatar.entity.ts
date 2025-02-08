@@ -1,6 +1,6 @@
 import { CategoryEntity } from 'src/about-plan/category/category.entity';
+import { AvatarLikePlanEntity } from 'src/avatar-like-plan/avatar-like-plan.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
-import { UserLikePlanEntity } from 'src/user-like-plan/user-like-plan.entity';
 import {
   Column,
   Entity,
@@ -30,6 +30,6 @@ export class AvatarEntity extends CommonEntity {
   @OneToMany(() => CategoryEntity, (category) => category.avatar)
   categories: CategoryEntity[];
 
-  @OneToMany(() => UserLikePlanEntity, (like) => like.user)
-  likePlans: UserLikePlanEntity[];
+  @OneToMany(() => AvatarLikePlanEntity, (like) => like.avatar)
+  likePlans: AvatarLikePlanEntity[];
 }
