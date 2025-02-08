@@ -1,7 +1,9 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 import { ArticleModule } from './about-article/article/article.module';
 import { ArticleCommentModule } from './about-article/articlecomment/articlecomment.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
@@ -13,16 +15,20 @@ import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
 import { AvatarController } from './about-user/avatar/avatar.controller';
+import { AvatarModule } from './about-user/avatar/avatar.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
 import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
 import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
-import { AvatarModule } from './about-user/avatar/avatar.module';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // 클라이언트가 접근할 경로
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

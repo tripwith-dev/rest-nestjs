@@ -21,7 +21,7 @@ export class PlanEntity extends CommonEntity {
   @Column({ length: 30 })
   planTitle: string;
 
-  @Column({ nullable: true, default: null })
+  @Column({ default: 'uploads/planImages/default.png' })
   planMainImage: string;
 
   @Column({
