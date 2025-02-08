@@ -3,6 +3,7 @@ import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarService } from './avatar.service';
+import { UpdateIntroduceDto } from './dtos/introduce.update.dto';
 import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 
 @Controller('avatars')
@@ -39,5 +40,17 @@ export class AvatarController {
     @Body() updateNicknameDto: UpdateNicknameDto,
   ): Promise<AvatarEntity | undefined> {
     return await this.avatarService.updateNickname(avatarId, updateNicknameDto);
+  }
+
+  @Patch(':avatarId/introduce')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async updateIntroduce(
+    @Param('avatarId') avatarId,
+    @Body() updateIntroduceDto: UpdateIntroduceDto,
+  ): Promise<AvatarEntity | undefined> {
+    return await this.avatarService.updateIntroduce(
+      avatarId,
+      updateIntroduceDto,
+    );
   }
 }

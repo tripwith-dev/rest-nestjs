@@ -10,6 +10,7 @@ import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarRepository } from './avatar.repository';
 import { CreateAvatarDto } from './dtos/avatar.create.dto';
+import { UpdateIntroduceDto } from './dtos/introduce.update.dto';
 import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 
 @Injectable()
@@ -91,5 +92,17 @@ export class AvatarService {
 
     await this.avatarRepository.updateNickname(avatarId, updateNicknameDto);
     return await this.findAvatarById(avatarId);
+  }
+
+  async updateIntroduce(
+    avatarId: number,
+    updateIntroduceDto: UpdateIntroduceDto,
+  ): Promise<AvatarEntity | undefined> {
+    const avatar = await this.findAvatarById(avatarId);
+
+    if (avatar) {
+      await this.avatarRepository.updateIntroduce(avatarId, updateIntroduceDto);
+      return await this.findAvatarById(avatarId);
+    }
   }
 }

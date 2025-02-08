@@ -21,7 +21,7 @@ export class AvatarEntity extends CommonEntity {
   @Column({ nullable: true })
   introduce: string;
 
-  @Column({ nullable: true })
+  @Column({ default: 'uploads/profileImages/default.png' })
   profileImage: string;
 
   @OneToOne(() => UserEntity, (user) => user.avatar)

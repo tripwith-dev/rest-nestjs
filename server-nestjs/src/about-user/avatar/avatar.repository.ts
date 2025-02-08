@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
 import { CreateAvatarDto } from './dtos/avatar.create.dto';
+import { UpdateIntroduceDto } from './dtos/introduce.update.dto';
 import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 
 @Injectable()
@@ -87,6 +88,17 @@ export class AvatarRepository {
   async updateNickname(avatarId: number, updateNicknameDto: UpdateNicknameDto) {
     return await this.repository.update(avatarId, {
       ...updateNicknameDto,
+      isUpdated: true,
+      updatedAt: new Date(),
+    });
+  }
+
+  async updateIntroduce(
+    avatarId: number,
+    updateIntroduceDto: UpdateIntroduceDto,
+  ) {
+    return await this.repository.update(avatarId, {
+      ...updateIntroduceDto,
       isUpdated: true,
       updatedAt: new Date(),
     });
