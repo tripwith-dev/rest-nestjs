@@ -4,7 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { timeSince } from 'src/utils/timeSince';
+import { validateUsername } from 'src/utils/validateUserInput';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
+import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
 import { UserRepository } from './user.repository';
 
@@ -97,6 +99,22 @@ export class UserService {
       }
       throw new BadRequestException('회원가입 처리 중 오류가 발생했습니다.');
     }
+  }
+
+  async updateUserName(
+    userId: number,
+    updateUserNameDto: UpdateUserNameDto,
+  ): Promise<UserEntity> {
+    const user = await this.findUserById(userId);
+
+    validateUsername(updateUserNameDto.username);
+
+    if (user.username === updateUserNameDto.username) {
+      throw new BadRequestException('동일한 이름으로 변경할 수 없습니다.');
+    }
+
+    await this.userRepository.updateUserName(userId, updateUserNameDto);
+    return await this.findUserById(userId);
   }
 
   /**

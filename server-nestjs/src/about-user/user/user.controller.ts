@@ -1,5 +1,7 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
+import { IsUserSelfGuard } from '../jwt/user.self.guard';
+import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 
@@ -23,8 +25,17 @@ export class UserController {
    * email, 이름 등 계정 정보 조회
    */
   @Get('/:userId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
   async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
     return await this.userService.findUserById(userId);
+  }
+
+  @Patch('/:userId/username')
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
+  async updateUserName(
+    @Param('userId') userId,
+    @Body() updateUserNameDto: UpdateUserNameDto,
+  ): Promise<UserEntity | undefined> {
+    return await this.userService.updateUserName(userId, updateUserNameDto);
   }
 }

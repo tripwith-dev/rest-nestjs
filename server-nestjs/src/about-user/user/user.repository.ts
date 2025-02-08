@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
+import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
 
 @Injectable()
@@ -127,5 +128,16 @@ export class UserRepository {
       .getOne();
 
     return !!user;
+  }
+
+  async updateUserName(
+    userId: number,
+    updateUserName: UpdateUserNameDto,
+  ): Promise<void> {
+    await this.repository.update(userId, {
+      ...updateUserName,
+      isUpdated: true,
+      updatedAt: new Date(),
+    });
   }
 }
