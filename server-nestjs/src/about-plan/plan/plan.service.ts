@@ -134,7 +134,7 @@ export class PlanService {
    * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
    * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
    */
-  async findPlanWithCategoryById(
+  async findPlanWithCategoryByPlanId(
     planId: number,
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity | undefined> {
@@ -220,7 +220,7 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanWithCategoryById(planId);
+    const plan = await this.findPlanWithCategoryByPlanId(planId);
     if (plan) {
       // 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
       const hasChanges = this.hasChanges(plan, updatePlanWithDestinationDto);

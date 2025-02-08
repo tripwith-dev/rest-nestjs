@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Query,
-  Request,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -44,14 +43,14 @@ export class PlanController {
    * 특정 여행 계획을 조회하는 엔드포인트
    */
   @Get(':planId')
-  async findPlanById(
+  async findPlanWithCategoryByPlanId(
     @Param('planId') planId: number,
-    @Request() req?: any,
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
-    const travelPlan = await this.planService.findPlanById(planId, currency);
-
-    return travelPlan;
+    return await this.planService.findPlanWithCategoryByPlanId(
+      planId,
+      currency,
+    );
   }
 
   @Get('topten/likes')
@@ -85,8 +84,8 @@ export class PlanController {
    * @param planId 여행 계획 ID
    * @returns void
    */
-  @UseGuards(JwtAuthGuard)
   @Patch(':planId/delete')
+  @UseGuards(JwtAuthGuard)
   async softDeletedTravelPlan(@Param('planId') planId: number) {
     return this.planService.softDeletedTravelPlan(planId);
   }
@@ -145,8 +144,8 @@ export class PlanController {
    * @param req 요청 객체 (사용자 정보)
    * @returns 성공 메시지
    */
-  @UseGuards(JwtAuthGuard)
   @Post(':planId/like')
+  @UseGuards(JwtAuthGuard)
   async addLike(
     @Param('planId') planId: number,
     @Query('avatarId') avatarId: number,
@@ -160,8 +159,8 @@ export class PlanController {
    * @param req 요청 객체 (사용자 정보)
    * @returns 성공 메시지
    */
-  @UseGuards(JwtAuthGuard)
   @Patch(':planId/like')
+  @UseGuards(JwtAuthGuard)
   async softDeleteLike(
     @Param('planId') planId: number,
     @Query('avatarId') avatarId: number,
