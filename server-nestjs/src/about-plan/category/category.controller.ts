@@ -5,7 +5,7 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
@@ -21,11 +21,11 @@ export class CategoryController {
   @Post('create')
   async createCategory(
     @Body() createTravelCategoryDto: CreateCategoryDto,
-    @Request() req: any,
+    @Query('avatarId') avatarId: number,
   ) {
     return await this.categoryService.createCategory(
       createTravelCategoryDto,
-      req.user.id,
+      avatarId,
     );
   }
 

@@ -23,13 +23,8 @@ export class CategoryService {
   /**
    * 카테고리를 생성하는 메서드
    */
-  async createCategory(createCategoryDto: CreateCategoryDto, userId: number) {
-    const user = await this.userService.findUserWithAvatarByUserId(userId);
-
-    // 카테고리는 아바타와 연결되어야 함
-    const avatar = await this.avatarService.findAvatarById(
-      user.avatar.avatarId,
-    );
+  async createCategory(createCategoryDto: CreateCategoryDto, avatarId: number) {
+    const avatar = await this.avatarService.findAvatarById(avatarId);
 
     if (createCategoryDto.categoryTitle.length > 20) {
       throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
