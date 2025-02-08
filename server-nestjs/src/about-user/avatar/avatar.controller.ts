@@ -33,6 +33,17 @@ export class AvatarController {
     return await this.avatarService.findAvatarById(avatarId);
   }
 
+  /**
+   * 사용자 프로필 설정 페이지에서 사용됨.
+   */
+  @Get(':avatarId/like-plans')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async findAvatarWithLikePlansByAvatarId(
+    @Param('avatarId') avatarId,
+  ): Promise<AvatarEntity | undefined> {
+    return await this.avatarService.findAvatarWithLikePlansByAvatarId(avatarId);
+  }
+
   @Patch(':avatarId/nickname')
   @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   async updateNickname(

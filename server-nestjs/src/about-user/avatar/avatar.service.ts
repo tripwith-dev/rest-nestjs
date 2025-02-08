@@ -53,6 +53,23 @@ export class AvatarService {
     };
   }
 
+  async findAvatarWithLikePlansByAvatarId(
+    avatarId: number,
+  ): Promise<AvatarEntity | undefined> {
+    const avatar =
+      await this.avatarRepository.findAvatarWithLikePlansByAvatarId(avatarId);
+
+    if (!avatar) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    // createdTimeSince 적용 후 반환
+    return {
+      ...avatar,
+      createdTimeSince: timeSince(avatar.createdAt),
+    };
+  }
+
   /**
    * 닉네임 검증
    * 회원가입, 닉네임 수정 시에 사용됨

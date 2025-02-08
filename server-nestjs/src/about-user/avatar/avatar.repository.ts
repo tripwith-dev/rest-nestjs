@@ -57,6 +57,18 @@ export class AvatarRepository {
       .getOne();
   }
 
+  async findAvatarWithLikePlansByAvatarId(
+    avatarId: number,
+  ): Promise<AvatarEntity> {
+    return await this.repository
+      .createQueryBuilder('avatar')
+      .leftJoinAndSelect('avatar.likePlans', 'likePlans')
+      .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
+      .andWhere('avatar.isDeleted = false')
+      .andWhere('likePlans.isDeleted = false')
+      .getOne();
+  }
+
   /**
    * avatar 생성
    */
