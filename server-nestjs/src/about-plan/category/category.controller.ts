@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -17,7 +18,7 @@ import { UpdateCategoryDto } from './dtos/category.update.dto';
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @Post('create')
   async createCategory(
     @Body() createTravelCategoryDto: CreateCategoryDto,

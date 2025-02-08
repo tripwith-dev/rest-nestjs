@@ -10,7 +10,10 @@ export class IsAvatarSelfGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const avatar = request.user.avatar;
-    const avatarId = parseInt(request.params.avatarId, 10); // URL에서 userId 추출
+    const avatarId = parseInt(
+      request.params.avatarId || request.query.avatarId,
+      10,
+    );
 
     if (!avatar) {
       throw new BadRequestException('인증되지 않은 요청입니다.');
