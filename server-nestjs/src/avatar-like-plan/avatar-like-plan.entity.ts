@@ -5,7 +5,7 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 @Entity('like')
 export class AvatarLikePlanEntity {
   @PrimaryColumn()
-  userId: number;
+  avatarId: number;
 
   @PrimaryColumn()
   planId: number;

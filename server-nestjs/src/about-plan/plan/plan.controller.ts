@@ -147,9 +147,11 @@ export class PlanController {
    */
   @UseGuards(JwtAuthGuard)
   @Post(':planId/like')
-  async addLike(@Param('planId') planId: number, @Request() req: any) {
-    const userId = req.user.id;
-    return await this.planService.addLike(planId, userId);
+  async addLike(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
+    return await this.planService.addLike(planId, avatarId);
   }
 
   /**
@@ -159,9 +161,11 @@ export class PlanController {
    * @returns 성공 메시지
    */
   @UseGuards(JwtAuthGuard)
-  @Delete(':planId/like')
-  async removeLike(@Param('planId') planId: number, @Request() req: any) {
-    const userId = req.user.id;
-    return await this.planService.removeLike(planId, userId);
+  @Patch(':planId/like')
+  async softDeleteLike(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
+    return await this.planService.softDeleteLike(planId, avatarId);
   }
 }
