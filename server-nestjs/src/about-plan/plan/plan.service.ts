@@ -13,7 +13,6 @@ import { PlanDestinationService } from '../plan-destination/plan-destination.ser
 import { Currency } from '../plandetail/plandetail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
-import { UpdatePlanDto } from './dto/plan.update.dto';
 import { PlanEntity } from './plan.entity';
 import { PlanRepository } from './plan.repository';
 
@@ -222,7 +221,9 @@ export class PlanService {
   ): Promise<PlanEntity> {
     const plan = await this.findPlanWithCategoryByPlanId(planId);
     if (plan) {
-      // 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
+      /** 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
+       * 변한게 없는 요소는 그대로 냅두고, 변한 요소만 덮어씌우기 때문에
+       * 아래 로직을 안써도 되긴 함. */
       const hasChanges = this.hasChanges(plan, updatePlanWithDestinationDto);
       if (!hasChanges) {
         return plan;
@@ -456,13 +457,22 @@ export class PlanService {
    * @param updateDto 업데이트 DTO
    * @returns 변경 사항이 있는 경우 true, 없는 경우 false
    */
-  private hasChanges(plan: PlanEntity, updateDto: UpdatePlanDto): boolean {
+  private hasChanges(
+    plan: PlanEntity,
+    updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
+  ): boolean {
     return (
-      (updateDto.planTitle && plan.planTitle !== updateDto.planTitle) ||
-      (updateDto.travelStartDate &&
-        plan.travelStartDate !== updateDto.travelStartDate) ||
-      (updateDto.travelEndDate &&
-        plan.travelEndDate !== updateDto.travelEndDate)
+      (updatePlanWithDestinationDto.planTitle &&
+        plan.planTitle !== updatePlanWithDestinationDto.planTitle) ||
+      (updatePlanWithDestinationDto.travelStartDate &&
+        plan.travelStartDate !==
+          updatePlanWithDestinationDto.travelStartDate) ||
+      (updatePlanWithDestinationDto.travelEndDate &&
+        plan.travelEndDate !== updatePlanWithDestinationDto.travelEndDate) ||
+      (updatePlanWithDestinationDto.status &&
+        plan.status !== updatePlanWithDestinationDto.status) ||
+      (updatePlanWithDestinationDto.destinations &&
+        plan.destinations !== updatePlanWithDestinationDto.destinations)
     );
   }
 

@@ -14,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { Currency } from '../plandetail/plandetail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
@@ -31,6 +32,7 @@ export class PlanController {
   @Post('create')
   async createTravelPlan(
     @Body() createTravelPlanDto: CreatePlanDto,
+    @Query('avatarId') avatarId: number,
     @Query('categoryId') categoryId: number,
   ) {
     return await this.planService.createTravelPlan(
@@ -70,10 +72,11 @@ export class PlanController {
   /**
    * 특정 여행 계획을 업데이트하는 엔드포인트
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @Patch(':planId/update')
   async updatePlan(
     @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
     @Body() updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ) {
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
