@@ -110,15 +110,16 @@ export class PlanRepository {
    */
   async findTopTenTravelPlan(): Promise<PlanEntity[]> {
     const travelPlans = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
-      .andWhere('travelplan.status = :status', { status: 'PUBLIC' })
-      .orderBy('travelplan.likesCount', 'DESC')
-      .addOrderBy('travelplan.createdAt', 'DESC')
+      .andWhere('plan.isDeleted = false')
+      .andWhere('plan.status = :status', { status: 'PUBLIC' })
+      .orderBy('plan.likesCount', 'DESC')
+      .addOrderBy('plan.createdAt', 'DESC')
       .limit(10)
       .getMany();
 
@@ -136,6 +137,7 @@ export class PlanRepository {
     const travelPlans = await this.repository
       .createQueryBuilder('travelplan')
       .leftJoinAndSelect('travelplan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.isDeleted = false')
