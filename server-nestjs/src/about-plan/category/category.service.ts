@@ -105,8 +105,8 @@ export class CategoryService {
     }
 
     // 카테고리 title 제약조건
-    if (updateCategoryDto.categoryTitle.length > 50) {
-      throw new BadRequestException(`카테고리 제목은 50자 내여야 합니다.`);
+    if (updateCategoryDto.categoryTitle.length > 20) {
+      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
     }
 
     // 한 사용자 내에서 CategoryTitle 중복 확인
