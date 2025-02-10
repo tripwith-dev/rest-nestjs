@@ -242,6 +242,8 @@ export class PlanRepository {
     return await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.details', 'detail')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')

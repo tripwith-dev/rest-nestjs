@@ -99,7 +99,7 @@ export class PlanController {
    * @returns 여행 디테일 제목 리스트를 반환
    */
   @Get(':planId/details')
-  async findDetailTitlesAndLocationOfPlan(@Param('planId') planId: number) {
+  async findPlanWithDetailByPlanId(@Param('planId') planId: number) {
     return await this.planService.findPlanWithDetailByPlanId(planId);
   }
 
