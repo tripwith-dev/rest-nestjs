@@ -13,13 +13,12 @@ export abstract class CommonEntity {
   @CreateDateColumn({ nullable: true })
   createdTimeSince?: string;
 
-  @UpdateDateColumn({ select: false })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ default: false, select: false })
+  @Column({ default: false })
   isUpdated: boolean;
 
-  // Soft Delete : default는 null, 삭제 시에 timestamp
   @Exclude()
   @DeleteDateColumn({ select: false })
   deletedAt?: Date | null;

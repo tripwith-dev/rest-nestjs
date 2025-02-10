@@ -33,16 +33,6 @@ export class AvatarRepository {
       .leftJoinAndSelect('avatar.categories', 'category')
       .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
       .andWhere('avatar.isDeleted = false')
-      .select([
-        'avatar.avatarId',
-        'avatar.profileImage',
-        'avatar.nickname',
-        'avatar.introduce',
-        'avatar.createdAt',
-        'avatar.createdTimeSince',
-        'category.categoryId',
-        'category.categoryTitle',
-      ])
       .getOne();
   }
 
