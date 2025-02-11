@@ -26,6 +26,6 @@ export class UserEntity extends CommonEntity {
     cascade: true,
     eager: true,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'avatarId' })
   avatar: AvatarEntity;
 }

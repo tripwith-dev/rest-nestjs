@@ -20,7 +20,11 @@ export class AvatarLikePlanRepository {
    */
   async hasUserLikedPlan(planId: number, avatarId: number): Promise<boolean> {
     const result = await this.repository.findOne({
-      where: { planId, avatarId, isDeleted: false },
+      where: {
+        plan: { planId },
+        avatar: { avatarId },
+        isDeleted: false,
+      },
     });
     return !!result;
   }
@@ -33,7 +37,10 @@ export class AvatarLikePlanRepository {
   async addLike(planId: number, avatarId: number): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
       // 좋아요 추가
-      const like = this.repository.create({ planId, avatarId });
+      const like = this.repository.create({
+        plan: { planId },
+        avatar: { avatarId },
+      });
       await manager.save(like);
 
       // likesCount 증가

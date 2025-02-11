@@ -482,7 +482,15 @@ export class PlanService {
    * @returns 여행 디테일 제목 리스트를 반환
    */
   async findPlanWithDetailByPlanId(planId: number) {
-    return await this.planRepository.findPlanWithDetailByPlanId(planId);
+    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
   }
 
   /**

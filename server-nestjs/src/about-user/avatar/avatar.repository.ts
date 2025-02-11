@@ -57,9 +57,8 @@ export class AvatarRepository {
     const avatar = await this.repository
       .createQueryBuilder('avatar')
       .leftJoinAndSelect('avatar.likePlans', 'likePlans')
-      .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
+      .where('avatar.avatarId = :avatarId', { avatarId })
       .andWhere('avatar.isDeleted = false')
-      .andWhere('likePlans.isDeleted = false')
       .getOne();
 
     return avatar;
