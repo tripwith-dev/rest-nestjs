@@ -1,9 +1,7 @@
 # Category API 문서
 
-## Category
-
 <details>
-  <summary>1. [인증 필요]카테고리 생성: POST `/category/create`</summary>
+  <summary>1. [인증 필요]카테고리 생성: POST `/category/create?avatarId=:avatarId`</summary>
   
 **request**:
 
@@ -191,6 +189,31 @@
     "message": "카테고리 제목은 20자 내여야 합니다.",
     "error": "Bad Request",
     "statusCode": 400
+}
+```
+
+</details>
+<details>
+  <summary>4. [인증 필요]카테고리 삭제: PATCH `/category/:categoryId/delete`</summary>
+
+**response**:
+
+- 성공:
+
+```
+{
+    "message": "성공적으로 삭제되었습니다."
+}
+```
+
+- 실패:
+
+```
+{
+    "success": false,
+    "message": "12에 해당하는 카테고리를 찾을 수 없습니다.",
+    "error": "Not Found",
+    "statusCode": 404
 }
 ```
 
