@@ -10,9 +10,6 @@ export abstract class CommonEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn({ nullable: true })
-  createdTimeSince?: string;
-
   @UpdateDateColumn()
   updatedAt: Date;
 

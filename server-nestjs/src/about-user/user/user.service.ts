@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { timeSince } from 'src/utils/timeSince';
 import { validateUsername } from 'src/utils/validateUserInput';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
 import { UpdateUserNameDto } from './dtos/username.update.dto';
@@ -28,15 +27,7 @@ export class UserService {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
 
-    // createdTimeSince 적용 후 반환
-    return {
-      ...user,
-      createdTimeSince: timeSince(user.createdAt),
-      avatar: {
-        ...user.avatar,
-        createdTimeSince: timeSince(user.avatar.createdAt),
-      },
-    };
+    return user;
   }
 
   /**
@@ -50,11 +41,7 @@ export class UserService {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
 
-    // createdTimeSince 적용 후 반환
-    return {
-      ...user,
-      createdTimeSince: timeSince(user.createdAt),
-    };
+    return user;
   }
 
   /**

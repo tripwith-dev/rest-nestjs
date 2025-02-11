@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
 import { CreateAvatarDto } from './dtos/avatar.create.dto';
@@ -28,35 +28,41 @@ export class AvatarRepository {
   async findAvatarWithCategoryByAvatarId(
     avatarId: number,
   ): Promise<AvatarEntity> {
-    return await this.repository
+    const avatar = await this.repository
       .createQueryBuilder('avatar')
       .leftJoinAndSelect('avatar.categories', 'category')
-      .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
+      .where('avatar.avatarId = :avatarId', { avatarId })
       .andWhere('avatar.isDeleted = false')
       .getOne();
+
+    return avatar;
   }
 
   /**
    * 프로필 정보만 조회
    */
   async findAvatarById(avatarId: number): Promise<AvatarEntity> {
-    return await this.repository
+    const avatar = await this.repository
       .createQueryBuilder('avatar')
       .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
       .andWhere('avatar.isDeleted = false')
       .getOne();
+
+    return avatar;
   }
 
   async findAvatarWithLikePlansByAvatarId(
     avatarId: number,
   ): Promise<AvatarEntity> {
-    return await this.repository
+    const avatar = await this.repository
       .createQueryBuilder('avatar')
       .leftJoinAndSelect('avatar.likePlans', 'likePlans')
       .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
       .andWhere('avatar.isDeleted = false')
       .andWhere('likePlans.isDeleted = false')
       .getOne();
+
+    return avatar;
   }
 
   /**
@@ -68,9 +74,10 @@ export class AvatarRepository {
   ): Promise<AvatarEntity> {
     const avatar = this.repository.create({
       ...createAvatarDto,
-      user, // Associate user with the avatar
+      user,
     });
-    return await this.repository.save(avatar);
+    const createdAvatar = await this.repository.save(avatar);
+    return createdAvatar;
   }
 
   /**
@@ -87,7 +94,10 @@ export class AvatarRepository {
     return !!avatar;
   }
 
-  async updateNickname(avatarId: number, updateNicknameDto: UpdateNicknameDto) {
+  async updateNickname(
+    avatarId: number,
+    updateNicknameDto: UpdateNicknameDto,
+  ): Promise<UpdateResult> {
     return await this.repository.update(avatarId, {
       ...updateNicknameDto,
       isUpdated: true,
@@ -98,7 +108,7 @@ export class AvatarRepository {
   async updateIntroduce(
     avatarId: number,
     updateIntroduceDto: UpdateIntroduceDto,
-  ) {
+  ): Promise<UpdateResult> {
     return await this.repository.update(avatarId, {
       ...updateIntroduceDto,
       isUpdated: true,

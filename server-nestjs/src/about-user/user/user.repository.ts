@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
 import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
@@ -24,23 +24,27 @@ export class UserRepository {
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
   async findUserWithAvatarByUserId(userId): Promise<UserEntity> {
-    return await this.repository
+    const user = await this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
-      .where('user.id = :userId', { userId: userId })
+      .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
       .getOne();
+
+    return user;
   }
 
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
   async findUserById(userId): Promise<UserEntity> {
-    return await this.repository
+    const user = await this.repository
       .createQueryBuilder('user')
-      .where('user.id = :userId', { userId: userId })
+      .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
       .getOne();
+
+    return user;
   }
 
   /**
@@ -72,7 +76,7 @@ export class UserRepository {
   async existsByEmail(email: string): Promise<boolean> {
     const user = await this.repository
       .createQueryBuilder('user')
-      .where('user.email = :email', { email: email })
+      .where('user.email = :email', { email })
       .andWhere('user.isDeleted = false')
       .getOne();
 
@@ -84,12 +88,14 @@ export class UserRepository {
    * 이메일로 유저 조회 (비밀번호 포함)
    */
   async findUserByEmail(email: string): Promise<UserEntity | null> {
-    return await this.repository
+    const user = await this.repository
       .createQueryBuilder('user')
-      .addSelect('user.password') // password 필드를 명시적으로 선택
+      .addSelect('user.password')
       .where('user.email = :email', { email })
       .andWhere('user.isDeleted = false')
       .getOne();
+
+    return user;
   }
 
   /**
@@ -109,8 +115,8 @@ export class UserRepository {
   async updateUserName(
     userId: number,
     updateUserName: UpdateUserNameDto,
-  ): Promise<void> {
-    await this.repository.update(userId, {
+  ): Promise<UpdateResult> {
+    return await this.repository.update(userId, {
       ...updateUserName,
       isUpdated: true,
       updatedAt: new Date(),

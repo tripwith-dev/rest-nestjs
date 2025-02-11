@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { timeSince } from 'src/utils/timeSince';
 import { Repository } from 'typeorm';
 import { CategoryEntity } from './category.entity';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -40,17 +39,7 @@ export class CategoryRepository {
       .andWhere('category.isDeleted = false')
       .getOne();
 
-    if (travelCategory) {
-      // travelCategory의 createdTimeSince 필드를 변환
-      const transformedTravelCategory = {
-        ...travelCategory,
-        createdTimeSince: timeSince(travelCategory.createdAt),
-      };
-
-      return transformedTravelCategory;
-    }
-
-    return null;
+    return travelCategory;
   }
 
   async findCategoryWithPlansByCategoryId(
@@ -62,22 +51,11 @@ export class CategoryRepository {
       .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .addSelect(['avatar.avatarId'])
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();
 
-    if (travelCategory) {
-      // travelCategory의 createdTimeSince 필드를 변환
-      const transformedTravelCategory = {
-        ...travelCategory,
-        createdTimeSince: timeSince(travelCategory.createdAt),
-      };
-
-      return transformedTravelCategory;
-    }
-
-    return null;
+    return travelCategory;
   }
 
   /**
@@ -96,11 +74,7 @@ export class CategoryRepository {
       .select(['category.categoryId', 'category.categoryTitle'])
       .getMany();
 
-    // 각 카테고리의 createdTimeSince 필드를 변환하여 반환
-    return travelCategories.map((category) => ({
-      ...category,
-      createdTimeSince: timeSince(category.createdAt),
-    }));
+    return travelCategories;
   }
 
   /**

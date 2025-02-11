@@ -31,6 +31,11 @@ export class CategoryController {
   }
 
   @Get(':categoryId')
+  async findCategoryById(@Param('categoryId') categoryId: number) {
+    return await this.categoryService.findCategoryById(categoryId);
+  }
+
+  @Get(':categoryId/with-plans')
   async findCategoryWithPlansByCategoryId(
     @Param('categoryId') categoryId: number,
   ) {

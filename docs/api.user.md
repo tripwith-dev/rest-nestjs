@@ -272,17 +272,21 @@
 ```
 {
     "createdAt": "2025-02-10T04:54:59.136Z",
-    "createdTimeSince": "2분 전",
-    "updatedAt": "2025-02-10T04:54:59.136Z",
-    "isUpdated": false,
+    "createdTimeSince": "1일 전",
+    "updatedAt": "2025-02-10T05:04:00.866Z",
+    "isUpdated": true,
     "avatarId": 1,
-    "nickname": "user_nickname",
-    "introduce": null,
+    "nickname": "new_nickname",
+    "introduce": "HELLO WORLD!",
     "profileImage": "uploads/profileImages/default.png",
     "categories": [
         {
-            "categoryId": 2,
-            "categoryTitle": "카테고리 타이틀"
+            "createdAt": "2025-02-10T10:59:16.728Z",
+            "createdTimeSince": "19시간 전",
+            "updatedAt": "2025-02-10T10:59:16.728Z",
+            "isUpdated": false,
+            "categoryId": 1,
+            "categoryTitle": "카테고리1"
         }
     ]
 }

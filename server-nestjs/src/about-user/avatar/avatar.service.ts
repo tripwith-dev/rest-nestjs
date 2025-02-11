@@ -4,7 +4,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { timeSince } from 'src/utils/timeSince';
 import { validateNickname } from 'src/utils/validateUserInput';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
@@ -32,11 +31,7 @@ export class AvatarService {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
 
-    // createdTimeSince 적용 후 반환
-    return {
-      ...avatar,
-      createdTimeSince: timeSince(avatar.createdAt),
-    };
+    return avatar;
   }
 
   async findAvatarById(avatarId: number): Promise<AvatarEntity | undefined> {
@@ -46,11 +41,7 @@ export class AvatarService {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
 
-    // createdTimeSince 적용 후 반환
-    return {
-      ...avatar,
-      createdTimeSince: timeSince(avatar.createdAt),
-    };
+    return avatar;
   }
 
   async findAvatarWithLikePlansByAvatarId(
@@ -63,11 +54,7 @@ export class AvatarService {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
 
-    // createdTimeSince 적용 후 반환
-    return {
-      ...avatar,
-      createdTimeSince: timeSince(avatar.createdAt),
-    };
+    return avatar;
   }
 
   /**
