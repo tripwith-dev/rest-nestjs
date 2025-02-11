@@ -28,17 +28,15 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.121Z",
-    "createdTimeSince": "0초 전",
-    "updatedAt": "2025-02-10T04:54:59.000Z",
+    "createdAt": "2025-02-11T08:54:42.775Z",
+    "updatedAt": "2025-02-11T08:54:42.000Z",
     "isUpdated": false,
     "id": 1,
     "email": "test@example.com",
     "username": "username",
     "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "0초 전",
-        "updatedAt": "2025-02-10T04:54:59.136Z",
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:54:42.813Z",
         "isUpdated": false,
         "avatarId": 1,
         "nickname": "user_nickname",
@@ -92,17 +90,15 @@
 ```
 {
     "loginUser": {
-        "createdAt": "2025-02-10T04:54:59.121Z",
-        "createdTimeSince": "17초 전",
-        "updatedAt": "2025-02-10T04:54:59.000Z",
+        "createdAt": "2025-02-11T08:54:42.775Z",
+        "updatedAt": "2025-02-11T08:54:42.000Z",
         "isUpdated": false,
         "id": 1,
         "email": "test@example.com",
         "username": "username",
         "avatar": {
-            "createdAt": "2025-02-10T04:54:59.136Z",
-            "createdTimeSince": "17초 전",
-            "updatedAt": "2025-02-10T04:54:59.136Z",
+            "createdAt": "2025-02-11T08:54:42.813Z",
+            "updatedAt": "2025-02-11T08:54:42.813Z",
             "isUpdated": false,
             "avatarId": 1,
             "nickname": "user_nickname",
@@ -147,17 +143,15 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.121Z",
-    "createdTimeSince": "40초 전",
-    "updatedAt": "2025-02-10T04:54:59.000Z",
+    "createdAt": "2025-02-11T08:54:42.775Z",
+    "updatedAt": "2025-02-11T08:54:42.000Z",
     "isUpdated": false,
     "id": 1,
     "email": "test@example.com",
     "username": "username",
     "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "40초 전",
-        "updatedAt": "2025-02-10T04:54:59.136Z",
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:54:42.813Z",
         "isUpdated": false,
         "avatarId": 1,
         "nickname": "user_nickname",
@@ -165,7 +159,6 @@
         "profileImage": "uploads/profileImages/default.png"
     }
 }
-
 ```
 
 </details>
@@ -178,9 +171,8 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.121Z",
-    "createdTimeSince": "1분 전",
-    "updatedAt": "2025-02-10T04:54:59.000Z",
+    "createdAt": "2025-02-11T08:54:42.775Z",
+    "updatedAt": "2025-02-11T08:54:42.000Z",
     "isUpdated": false,
     "id": 1,
     "email": "test@example.com",
@@ -228,9 +220,8 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.121Z",
-    "createdTimeSince": "1분 전",
-    "updatedAt": "2025-02-10T04:56:20.486Z",
+    "createdAt": "2025-02-11T08:54:42.775Z",
+    "updatedAt": "2025-02-11T08:56:40.293Z",
     "isUpdated": true,
     "id": 1,
     "email": "test@example.com",
@@ -271,22 +262,20 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.136Z",
-    "createdTimeSince": "1일 전",
-    "updatedAt": "2025-02-10T05:04:00.866Z",
-    "isUpdated": true,
+    "createdAt": "2025-02-11T08:54:42.813Z",
+    "updatedAt": "2025-02-11T08:54:42.813Z",
+    "isUpdated": false,
     "avatarId": 1,
-    "nickname": "new_nickname",
-    "introduce": "HELLO WORLD!",
+    "nickname": "user_nickname",
+    "introduce": null,
     "profileImage": "uploads/profileImages/default.png",
     "categories": [
         {
-            "createdAt": "2025-02-10T10:59:16.728Z",
-            "createdTimeSince": "19시간 전",
-            "updatedAt": "2025-02-10T10:59:16.728Z",
+            "createdAt": "2025-02-11T08:57:09.494Z",
+            "updatedAt": "2025-02-11T08:57:09.494Z",
             "isUpdated": false,
             "categoryId": 1,
-            "categoryTitle": "카테고리1"
+            "categoryTitle": "new category"
         }
     ]
 }
@@ -305,9 +294,8 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.136Z",
-    "createdTimeSince": "5분 전",
-    "updatedAt": "2025-02-10T04:54:59.136Z",
+    "createdAt": "2025-02-11T08:54:42.813Z",
+    "updatedAt": "2025-02-11T08:54:42.813Z",
     "isUpdated": false,
     "avatarId": 1,
     "nickname": "user_nickname",
@@ -335,9 +323,8 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.136Z",
-    "createdTimeSince": "5분 전",
-    "updatedAt": "2025-02-10T05:00:45.832Z",
+    "createdAt": "2025-02-11T08:54:42.813Z",
+    "updatedAt": "2025-02-11T08:57:53.699Z",
     "isUpdated": true,
     "avatarId": 1,
     "nickname": "new_nickname",
@@ -386,9 +373,8 @@
 
 ```
 {
-    "createdAt": "2025-02-10T04:54:59.136Z",
-    "createdTimeSince": "7분 전",
-    "updatedAt": "2025-02-10T05:02:11.222Z",
+    "createdAt": "2025-02-11T08:54:42.813Z",
+    "updatedAt": "2025-02-11T08:58:07.737Z",
     "isUpdated": true,
     "avatarId": 1,
     "nickname": "new_nickname",
@@ -407,5 +393,43 @@
 ```
 
 - 에러 메시지 수정 필요
+
+</details>
+<details>
+  <summary>5. [인증 필요] 좋아요 누른 플랜 목록: GET `/avatars/:avatarId/like-plans`</summary>
+
+**response**:
+
+- 성공 했을 경우:
+
+```
+{
+    "createdAt": "2025-02-11T08:54:42.813Z",
+    "updatedAt": "2025-02-11T08:58:07.737Z",
+    "isUpdated": true,
+    "avatarId": 1,
+    "nickname": "new_nickname",
+    "introduce": "HELLO WORLD!",
+    "profileImage": "uploads/profileImages/default.png",
+    "likePlans": [
+        {
+            "createdAt": "2025-02-11T10:06:55.709Z",
+            "updatedAt": "2025-02-11T10:06:55.709Z",
+            "isUpdated": false,
+            "likeId": 1,
+            "avatarId": 1,
+            "planId": 1
+        },
+        {
+            "createdAt": "2025-02-11T10:07:10.523Z",
+            "updatedAt": "2025-02-11T10:07:10.523Z",
+            "isUpdated": false,
+            "likeId": 2,
+            "avatarId": 1,
+            "planId": 2
+        }
+    ]
+}
+```
 
 </details>

@@ -7,9 +7,8 @@
 
 ```
 {
-    "categoryTitle": "카테고리 타이틀"
+    "categoryTitle": "new category"
 }
-
 ```
 
 **response**:
@@ -18,16 +17,14 @@
 
 ```
 {
-    "createdAt": "2025-02-10T10:59:16.728Z",
-    "createdTimeSince": "0초 전",
-    "updatedAt": "2025-02-10T10:59:16.728Z",
+    "createdAt": "2025-02-11T08:59:17.012Z",
+    "updatedAt": "2025-02-11T08:59:17.012Z",
     "isUpdated": false,
     "categoryId": 1,
-    "categoryTitle": "카테고리 타이틀",
+    "categoryTitle": "new category",
     "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "2025-02-10T04:54:59.136Z",
-        "updatedAt": "2025-02-10T05:04:00.866Z",
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:58:07.737Z",
         "isUpdated": true,
         "avatarId": 1,
         "nickname": "new_nickname",
@@ -35,7 +32,6 @@
         "profileImage": "uploads/profileImages/default.png"
     }
 }
-
 ```
 
 - 실패:
@@ -71,58 +67,14 @@
 
 ```
 {
-    "createdAt": "2025-02-10T10:59:16.728Z",
-    "createdTimeSince": "1분 전",
-    "updatedAt": "2025-02-10T10:59:50.602Z",
-    "isUpdated": true,
-    "categoryId": 1,
-    "categoryTitle": "카테고리 업데이트",
-    "plans": [
-        {
-            "createdAt": "2025-02-10T11:00:25.637Z",
-            "createdTimeSince": "2025-02-10T11:00:25.637Z",
-            "updatedAt": "2025-02-10T11:00:25.637Z",
-            "isUpdated": false,
-            "planId": 1,
-            "planTitle": "유럽 여행",
-            "planMainImage": "uploads/planImages/default.png",
-            "status": "PUBLIC",
-            "travelStartDate": "20250620",
-            "travelEndDate": "20250627",
-            "likesCount": 0,
-            "totalExpenses": "0.00",
-            "destinations": [
-                {
-                    "createdAt": "2025-02-10T11:00:25.685Z",
-                    "createdTimeSince": "2025-02-10T11:00:25.685Z",
-                    "updatedAt": "2025-02-10T11:00:25.685Z",
-                    "isUpdated": false,
-                    "destinationId": 1,
-                    "planId": 1,
-                    "destination": {
-                        "destinationId": 1,
-                        "destinationName": "프랑스"
-                    }
-                },
-                {
-                    "createdAt": "2025-02-10T11:00:25.716Z",
-                    "createdTimeSince": "2025-02-10T11:00:25.716Z",
-                    "updatedAt": "2025-02-10T11:00:25.716Z",
-                    "isUpdated": false,
-                    "destinationId": 2,
-                    "planId": 1,
-                    "destination": {
-                        "destinationId": 2,
-                        "destinationName": "파리"
-                    }
-                }
-            ]
-        }
-    ],
+    "createdAt": "2025-02-11T08:59:17.012Z",
+    "updatedAt": "2025-02-11T08:59:17.012Z",
+    "isUpdated": false,
+    "categoryId": 2,
+    "categoryTitle": "new category",
     "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "2025-02-10T04:54:59.136Z",
-        "updatedAt": "2025-02-10T05:04:00.866Z",
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:58:07.737Z",
         "isUpdated": true,
         "avatarId": 1,
         "nickname": "new_nickname",
@@ -144,16 +96,94 @@
 ```
 
 </details>
+
 <details>
-  <summary>3. [인증 필요]카테고리 업데이트: PATCH `/category/:categoryId/update`</summary>
+  <summary>3. 카테고리 조회(플랜 포함): GET `/category/:categoryId/with-plan`</summary>
+
+**response**:
+
+- 성공:
+
+```
+{
+    "createdAt": "2025-02-11T08:59:17.012Z",
+    "updatedAt": "2025-02-11T08:59:17.012Z",
+    "isUpdated": false,
+    "categoryId": 2,
+    "categoryTitle": "new category",
+    "plans": [
+        {
+            "createdAt": "2025-02-11T09:04:44.153Z",
+            "updatedAt": "2025-02-11T09:04:44.153Z",
+            "isUpdated": false,
+            "planId": 1,
+            "planTitle": "내 여행 계획",
+            "planMainImage": "uploads/planImages/default.png",
+            "status": "PUBLIC",
+            "travelStartDate": "20250620",
+            "travelEndDate": "20250627",
+            "likesCount": 0,
+            "totalExpenses": "0.00",
+            "destinations": [
+                {
+                    "createdAt": "2025-02-11T09:04:44.193Z",
+                    "updatedAt": "2025-02-11T09:04:44.193Z",
+                    "isUpdated": false,
+                    "destinationId": 1,
+                    "planId": 1,
+                    "destination": {
+                        "destinationId": 1,
+                        "destinationName": "프랑스"
+                    }
+                },
+                {
+                    "createdAt": "2025-02-11T09:04:44.221Z",
+                    "updatedAt": "2025-02-11T09:04:44.221Z",
+                    "isUpdated": false,
+                    "destinationId": 2,
+                    "planId": 1,
+                    "destination": {
+                        "destinationId": 2,
+                        "destinationName": "스위스"
+                    }
+                }
+            ]
+        }
+    ],
+    "avatar": {
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:58:07.737Z",
+        "isUpdated": true,
+        "avatarId": 1,
+        "nickname": "new_nickname",
+        "introduce": "HELLO WORLD!",
+        "profileImage": "uploads/profileImages/default.png"
+    }
+}
+```
+
+- 실패:
+
+```
+{
+    "success": false,
+    "message": "2에 해당하는 카테고리를 찾을 수 없습니다.",
+    "error": "Not Found",
+    "statusCode": 404
+}
+```
+
+</details>
+
+<details>
+  <summary>4. [인증 필요]카테고리 업데이트: PATCH `/category/:categoryId/update`</summary>
   
 **request**:
 
 ```
 {
-    "categoryTitle": "카테고리 업데이트"
+    "categoryTitle": "유럽 여행"
 }
-
 ```
 
 **response**:
@@ -162,16 +192,14 @@
 
 ```
 {
-    "createdAt": "2025-02-10T10:59:16.728Z",
-    "createdTimeSince": "33초 전",
-    "updatedAt": "2025-02-10T10:59:50.602Z",
+    "createdAt": "2025-02-11T08:59:17.012Z",
+    "updatedAt": "2025-02-11T09:06:09.981Z",
     "isUpdated": true,
-    "categoryId": 1,
-    "categoryTitle": "카테고리 업데이트",
+    "categoryId": 2,
+    "categoryTitle": "유럽 여행",
     "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "2025-02-10T04:54:59.136Z",
-        "updatedAt": "2025-02-10T05:04:00.866Z",
+        "createdAt": "2025-02-11T08:54:42.813Z",
+        "updatedAt": "2025-02-11T08:58:07.737Z",
         "isUpdated": true,
         "avatarId": 1,
         "nickname": "new_nickname",
@@ -194,7 +222,7 @@
 
 </details>
 <details>
-  <summary>4. [인증 필요]카테고리 삭제: PATCH `/category/:categoryId/delete`</summary>
+  <summary>5. [인증 필요]카테고리 삭제: PATCH `/category/:categoryId/delete`</summary>
 
 **response**:
 

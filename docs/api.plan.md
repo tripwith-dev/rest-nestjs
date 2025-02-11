@@ -7,7 +7,7 @@
 
 ```
 {
-    "planTitle": "유럽 여행",
+    "planTitle": "내 여행 계획",
     "status": "PUBLIC",
     "travelStartDate": "20250620",
     "travelEndDate": "20250627",
@@ -19,7 +19,7 @@
         },
         {
             "destination": {
-                "destinationName": "파리"
+                "destinationName": "스위스"
             }
         }
     ]
@@ -32,11 +32,10 @@
 
 ```
 {
-    "createdAt": "2025-02-11T05:55:11.799Z",
-    "createdTimeSince": "0초 전",
-    "updatedAt": "2025-02-11T05:55:11.799Z",
+    "createdAt": "2025-02-11T09:04:44.153Z",
+    "updatedAt": "2025-02-11T09:04:44.153Z",
     "isUpdated": false,
-    "planId": 2,
+    "planId": 1,
     "planTitle": "내 여행 계획",
     "planMainImage": "uploads/planImages/default.png",
     "status": "PUBLIC",
@@ -46,27 +45,25 @@
     "totalExpenses": 0,
     "destinations": [
         {
-            "createdAt": "2025-02-11T05:55:11.825Z",
-            "createdTimeSince": "2025-02-11T05:55:11.825Z",
-            "updatedAt": "2025-02-11T05:55:11.825Z",
+            "createdAt": "2025-02-11T09:04:44.193Z",
+            "updatedAt": "2025-02-11T09:04:44.193Z",
             "isUpdated": false,
             "destinationId": 1,
-            "planId": 2,
+            "planId": 1,
             "destination": {
                 "destinationId": 1,
                 "destinationName": "프랑스"
             }
         },
         {
-            "createdAt": "2025-02-11T05:55:11.843Z",
-            "createdTimeSince": "2025-02-11T05:55:11.843Z",
-            "updatedAt": "2025-02-11T05:55:11.843Z",
+            "createdAt": "2025-02-11T09:04:44.221Z",
+            "updatedAt": "2025-02-11T09:04:44.221Z",
             "isUpdated": false,
             "destinationId": 2,
-            "planId": 2,
+            "planId": 1,
             "destination": {
                 "destinationId": 2,
-                "destinationName": "파리"
+                "destinationName": "스위스"
             }
         }
     ]
@@ -106,11 +103,10 @@
 
 ```
 {
-    "createdAt": "2025-02-11T05:55:11.799Z",
-    "createdTimeSince": "13분 전",
-    "updatedAt": "2025-02-11T06:06:45.186Z",
-    "isUpdated": true,
-    "planId": 2,
+    "createdAt": "2025-02-11T09:04:44.153Z",
+    "updatedAt": "2025-02-11T09:04:44.153Z",
+    "isUpdated": false,
+    "planId": 1,
     "planTitle": "내 여행 계획",
     "planMainImage": "uploads/planImages/default.png",
     "status": "PUBLIC",
@@ -119,36 +115,33 @@
     "likesCount": 0,
     "totalExpenses": 0,
     "category": {
-        "createdAt": "2025-02-10T10:59:16.728Z",
-        "createdTimeSince": "2025-02-10T10:59:16.728Z",
-        "updatedAt": "2025-02-10T10:59:50.602Z",
+        "createdAt": "2025-02-11T08:59:17.012Z",
+        "updatedAt": "2025-02-11T09:06:09.981Z",
         "isUpdated": true,
-        "categoryId": 1,
-        "categoryTitle": "카테고리 업데이트"
+        "categoryId": 2,
+        "categoryTitle": "유럽 여행"
     },
     "destinations": [
         {
-            "createdAt": "2025-02-11T05:55:11.825Z",
-            "createdTimeSince": "2025-02-11T05:55:11.825Z",
-            "updatedAt": "2025-02-11T05:55:11.825Z",
+            "createdAt": "2025-02-11T09:04:44.193Z",
+            "updatedAt": "2025-02-11T09:04:44.193Z",
             "isUpdated": false,
             "destinationId": 1,
-            "planId": 2,
+            "planId": 1,
             "destination": {
                 "destinationId": 1,
                 "destinationName": "프랑스"
             }
         },
         {
-            "createdAt": "2025-02-11T05:55:11.843Z",
-            "createdTimeSince": "2025-02-11T05:55:11.843Z",
-            "updatedAt": "2025-02-11T05:55:11.843Z",
+            "createdAt": "2025-02-11T09:04:44.221Z",
+            "updatedAt": "2025-02-11T09:04:44.221Z",
             "isUpdated": false,
             "destinationId": 2,
-            "planId": 2,
+            "planId": 1,
             "destination": {
                 "destinationId": 2,
-                "destinationName": "파리"
+                "destinationName": "스위스"
             }
         }
     ]
@@ -167,17 +160,9 @@
 ```
 
 </details>
+
 <details>
-  <summary>3. [인증 필요]카테고리 업데이트: PATCH `/category/:categoryId/update`</summary>
-  
-**request**:
-
-```
-{
-    "categoryTitle": "카테고리 업데이트"
-}
-
-```
+  <summary>3. 플랜 디테일 조회: GET `/plans/:planId/details`</summary>
 
 **response**:
 
@@ -185,21 +170,49 @@
 
 ```
 {
-    "createdAt": "2025-02-10T10:59:16.728Z",
-    "createdTimeSince": "33초 전",
-    "updatedAt": "2025-02-10T10:59:50.602Z",
+    "createdAt": "2025-02-11T09:04:44.153Z",
+    "updatedAt": "2025-02-11T09:24:08.536Z",
     "isUpdated": true,
-    "categoryId": 1,
-    "categoryTitle": "카테고리 업데이트",
-    "avatar": {
-        "createdAt": "2025-02-10T04:54:59.136Z",
-        "createdTimeSince": "2025-02-10T04:54:59.136Z",
-        "updatedAt": "2025-02-10T05:04:00.866Z",
+    "planId": 1,
+    "planTitle": "내 여행 계획",
+    "planMainImage": "uploads/planImages/default.png",
+    "status": "PUBLIC",
+    "travelStartDate": "20250620",
+    "travelEndDate": "20250627",
+    "likesCount": 0,
+    "totalExpenses": "0.00",
+    "details": [
+        {
+            "createdAt": "2025-02-11T09:24:08.510Z",
+            "updatedAt": "2025-02-11T09:24:08.510Z",
+            "isUpdated": false,
+            "detailId": 1,
+            "startTime": "202506200600",
+            "endTime": "202506200800",
+            "detailTitle": "서울역 도착",
+            "price": null,
+            "currency": "KRW",
+            "location": "대한민국 서울특별시 중구 소공동 세종대로18길 2",
+            "latitude": "37.555946",
+            "longitude": "126.972317",
+            "notes": null
+        }
+    ],
+    "category": {
+        "createdAt": "2025-02-11T08:59:17.012Z",
+        "updatedAt": "2025-02-11T09:06:09.981Z",
         "isUpdated": true,
-        "avatarId": 1,
-        "nickname": "new_nickname",
-        "introduce": "HELLO WORLD!",
-        "profileImage": "uploads/profileImages/default.png"
+        "categoryId": 2,
+        "categoryTitle": "유럽 여행",
+        "avatar": {
+            "createdAt": "2025-02-11T08:54:42.813Z",
+            "updatedAt": "2025-02-11T08:58:07.737Z",
+            "isUpdated": true,
+            "avatarId": 1,
+            "nickname": "new_nickname",
+            "introduce": "HELLO WORLD!",
+            "profileImage": "uploads/profileImages/default.png"
+        }
     }
 }
 ```
@@ -209,15 +222,39 @@
 ```
 {
     "success": false,
-    "message": "카테고리 제목은 20자 내여야 합니다.",
-    "error": "Bad Request",
-    "statusCode": 400
+    "message": "2에 해당하는 여행 계획 목록을 찾을 수 없습니다.",
+    "error": "Not Found",
+    "statusCode": 404
 }
 ```
 
 </details>
+
 <details>
-  <summary>4. [인증 필요]카테고리 삭제: PATCH `/category/:categoryId/delete`</summary>
+  <summary>4. [인증 필요]플랜 업데이트: PATCH `/plans/:planId/update`</summary>
+  
+**request**:
+
+```
+{
+    "planTitle": "프랑스, 스위스 여행",
+    "status": "PUBLIC",
+    "travelStartDate": "20250620",
+    "travelEndDate": "20250627",
+    "destinations": [
+        {
+            "destination": {
+                "destinationName": "프랑스"
+            }
+        },
+        {
+            "destination": {
+                "destinationName": "스위스"
+            }
+        }
+    ]
+}
+```
 
 **response**:
 
@@ -225,7 +262,41 @@
 
 ```
 {
-    "message": "성공적으로 삭제되었습니다."
+    "createdAt": "2025-02-11T09:04:44.153Z",
+    "updatedAt": "2025-02-11T09:28:38.330Z",
+    "isUpdated": true,
+    "planId": 1,
+    "planTitle": "프랑스, 스위스 여행",
+    "planMainImage": "uploads/planImages/default.png",
+    "status": "PUBLIC",
+    "travelStartDate": "20250620",
+    "travelEndDate": "20250627",
+    "likesCount": 0,
+    "totalExpenses": 0,
+    "destinations": [
+        {
+            "createdAt": "2025-02-11T09:04:44.193Z",
+            "updatedAt": "2025-02-11T09:04:44.193Z",
+            "isUpdated": false,
+            "destinationId": 1,
+            "planId": 1,
+            "destination": {
+                "destinationId": 1,
+                "destinationName": "프랑스"
+            }
+        },
+        {
+            "createdAt": "2025-02-11T09:04:44.221Z",
+            "updatedAt": "2025-02-11T09:04:44.221Z",
+            "isUpdated": false,
+            "destinationId": 2,
+            "planId": 1,
+            "destination": {
+                "destinationId": 2,
+                "destinationName": "스위스"
+            }
+        }
+    ]
 }
 ```
 
@@ -234,7 +305,69 @@
 ```
 {
     "success": false,
-    "message": "12에 해당하는 카테고리를 찾을 수 없습니다.",
+    "message": "계획 제목은 30자 이내입니다.",
+    "error": "Bad Request",
+    "statusCode": 400
+}
+```
+
+</details>
+<details>
+  <summary>5. [인증 필요] 플랜 삭제: PATCH `/plan/:planId/delete`</summary>
+
+**response**:
+
+- 성공:
+
+```
+{
+    "message": "성공적으로 삭제되었습니다.",
+    "plan": {
+        "createdAt": "2025-02-11T09:04:44.153Z",
+        "updatedAt": "2025-02-11T09:28:38.330Z",
+        "isUpdated": true,
+        "planId": 1,
+        "planTitle": "프랑스, 스위스 여행",
+        "planMainImage": "uploads/planImages/default.png",
+        "status": "PUBLIC",
+        "travelStartDate": "20250620",
+        "travelEndDate": "20250627",
+        "likesCount": 0,
+        "totalExpenses": 0,
+        "destinations": [
+            {
+                "createdAt": "2025-02-11T09:04:44.193Z",
+                "updatedAt": "2025-02-11T09:04:44.193Z",
+                "isUpdated": false,
+                "destinationId": 1,
+                "planId": 1,
+                "destination": {
+                    "destinationId": 1,
+                    "destinationName": "프랑스"
+                }
+            },
+            {
+                "createdAt": "2025-02-11T09:04:44.221Z",
+                "updatedAt": "2025-02-11T09:04:44.221Z",
+                "isUpdated": false,
+                "destinationId": 2,
+                "planId": 1,
+                "destination": {
+                    "destinationId": 2,
+                    "destinationName": "스위스"
+                }
+            }
+        ]
+    }
+}
+```
+
+- 실패:
+
+```
+{
+    "success": false,
+    "message": "2에 해당하는 여행 계획 목록을 찾을 수 없습니다.",
     "error": "Not Found",
     "statusCode": 404
 }
