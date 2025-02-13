@@ -122,4 +122,21 @@ export class UserRepository {
       updatedAt: new Date(),
     });
   }
+
+  /**
+   * user 객체의 password 업데이트
+   * @param userAllInfo 업데이트할 사용자 정보
+   * @param hashedPassword 해싱된 새로운 비밀번호
+   * @returns 업데이트된 사용자 정보를 나타내는 객체
+   */
+  async updatePassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<UpdateResult> {
+    return await this.repository.update(userId, {
+      password: hashedPassword,
+      isUpdated: true,
+      updatedAt: new Date(),
+    });
+  }
 }

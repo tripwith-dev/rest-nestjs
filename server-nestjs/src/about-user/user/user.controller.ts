@@ -38,4 +38,19 @@ export class UserController {
   ): Promise<UserEntity | undefined> {
     return await this.userService.updateUserName(userId, updateUserNameDto);
   }
+
+  @Patch('/:userId/password')
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
+  async updatePassword(
+    @Param('userId') userId,
+    @Body() updatePasswordDto,
+  ): Promise<UserEntity | undefined> {
+    const oldPassword = updatePasswordDto.oldPassword;
+    const newPassword = updatePasswordDto.newPassword;
+    return await this.userService.updatePassword(
+      userId,
+      oldPassword,
+      newPassword,
+    );
+  }
 }

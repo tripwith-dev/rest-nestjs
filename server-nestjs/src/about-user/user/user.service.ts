@@ -1,9 +1,15 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { validateUsername } from 'src/utils/validateUserInput';
+import * as bcrypt from 'bcrypt';
+import {
+  validatePassword,
+  validateUsername,
+} from 'src/utils/validateUserInput';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
 import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
@@ -81,6 +87,58 @@ export class UserService {
 
     await this.userRepository.updateUserName(userId, updateUserNameDto);
     return await this.findUserById(userId);
+  }
+
+  async updatePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<UserEntity> {
+    const user = await this.findUserById(userId);
+
+    validatePassword(newPassword);
+
+    // 기존 비밀번호 확인
+    const checkOldPassword = await this.checkPassword(user.email, oldPassword);
+
+    if (!checkOldPassword) {
+      throw new UnauthorizedException('기존 비밀번호가 일치하지 않습니다.');
+    }
+
+    // 비밀번호 업데이트 처리
+    try {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const updatedUser = await this.userRepository.updatePassword(
+        user.id,
+        hashedPassword,
+      );
+
+      if (!updatedUser) {
+        throw new InternalServerErrorException(
+          '비밀번호 업데이트에 실패했습니다.',
+        );
+      }
+
+      return await this.findUserById(userId);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        '비밀번호 업데이트 중 오류가 발생했습니다.',
+      );
+    }
+  }
+
+  /**
+   * 비밀번호 체크
+   * @param user 사용자 계정 정보
+   * @param password 비밀번호
+   * @returns 비밀번호 일치 여부 (true/false)
+   */
+  private async checkPassword(
+    email: string,
+    password: string,
+  ): Promise<boolean> {
+    const userAllInfo = await this.userRepository.findUserByEmail(email);
+    return await bcrypt.compare(password, userAllInfo.password);
   }
 
   /**
