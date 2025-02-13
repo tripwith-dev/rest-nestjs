@@ -109,4 +109,39 @@ export class AvatarService {
       return await this.findAvatarById(avatarId);
     }
   }
+
+  /**
+   * 사용자 프로필 이미지 교체
+   * @param userId 사용자 ID
+   * @param newProfileImageUrl 새로운 프로필 이미지 URL
+   * @returns 업데이트된 사용자 엔티티
+   * @throws NotFoundException 사용자를 찾을 수 없는 경우
+   */
+  async replaceProfileImage(
+    avatarId: number,
+    newProfileImagePath: string,
+  ): Promise<AvatarEntity> {
+    const avatar = await this.findAvatarById(avatarId);
+
+    await this.avatarRepository.replaceProfileImage(
+      avatar.avatarId,
+      newProfileImagePath,
+    );
+    return await this.findAvatarById(avatarId);
+  }
+
+  /**
+   * 사용자 프로필 이미지 삭제
+   * @param userId 사용자 ID
+   * @returns 업데이트된 사용자 엔티티
+   * @throws NotFoundException 사용자를 찾을 수 없는 경우
+   */
+  async deleteProfileImage(avatarId: number): Promise<AvatarEntity> {
+    const avatar = await this.findAvatarById(avatarId);
+
+    await this.avatarRepository.removeProfileImage(avatar);
+    await this.avatarRepository.updateProfileImageToDefault(avatar.avatarId);
+
+    return await this.findAvatarById(avatarId);
+  }
 }

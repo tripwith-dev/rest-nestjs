@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
@@ -44,7 +46,7 @@ export class AvatarRepository {
   async findAvatarById(avatarId: number): Promise<AvatarEntity> {
     const avatar = await this.repository
       .createQueryBuilder('avatar')
-      .where('avatar.avatarId = :avatarId', { avatarId: avatarId })
+      .where('avatar.avatarId = :avatarId', { avatarId })
       .andWhere('avatar.isDeleted = false')
       .getOne();
 
@@ -113,5 +115,55 @@ export class AvatarRepository {
       isUpdated: true,
       updatedAt: new Date(),
     });
+  }
+
+  /**
+   * 사용자 프로필 이미지 교체(addProfileImage로 대체)
+   * @param userId 사용자 ID
+   * @param newProfileImageUrl 새로운 프로필 이미지 URL
+   * @returns 업데이트된 사용자 엔티티
+   * @throws HttpException 사용자를 찾을 수 없는 경우
+   */
+  async replaceProfileImage(
+    avatarId: number,
+    newProfileImageUrl: string,
+  ): Promise<UpdateResult> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(AvatarEntity)
+      .set({ profileImage: newProfileImageUrl })
+      .where('avatarId = :avatarId', { avatarId })
+      .execute();
+
+    return result;
+  }
+
+  /**
+   * 기존 프로필 이미지 파일 삭제
+   * @param avatar 사용자 엔티티
+   */
+  async removeProfileImage(avatar: AvatarEntity): Promise<void> {
+    const defaultImagePath = 'uploads/profileImages/default.png';
+
+    if (avatar.profileImage && avatar.profileImage !== defaultImagePath) {
+      const filePath = path.join(__dirname, '..', avatar.profileImage);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  }
+
+  /**
+   * 프로필 이미지를 기본 이미지로 변경
+   * @param avatarId 사용자 ID
+   * @returns 업데이트 결과
+   */
+  async updateProfileImageToDefault(avatarId: number): Promise<UpdateResult> {
+    return await this.repository
+      .createQueryBuilder()
+      .update(AvatarEntity)
+      .set({ profileImage: 'uploads/profileImages/default.png' })
+      .where('avatarId = :avatarId', { avatarId })
+      .execute();
   }
 }

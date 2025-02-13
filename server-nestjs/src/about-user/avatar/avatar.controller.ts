@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Patch,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { AvatarEntity } from './avatar.entity';
@@ -63,5 +76,52 @@ export class AvatarController {
       avatarId,
       updateIntroduceDto,
     );
+  }
+
+  /**
+   * 사용자 프로필 이미지 교체
+   * @param userId 사용자 ID
+   * @param updateUserProfileImageDto 새로운 프로필 이미지 URL
+   * @returns 업데이트된 사용자 엔티티
+   */
+  @Patch(':avatarId/profileImage')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtAuthGuard)
+  async replaceProfileImage(
+    @Param('avatarId') avatarId: number,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<AvatarEntity> {
+    if (!file) {
+      throw new HttpException(
+        '새로운 프로필 이미지가 업로드되지 않았습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    console.log(file);
+    const newProfileImagePath = file.path;
+    if (!newProfileImagePath) {
+      throw new HttpException(
+        '저장 경로를 찾을 수 없습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    console.log(`newProfileImage: ${newProfileImagePath}`);
+    return await this.avatarService.replaceProfileImage(
+      avatarId,
+      newProfileImagePath,
+    );
+  }
+
+  /**
+   * 사용자 프로필 이미지 삭제
+   * @param userId 사용자 ID
+   * @returns 업데이트된 사용자 엔티티
+   */
+  @Delete(':avatarId/profileImage')
+  @UseGuards(JwtAuthGuard)
+  async deleteProfileImage(
+    @Param('avatarId') avatarId: number,
+  ): Promise<AvatarEntity> {
+    return await this.avatarService.deleteProfileImage(avatarId);
   }
 }

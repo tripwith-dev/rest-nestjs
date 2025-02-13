@@ -15,6 +15,7 @@ import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
 import { AvatarController } from './about-user/avatar/avatar.controller';
+import { AvatarEntity } from './about-user/avatar/avatar.entity';
 import { AvatarModule } from './about-user/avatar/avatar.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
@@ -42,7 +43,7 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
       database: process.env.DB_NAME,
       synchronize: true, // 배포환경에서는 false
       logging: true,
-      entities: [UserEntity, CategoryEntity],
+      entities: [UserEntity, AvatarEntity, CategoryEntity],
       autoLoadEntities: true,
     }),
     UserModule,
