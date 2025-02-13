@@ -14,7 +14,6 @@ import { PlanModule } from './about-plan/plan/plan.module';
 import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
-import { AvatarController } from './about-user/avatar/avatar.controller';
 import { AvatarEntity } from './about-user/avatar/avatar.entity';
 import { AvatarModule } from './about-user/avatar/avatar.module';
 import { UserEntity } from './about-user/user/user.entity';
@@ -60,7 +59,7 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
     AvatarLikeArticleModule,
     AvatarModule,
   ],
-  controllers: [AppController, AvatarController],
+  controllers: [AppController],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

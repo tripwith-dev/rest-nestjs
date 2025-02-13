@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { extname } from 'path';
+import { AvatarController } from './avatar.controller';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarRepository } from './avatar.repository';
 import { AvatarService } from './avatar.service';
@@ -11,12 +12,7 @@ import { AvatarService } from './avatar.service';
   imports: [
     MulterModule.register({
       storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadDir = join(__dirname, './uploads/profileImages');
-          // 로그로 디렉토리 경로 확인
-          console.log('업로드 디렉토리:', uploadDir);
-          cb(null, uploadDir);
-        },
+        destination: './uploads/profileImages',
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -29,6 +25,7 @@ import { AvatarService } from './avatar.service';
     }),
     TypeOrmModule.forFeature([AvatarEntity, AvatarRepository]),
   ],
+  controllers: [AvatarController],
   providers: [AvatarService, AvatarRepository],
   exports: [AvatarService, AvatarRepository],
 })
