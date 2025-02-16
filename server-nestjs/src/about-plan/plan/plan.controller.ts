@@ -117,11 +117,12 @@ export class PlanController {
     return await this.planService.calculateTotalExpenses(planId, currency);
   }
 
-  @Patch(':planId/main-image')
-  @UseGuards(JwtAuthGuard)
+  @Patch(':planId/update/main-image')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @UseInterceptors(FileInterceptor('file'))
   async addMainImage(
     @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
@@ -135,9 +136,12 @@ export class PlanController {
     return await this.planService.addMainImage(planId, mainImageUrl);
   }
 
-  @Delete(':planId/main-image')
-  @UseGuards(JwtAuthGuard)
-  async deleteMainImage(@Param('planId') planId: number) {
+  @Delete(':planId/delete/main-image')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async deleteMainImage(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
     return await this.planService.deleteMainImage(planId);
   }
 
@@ -148,7 +152,7 @@ export class PlanController {
    * @returns 성공 메시지
    */
   @Post(':planId/like')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   async addLike(
     @Param('planId') planId: number,
     @Query('avatarId') avatarId: number,
@@ -163,7 +167,7 @@ export class PlanController {
    * @returns 성공 메시지
    */
   @Patch(':planId/like')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   async softDeleteLike(
     @Param('planId') planId: number,
     @Query('avatarId') avatarId: number,
