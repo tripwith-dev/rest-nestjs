@@ -16,7 +16,7 @@ import { PlanService } from './plan.service';
   imports: [
     MulterModule.register({
       storage: diskStorage({
-        destination: './uploads/category-images',
+        destination: './uploads/planImages',
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);

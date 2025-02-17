@@ -120,20 +120,20 @@ export class PlanController {
   @Patch(':planId/update/main-image')
   @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async addMainImage(
+  async replaceMainImage(
     @Param('planId') planId: number,
     @Query('avatarId') avatarId: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
       throw new HttpException(
-        '프로필 이미지가 업로드되지 않았습니다.',
+        '메인 이미지가 업로드되지 않았습니다.',
         HttpStatus.BAD_REQUEST,
       );
     }
     const mainImageUrl = file.path;
     console.log(mainImageUrl);
-    return await this.planService.addMainImage(planId, mainImageUrl);
+    return await this.planService.replaceMainImage(planId, mainImageUrl);
   }
 
   @Delete(':planId/delete/main-image')

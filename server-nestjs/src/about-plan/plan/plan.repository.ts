@@ -189,7 +189,7 @@ export class PlanRepository {
       .getOne();
   }
 
-  async updateMainImage(
+  async replaceMainImage(
     categoryId: number,
     mainImageUrl: string,
   ): Promise<UpdateResult> {
@@ -205,12 +205,12 @@ export class PlanRepository {
    * @param plan
    * @returns 업데이트된 category 엔티티
    */
-  async deleteMainImage(plan: PlanEntity): Promise<UpdateResult> {
+  async deleteMainImage(planId: number): Promise<UpdateResult> {
     return await this.repository
       .createQueryBuilder()
       .update(PlanEntity)
-      .set({ planMainImage: null })
-      .where('planId = :planId', { planId: plan.planId })
+      .set({ planMainImage: 'uploads/planImages/default.png' })
+      .where('planId = :planId', { planId })
       .execute();
   }
 }

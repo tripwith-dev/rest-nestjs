@@ -564,11 +564,12 @@ export class PlanService {
    * @param mainImageUrl - 추가할 메인 이미지 URL
    * @returns 업데이트된 카테고리 엔티티
    */
-  async addMainImage(
+  async replaceMainImage(
     planId: number,
     mainImageUrl: string,
   ): Promise<PlanEntity> {
-    await this.planRepository.updateMainImage(planId, mainImageUrl);
+    const plan = await this.findPlanById(planId);
+    await this.planRepository.replaceMainImage(plan.planId, mainImageUrl);
     return await this.findPlanById(planId);
   }
   /**
@@ -580,7 +581,7 @@ export class PlanService {
   async deleteMainImage(planId: number): Promise<PlanEntity> {
     const plan = await this.findPlanById(planId);
 
-    await this.planRepository.deleteMainImage(plan);
+    await this.planRepository.deleteMainImage(plan.planId);
     return await this.findPlanById(planId);
   }
 
