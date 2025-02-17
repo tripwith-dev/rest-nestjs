@@ -36,6 +36,22 @@ export class PlanDetailRepository {
     return travelDetail;
   }
 
+  async findPlanDetailOwnerByDetailId(
+    detailId: number,
+  ): Promise<PlanDetailEntity> {
+    const travelDetail = await this.repository
+      .createQueryBuilder('plandetail')
+      .leftJoinAndSelect('plandetail.plan', 'plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
+      .where('plandetail.detailId = :detailId', { detailId })
+      .andWhere('plandetail.isDeleted = false')
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    return travelDetail;
+  }
+
   async findAllPlanDetails(): Promise<PlanDetailEntity[]> {
     return await this.repository
       .createQueryBuilder('traveldetail')

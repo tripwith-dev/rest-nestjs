@@ -42,6 +42,20 @@ export class PlanRepository {
     return plan;
   }
 
+  async findPlanWithOwnerByPlanId(
+    planId: number,
+  ): Promise<PlanEntity | undefined> {
+    const plan = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    return plan;
+  }
+
   /**
    * 특정 여행 계획과 카테고리까지 조회
    * 업데이트 시에 중복 확인을 위해서 사용

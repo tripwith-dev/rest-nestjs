@@ -37,12 +37,10 @@ export class PlanDetailService {
       createPlanDetailDto.endTime,
     );
 
-    console.log(plan);
     const newDetail = await this.planDetailRepository.createPlanDetail(
       plan,
       createPlanDetailDto,
     );
-    console.log(newDetail);
 
     // 총 비용 갱신
     await this.planService.updateTotalExpenses(planId);
@@ -85,6 +83,27 @@ export class PlanDetailService {
 
   async findPlanDetailById(detailId: number): Promise<PlanDetailEntity> {
     const detail = await this.planDetailRepository.findPlanDetailById(detailId);
+    if (!detail) {
+      throw new NotFoundException(
+        `${detailId}에 해당하는 detail을 찾을 수 없습니다.`,
+      );
+    }
+    return detail;
+  }
+
+  async isPlanDetailOwner(
+    detailId: number,
+    avatarId: number,
+  ): Promise<boolean> {
+    const detail = await this.findPlanDetailOwnerByDetailId(detailId);
+    return detail.plan.category.avatar.avatarId === avatarId;
+  }
+
+  async findPlanDetailOwnerByDetailId(
+    detailId: number,
+  ): Promise<PlanDetailEntity> {
+    const detail =
+      await this.planDetailRepository.findPlanDetailOwnerByDetailId(detailId);
     if (!detail) {
       throw new NotFoundException(
         `${detailId}에 해당하는 detail을 찾을 수 없습니다.`,

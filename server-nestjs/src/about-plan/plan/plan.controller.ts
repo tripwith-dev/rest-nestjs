@@ -9,13 +9,15 @@ import {
   Patch,
   Post,
   Query,
+  Request,
+  UnauthorizedException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
+import { CategoryService } from '../category/category.service';
 import { Currency } from '../plandetail/plandetail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
@@ -23,18 +25,28 @@ import { PlanService } from './plan.service';
 
 @Controller('plans')
 export class PlanController {
-  constructor(private readonly planService: PlanService) {}
+  constructor(
+    private readonly planService: PlanService,
+    private readonly categoryService: CategoryService,
+  ) {}
 
-  /**
-   * 새로운 여행 컨테이너를 생성하는 엔드포인트
-   */
   @UseGuards(JwtAuthGuard)
   @Post('create')
   async createTravelPlan(
     @Body() createTravelPlanDto: CreatePlanDto,
-    @Query('avatarId') avatarId: number,
     @Query('categoryId') categoryId: number,
+    @Request() req: any,
   ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.categoryService.isCategoryOwner(
+      categoryId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+    }
+
     return await this.planService.createTravelPlan(
       categoryId,
       createTravelPlanDto,
@@ -72,13 +84,20 @@ export class PlanController {
   /**
    * 특정 여행 계획을 업데이트하는 엔드포인트
    */
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':planId/update')
   async updatePlan(
     @Param('planId') planId: number,
-    @Query('avatarId') avatarId: number,
     @Body() updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
+    @Request() req: any,
   ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
   }
 
@@ -89,7 +108,16 @@ export class PlanController {
    */
   @Patch(':planId/delete')
   @UseGuards(JwtAuthGuard)
-  async softDeletedTravelPlan(@Param('planId') planId: number) {
+  async softDeletedTravelPlan(
+    @Param('planId') planId: number,
+    @Request() req: any,
+  ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
     return this.planService.softDeletedTravelPlan(planId);
   }
 
@@ -118,13 +146,20 @@ export class PlanController {
   }
 
   @Patch(':planId/update/main-image')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async replaceMainImage(
     @Param('planId') planId: number,
-    @Query('avatarId') avatarId: number,
     @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
   ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
     if (!file) {
       throw new HttpException(
         '메인 이미지가 업로드되지 않았습니다.',
@@ -137,11 +172,15 @@ export class PlanController {
   }
 
   @Delete(':planId/delete/main-image')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
-  async deleteMainImage(
-    @Param('planId') planId: number,
-    @Query('avatarId') avatarId: number,
-  ) {
+  @UseGuards(JwtAuthGuard)
+  async deleteMainImage(@Param('planId') planId: number, @Request() req: any) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
     return await this.planService.deleteMainImage(planId);
   }
 
@@ -152,11 +191,15 @@ export class PlanController {
    * @returns 성공 메시지
    */
   @Post(':planId/like')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
-  async addLike(
-    @Param('planId') planId: number,
-    @Query('avatarId') avatarId: number,
-  ) {
+  @UseGuards(JwtAuthGuard)
+  async addLike(@Param('planId') planId: number, @Request() req: any) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
     return await this.planService.addLike(planId, avatarId);
   }
 
@@ -167,11 +210,14 @@ export class PlanController {
    * @returns 성공 메시지
    */
   @Patch(':planId/like')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
-  async softDeleteLike(
-    @Param('planId') planId: number,
-    @Query('avatarId') avatarId: number,
-  ) {
+  @UseGuards(JwtAuthGuard)
+  async softDeleteLike(@Param('planId') planId: number, @Request() req: any) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
     return await this.planService.softDeleteLike(planId, avatarId);
   }
 }

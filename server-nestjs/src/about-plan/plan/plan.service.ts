@@ -26,6 +26,23 @@ export class PlanService {
     private readonly avatarLikePlanRepository: AvatarLikePlanRepository,
   ) {}
 
+  async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
+    const plan = await this.findPlanWithOwnerByPlanId(planId);
+    return plan.category.avatar.avatarId === avatarId;
+  }
+
+  async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
+    const plan = await this.planRepository.findPlanWithOwnerByPlanId(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
   /**
    * 여행 계획 생성
    *

@@ -5,10 +5,10 @@ import {
   Param,
   Patch,
   Post,
-  Query,
+  Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -18,15 +18,15 @@ import { UpdateCategoryDto } from './dtos/category.update.dto';
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('create')
   async createCategory(
     @Body() createTravelCategoryDto: CreateCategoryDto,
-    @Query('avatarId') avatarId: number,
+    @Request() req: any,
   ) {
     return await this.categoryService.createCategory(
       createTravelCategoryDto,
-      avatarId,
+      req.user.avatar.avatarId,
     );
   }
 
@@ -49,7 +49,18 @@ export class CategoryController {
   async updateCategory(
     @Param('categoryId') categoryId: number,
     @Body() updateTravelCategoryDto: UpdateCategoryDto,
+    @Request() req: any,
   ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.categoryService.isCategoryOwner(
+      categoryId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+    }
+
     return this.categoryService.updateCategory(
       categoryId,
       updateTravelCategoryDto,
@@ -58,7 +69,20 @@ export class CategoryController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':categoryId/delete')
-  async softDeletedCategory(@Param('categoryId') categoryId: number) {
+  async softDeletedCategory(
+    @Param('categoryId') categoryId: number,
+    @Request() req: any,
+  ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.categoryService.isCategoryOwner(
+      categoryId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+    }
+
     return this.categoryService.softDeletedCategory(categoryId);
   }
 }
