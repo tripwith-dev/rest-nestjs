@@ -1,5 +1,6 @@
 # secret
 .env
+/uploads
 
 # compiled output
 /dist

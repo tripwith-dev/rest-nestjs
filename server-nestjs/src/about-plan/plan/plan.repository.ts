@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { timeSince } from 'src/utils/timeSince';
 import { Repository, UpdateResult } from 'typeorm';
 import { CategoryEntity } from '../category/category.entity';
 import { CreatePlanDto } from './dto/plan.create.dto';
@@ -21,18 +20,18 @@ export class PlanRepository {
     category: CategoryEntity,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
-    const travelPlan = this.repository.create({
+    const plan = this.repository.create({
       ...createTravelPlanDto,
       category,
     });
-    return await this.repository.save(travelPlan);
+    return await this.repository.save(plan);
   }
 
   /**
    * 특정 여행 계획을 조회
    */
   async findPlanById(planId: number): Promise<PlanEntity | undefined> {
-    const travelContainer = await this.repository
+    const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
@@ -40,41 +39,7 @@ export class PlanRepository {
       .andWhere('plan.isDeleted = false')
       .getOne();
 
-    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
-    if (travelContainer) {
-      return {
-        ...travelContainer,
-        createdTimeSince: timeSince(travelContainer.createdAt),
-      };
-    }
-
-    return null;
-  }
-
-  /**
-   * 특정 여행 계획을 조회
-   */
-  async findPlanWithDetailsById(
-    planId: number,
-  ): Promise<PlanEntity | undefined> {
-    const travelContainer = await this.repository
-      .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.details', 'details')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
-      .where('plan.planId = :planId', { planId })
-      .andWhere('plan.isDeleted = false')
-      .getOne();
-
-    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
-    if (travelContainer) {
-      return {
-        ...travelContainer,
-        createdTimeSince: timeSince(travelContainer.createdAt),
-      };
-    }
-
-    return null;
+    return plan;
   }
 
   /**
@@ -84,7 +49,7 @@ export class PlanRepository {
   async findPlanWithCategoryByPlanId(
     planId: number,
   ): Promise<PlanEntity | undefined> {
-    const travelContainer = await this.repository
+    const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.category', 'category')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
@@ -94,13 +59,7 @@ export class PlanRepository {
       .andWhere('plan.isDeleted = false')
       .getOne();
 
-    // createdTimeSince 필드를 timeSince 함수로 변환하여 반환
-    if (travelContainer) {
-      return {
-        ...travelContainer,
-        createdTimeSince: timeSince(travelContainer.createdAt),
-      };
-    }
+    return plan;
   }
 
   /**
@@ -109,23 +68,21 @@ export class PlanRepository {
    * 메인페이지 배너에서 사용됨
    */
   async findTopTenTravelPlan(): Promise<PlanEntity[]> {
-    const travelPlans = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+    const plans = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
-      .andWhere('travelplan.status = :status', { status: 'PUBLIC' })
-      .orderBy('travelplan.likesCount', 'DESC')
-      .addOrderBy('travelplan.createdAt', 'DESC')
+      .andWhere('plan.isDeleted = false')
+      .andWhere('plan.status = :status', { status: 'PUBLIC' })
+      .orderBy('plan.likesCount', 'DESC')
+      .addOrderBy('plan.createdAt', 'DESC')
       .limit(10)
       .getMany();
 
-    return travelPlans.map((plan) => ({
-      ...plan,
-      createdTimeSince: timeSince(plan.createdAt),
-    }));
+    return plans;
   }
 
   /**
@@ -133,19 +90,17 @@ export class PlanRepository {
    * 모든 plan 조회
    */
   async findAllTravelPlans(): Promise<PlanEntity[]> {
-    const travelPlans = await this.repository
+    const plans = await this.repository
       .createQueryBuilder('travelplan')
       .leftJoinAndSelect('travelplan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.isDeleted = false')
       .andWhere('travelplan.isDeleted = false')
       .getMany();
 
-    return travelPlans.map((plan) => ({
-      ...plan,
-      createdTimeSince: timeSince(plan.createdAt),
-    }));
+    return plans;
   }
 
   /**
@@ -153,7 +108,7 @@ export class PlanRepository {
    * 카테고리 내에 중복되는 planTitle이 있는지 확인할 때 사용
    */
   async findPlansByCategoryId(categoryId: number): Promise<PlanEntity[]> {
-    const travelPlans = await this.repository
+    const plans = await this.repository
       .createQueryBuilder('travelplan')
       .leftJoinAndSelect('travelplan.category', 'category')
       .where('category.categoryId = :categoryId', { categoryId })
@@ -161,15 +116,7 @@ export class PlanRepository {
       .andWhere('travelplan.isDeleted = false')
       .getMany();
 
-    // 각 여행 계획의 createdTimeSince 필드를 timeSince 함수로 변환
-    if (travelPlans && travelPlans.length > 0) {
-      return travelPlans.map((plan) => ({
-        ...plan,
-        createdTimeSince: timeSince(plan.createdAt),
-      }));
-    }
-
-    return [];
+    return plans;
   }
 
   /**
@@ -214,7 +161,7 @@ export class PlanRepository {
    * 삭제된 plan 조회
    */
   async findDeletedPlanById(planId: number): Promise<PlanEntity | undefined> {
-    const travelContainer = await this.repository
+    const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
@@ -222,14 +169,7 @@ export class PlanRepository {
       .andWhere('plan.isDeleted = true')
       .getOne();
 
-    if (travelContainer) {
-      return {
-        ...travelContainer,
-        createdTimeSince: timeSince(travelContainer.createdAt),
-      };
-    }
-
-    return null;
+    return plan;
   }
 
   /**
@@ -240,6 +180,8 @@ export class PlanRepository {
     return await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.details', 'detail')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
@@ -247,7 +189,7 @@ export class PlanRepository {
       .getOne();
   }
 
-  async updateMainImage(
+  async replaceMainImage(
     categoryId: number,
     mainImageUrl: string,
   ): Promise<UpdateResult> {
@@ -263,12 +205,12 @@ export class PlanRepository {
    * @param plan
    * @returns 업데이트된 category 엔티티
    */
-  async deleteMainImage(plan: PlanEntity): Promise<UpdateResult> {
+  async deleteMainImage(planId: number): Promise<UpdateResult> {
     return await this.repository
       .createQueryBuilder()
       .update(PlanEntity)
-      .set({ planMainImage: null })
-      .where('planId = :planId', { planId: plan.planId })
+      .set({ planMainImage: 'uploads/planImages/default.png' })
+      .where('planId = :planId', { planId })
       .execute();
   }
 }

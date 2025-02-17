@@ -9,12 +9,12 @@ import {
   Patch,
   Post,
   Query,
-  Request,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { Currency } from '../plandetail/plandetail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
@@ -32,6 +32,7 @@ export class PlanController {
   @Post('create')
   async createTravelPlan(
     @Body() createTravelPlanDto: CreatePlanDto,
+    @Query('avatarId') avatarId: number,
     @Query('categoryId') categoryId: number,
   ) {
     return await this.planService.createTravelPlan(
@@ -44,14 +45,14 @@ export class PlanController {
    * 특정 여행 계획을 조회하는 엔드포인트
    */
   @Get(':planId')
-  async findPlanById(
+  async findPlanWithCategoryByPlanId(
     @Param('planId') planId: number,
-    @Request() req?: any,
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
-    const travelPlan = await this.planService.findPlanById(planId, currency);
-
-    return travelPlan;
+    return await this.planService.findPlanWithCategoryByPlanId(
+      planId,
+      currency,
+    );
   }
 
   @Get('topten/likes')
@@ -71,10 +72,11 @@ export class PlanController {
   /**
    * 특정 여행 계획을 업데이트하는 엔드포인트
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @Patch(':planId/update')
   async updatePlan(
     @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
     @Body() updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ) {
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
@@ -85,8 +87,8 @@ export class PlanController {
    * @param planId 여행 계획 ID
    * @returns void
    */
-  @UseGuards(JwtAuthGuard)
   @Patch(':planId/delete')
+  @UseGuards(JwtAuthGuard)
   async softDeletedTravelPlan(@Param('planId') planId: number) {
     return this.planService.softDeletedTravelPlan(planId);
   }
@@ -97,7 +99,7 @@ export class PlanController {
    * @returns 여행 디테일 제목 리스트를 반환
    */
   @Get(':planId/details')
-  async findDetailTitlesAndLocationOfPlan(@Param('planId') planId: number) {
+  async findPlanWithDetailByPlanId(@Param('planId') planId: number) {
     return await this.planService.findPlanWithDetailByPlanId(planId);
   }
 
@@ -115,27 +117,31 @@ export class PlanController {
     return await this.planService.calculateTotalExpenses(planId, currency);
   }
 
-  @Patch(':planId/main-image')
-  @UseGuards(JwtAuthGuard)
+  @Patch(':planId/update/main-image')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async addMainImage(
+  async replaceMainImage(
     @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
       throw new HttpException(
-        '프로필 이미지가 업로드되지 않았습니다.',
+        '메인 이미지가 업로드되지 않았습니다.',
         HttpStatus.BAD_REQUEST,
       );
     }
     const mainImageUrl = file.path;
     console.log(mainImageUrl);
-    return await this.planService.addMainImage(planId, mainImageUrl);
+    return await this.planService.replaceMainImage(planId, mainImageUrl);
   }
 
-  @Delete(':planId/main-image')
-  @UseGuards(JwtAuthGuard)
-  async deleteMainImage(@Param('planId') planId: number) {
+  @Delete(':planId/delete/main-image')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async deleteMainImage(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
     return await this.planService.deleteMainImage(planId);
   }
 
@@ -145,11 +151,13 @@ export class PlanController {
    * @param req 요청 객체 (사용자 정보)
    * @returns 성공 메시지
    */
-  @UseGuards(JwtAuthGuard)
   @Post(':planId/like')
-  async addLike(@Param('planId') planId: number, @Request() req: any) {
-    const userId = req.user.id;
-    return await this.planService.addLike(planId, userId);
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async addLike(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
+    return await this.planService.addLike(planId, avatarId);
   }
 
   /**
@@ -158,10 +166,12 @@ export class PlanController {
    * @param req 요청 객체 (사용자 정보)
    * @returns 성공 메시지
    */
-  @UseGuards(JwtAuthGuard)
-  @Delete(':planId/like')
-  async removeLike(@Param('planId') planId: number, @Request() req: any) {
-    const userId = req.user.id;
-    return await this.planService.removeLike(planId, userId);
+  @Patch(':planId/like')
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  async softDeleteLike(
+    @Param('planId') planId: number,
+    @Query('avatarId') avatarId: number,
+  ) {
+    return await this.planService.softDeleteLike(planId, avatarId);
   }
 }

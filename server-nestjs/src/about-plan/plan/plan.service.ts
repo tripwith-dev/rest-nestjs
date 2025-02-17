@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserLikePlanRepository } from 'src/user-like-plan/user-like-plan.repository';
+import { AvatarLikePlanRepository } from 'src/avatar-like-plan/avatar-like-plan.repository';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { CategoryService } from '../category/category.service';
 import { DestinationService } from '../destination/destination.service';
@@ -13,7 +13,6 @@ import { PlanDestinationService } from '../plan-destination/plan-destination.ser
 import { Currency } from '../plandetail/plandetail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
-import { UpdatePlanDto } from './dto/plan.update.dto';
 import { PlanEntity } from './plan.entity';
 import { PlanRepository } from './plan.repository';
 
@@ -24,7 +23,7 @@ export class PlanService {
     private readonly categoryService: CategoryService,
     private readonly destinationService: DestinationService,
     private readonly planDestinationService: PlanDestinationService,
-    private readonly userPlanLikeRepository: UserLikePlanRepository,
+    private readonly avatarLikePlanRepository: AvatarLikePlanRepository,
   ) {}
 
   /**
@@ -134,7 +133,7 @@ export class PlanService {
    * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
    * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
    */
-  async findPlanWithCategoryById(
+  async findPlanWithCategoryByPlanId(
     planId: number,
     currency: Currency = Currency.KRW,
   ): Promise<PlanEntity | undefined> {
@@ -220,9 +219,11 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanWithCategoryById(planId);
+    const plan = await this.findPlanWithCategoryByPlanId(planId);
     if (plan) {
-      // 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
+      /** 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
+       * 변한게 없는 요소는 그대로 냅두고, 변한 요소만 덮어씌우기 때문에
+       * 아래 로직을 안써도 되긴 함. */
       const hasChanges = this.hasChanges(plan, updatePlanWithDestinationDto);
       if (!hasChanges) {
         return plan;
@@ -456,13 +457,22 @@ export class PlanService {
    * @param updateDto 업데이트 DTO
    * @returns 변경 사항이 있는 경우 true, 없는 경우 false
    */
-  private hasChanges(plan: PlanEntity, updateDto: UpdatePlanDto): boolean {
+  private hasChanges(
+    plan: PlanEntity,
+    updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
+  ): boolean {
     return (
-      (updateDto.planTitle && plan.planTitle !== updateDto.planTitle) ||
-      (updateDto.travelStartDate &&
-        plan.travelStartDate !== updateDto.travelStartDate) ||
-      (updateDto.travelEndDate &&
-        plan.travelEndDate !== updateDto.travelEndDate)
+      (updatePlanWithDestinationDto.planTitle &&
+        plan.planTitle !== updatePlanWithDestinationDto.planTitle) ||
+      (updatePlanWithDestinationDto.travelStartDate &&
+        plan.travelStartDate !==
+          updatePlanWithDestinationDto.travelStartDate) ||
+      (updatePlanWithDestinationDto.travelEndDate &&
+        plan.travelEndDate !== updatePlanWithDestinationDto.travelEndDate) ||
+      (updatePlanWithDestinationDto.status &&
+        plan.status !== updatePlanWithDestinationDto.status) ||
+      (updatePlanWithDestinationDto.destinations &&
+        plan.destinations !== updatePlanWithDestinationDto.destinations)
     );
   }
 
@@ -472,7 +482,15 @@ export class PlanService {
    * @returns 여행 디테일 제목 리스트를 반환
    */
   async findPlanWithDetailByPlanId(planId: number) {
-    return await this.planRepository.findPlanWithDetailByPlanId(planId);
+    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
   }
 
   /**
@@ -546,11 +564,12 @@ export class PlanService {
    * @param mainImageUrl - 추가할 메인 이미지 URL
    * @returns 업데이트된 카테고리 엔티티
    */
-  async addMainImage(
+  async replaceMainImage(
     planId: number,
     mainImageUrl: string,
   ): Promise<PlanEntity> {
-    await this.planRepository.updateMainImage(planId, mainImageUrl);
+    const plan = await this.findPlanById(planId);
+    await this.planRepository.replaceMainImage(plan.planId, mainImageUrl);
     return await this.findPlanById(planId);
   }
   /**
@@ -562,7 +581,7 @@ export class PlanService {
   async deleteMainImage(planId: number): Promise<PlanEntity> {
     const plan = await this.findPlanById(planId);
 
-    await this.planRepository.deleteMainImage(plan);
+    await this.planRepository.deleteMainImage(plan.planId);
     return await this.findPlanById(planId);
   }
 
@@ -573,18 +592,18 @@ export class PlanService {
    */
   async addLike(
     planId: number,
-    userId: number,
+    avatarId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
-      userId,
+      avatarId,
     );
 
     if (alreadyLiked) {
       throw new ConflictException('이미 좋아요를 누른 여행 계획입니다.');
     }
 
-    await this.userPlanLikeRepository.addLike(planId, userId);
+    await this.avatarLikePlanRepository.addLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {
@@ -599,20 +618,20 @@ export class PlanService {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async removeLike(
+  async softDeleteLike(
     planId: number,
-    userId: number,
+    avatarId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.userPlanLikeRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
-      userId,
+      avatarId,
     );
 
     if (!alreadyLiked) {
       throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
     }
 
-    await this.userPlanLikeRepository.removeLike(planId, userId);
+    await this.avatarLikePlanRepository.softDeleteLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {

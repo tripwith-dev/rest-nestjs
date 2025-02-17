@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
+import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
 
 @Injectable()
@@ -20,38 +21,30 @@ export class UserRepository {
   }
 
   /**
-   * 사용자 페이지에서 사용됨.
-   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
-   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
+   * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  async findUserWithCategoryByUserId(userId): Promise<UserEntity> {
-    return await this.repository
+  async findUserWithAvatarByUserId(userId): Promise<UserEntity> {
+    const user = await this.repository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.categories', 'category')
-      .where('user.id = :userId', { userId: userId })
+      .leftJoinAndSelect('user.avatar', 'avatar')
+      .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
-      .select([
-        'user.id',
-        'user.profileImage',
-        'user.nickname',
-        'user.introduce',
-        'user.createdAt',
-        'user.createdTimeSince',
-        'category.categoryId',
-        'category.categoryTitle',
-      ])
       .getOne();
+
+    return user;
   }
 
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
   async findUserById(userId): Promise<UserEntity> {
-    return await this.repository
+    const user = await this.repository
       .createQueryBuilder('user')
-      .where('user.id = :userId', { userId: userId })
+      .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
       .getOne();
+
+    return user;
   }
 
   /**
@@ -63,6 +56,7 @@ export class UserRepository {
   async validateUserBySub(sub: string): Promise<UserEntity | undefined> {
     return await this.repository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar')
       .where('user.id = :sub', { sub })
       .getOne();
   }
@@ -82,7 +76,7 @@ export class UserRepository {
   async existsByEmail(email: string): Promise<boolean> {
     const user = await this.repository
       .createQueryBuilder('user')
-      .where('user.email = :email', { email: email })
+      .where('user.email = :email', { email })
       .andWhere('user.isDeleted = false')
       .getOne();
 
@@ -94,12 +88,14 @@ export class UserRepository {
    * 이메일로 유저 조회 (비밀번호 포함)
    */
   async findUserByEmail(email: string): Promise<UserEntity | null> {
-    return await this.repository
+    const user = await this.repository
       .createQueryBuilder('user')
-      .addSelect('user.password') // password 필드를 명시적으로 선택
+      .addSelect('user.password')
       .where('user.email = :email', { email })
       .andWhere('user.isDeleted = false')
       .getOne();
+
+    return user;
   }
 
   /**
@@ -114,5 +110,33 @@ export class UserRepository {
       .getOne();
 
     return !!user;
+  }
+
+  async updateUserName(
+    userId: number,
+    updateUserName: UpdateUserNameDto,
+  ): Promise<UpdateResult> {
+    return await this.repository.update(userId, {
+      ...updateUserName,
+      isUpdated: true,
+      updatedAt: new Date(),
+    });
+  }
+
+  /**
+   * user 객체의 password 업데이트
+   * @param userAllInfo 업데이트할 사용자 정보
+   * @param hashedPassword 해싱된 새로운 비밀번호
+   * @returns 업데이트된 사용자 정보를 나타내는 객체
+   */
+  async updatePassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<UpdateResult> {
+    return await this.repository.update(userId, {
+      password: hashedPassword,
+      isUpdated: true,
+      updatedAt: new Date(),
+    });
   }
 }

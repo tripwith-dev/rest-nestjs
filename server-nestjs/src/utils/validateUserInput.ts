@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 /**
  * 비밀번호 유효성 검사
@@ -21,7 +21,7 @@ export function validatePassword(password: string): void {
   }
 
   if (password.length < 10) {
-    throw new UnauthorizedException('비밀번호는 최소 10자 이상이어야 합니다.');
+    throw new BadRequestException('비밀번호는 최소 10자 이상이어야 합니다.');
   }
 }
 
@@ -30,11 +30,11 @@ export function validatePassword(password: string): void {
  * @param username 이름 문자열
  */
 export function validateUsername(username: string): void {
-  const nameRegex = /^[a-zA-Z가-힣0-9]{2,30}$/;
+  const nameRegex = /^[a-zA-Z가-힣]{2,20}$/;
 
   if (!nameRegex.test(username)) {
-    throw new UnauthorizedException(
-      '이름은 2~30자 이내여야 하며, 특수기호를 포함할 수 없습니다.',
+    throw new BadRequestException(
+      '이름은 2~30자 이내여야 하며, 숫자와 특수기호를 포함할 수 없습니다.',
     );
   }
 }
@@ -47,7 +47,7 @@ export function validateNickname(nickname: string): void {
   const nicknameRegex = /^[a-zA-Z0-9가-힣_-]{4,20}$/;
 
   if (!nicknameRegex.test(nickname)) {
-    throw new UnauthorizedException(
+    throw new BadRequestException(
       '닉네임은 4~20자 이내여야 하며, 한글, 영어, 숫자, _, - 만 허용됩니다.',
     );
   }

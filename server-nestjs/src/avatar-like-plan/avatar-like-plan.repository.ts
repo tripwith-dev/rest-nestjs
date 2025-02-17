@@ -2,25 +2,29 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
 import { DataSource, Repository } from 'typeorm';
-import { UserLikePlanEntity } from './user-like-plan.entity';
+import { AvatarLikePlanEntity } from './avatar-like-plan.entity';
 
 @Injectable()
-export class UserLikePlanRepository {
+export class AvatarLikePlanRepository {
   constructor(
-    @InjectRepository(UserLikePlanEntity)
-    private readonly repository: Repository<UserLikePlanEntity>,
+    @InjectRepository(AvatarLikePlanEntity)
+    private readonly repository: Repository<AvatarLikePlanEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
   /**
    * 사용자가 여행 계획에 좋아요를 눌렀는지 확인
    * @param planId 여행 계획 ID
-   * @param userId 사용자 ID
+   * @param avatarId 사용자 ID
    * @returns boolean (true: 이미 좋아요 함, false: 좋아요 안 함)
    */
-  async hasUserLikedPlan(planId: number, userId: number): Promise<boolean> {
+  async hasUserLikedPlan(planId: number, avatarId: number): Promise<boolean> {
     const result = await this.repository.findOne({
-      where: { planId, userId },
+      where: {
+        plan: { planId },
+        avatar: { avatarId },
+        isDeleted: false,
+      },
     });
     return !!result;
   }
@@ -30,10 +34,13 @@ export class UserLikePlanRepository {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async addLike(planId: number, userId: number): Promise<void> {
+  async addLike(planId: number, avatarId: number): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
       // 좋아요 추가
-      const like = this.repository.create({ planId, userId });
+      const like = this.repository.create({
+        plan: { planId },
+        avatar: { avatarId },
+      });
       await manager.save(like);
 
       // likesCount 증가
@@ -42,14 +49,18 @@ export class UserLikePlanRepository {
   }
 
   /**
-   * 여행 계획에서 좋아요를 제거 및 likesCount 감소
+   * 여행 계획에서 좋아요를 제거 (Soft Delete) 및 likesCount 감소
    * @param planId 여행 계획 ID
-   * @param userId 사용자 ID
+   * @param avatarId 사용자 ID
    */
-  async removeLike(planId: number, userId: number): Promise<void> {
+  async softDeleteLike(planId: number, avatarId: number): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
-      // 좋아요 제거
-      await manager.delete(UserLikePlanEntity, { planId, userId });
+      // 좋아요 isDeleted를 true로 변경 (Soft Delete)
+      await manager.update(
+        AvatarLikePlanEntity,
+        { planId, avatarId },
+        { isDeleted: true },
+      );
 
       // likesCount 감소
       await manager.decrement(PlanEntity, { planId }, 'likesCount', 1);

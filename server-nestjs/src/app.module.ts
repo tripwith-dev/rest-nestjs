@@ -1,7 +1,9 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 import { ArticleModule } from './about-article/article/article.module';
 import { ArticleCommentModule } from './about-article/articlecomment/articlecomment.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
@@ -12,16 +14,21 @@ import { PlanModule } from './about-plan/plan/plan.module';
 import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
 import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
-import { SettingsModule } from './about-user/settings/settings.module';
+import { AvatarEntity } from './about-user/avatar/avatar.entity';
+import { AvatarModule } from './about-user/avatar/avatar.module';
 import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
+import { AvatarLikeArticleModule } from './avatar-like-article/user-like-article.module';
+import { AvatarLikePlanModule } from './avatar-like-plan/avatar-like-plan.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
-import { UserLikeArticleModule } from './user-like-article/user-like-article.module';
-import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // 클라이언트가 접근할 경로
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -35,7 +42,7 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
       database: process.env.DB_NAME,
       synchronize: true, // 배포환경에서는 false
       logging: true,
-      entities: [UserEntity, CategoryEntity],
+      entities: [UserEntity, AvatarEntity, CategoryEntity],
       autoLoadEntities: true,
     }),
     UserModule,
@@ -43,14 +50,14 @@ import { UserLikePlanModule } from './user-like-plan/user-like-plan.module';
     AuthModule,
     DestinationModule,
     PlanDestinationModule,
-    SettingsModule,
     PlanModule,
     PlanDetailModule,
-    UserLikePlanModule,
+    AvatarLikePlanModule,
     PlanCommentModule,
     ArticleModule,
     ArticleCommentModule,
-    UserLikeArticleModule,
+    AvatarLikeArticleModule,
+    AvatarModule,
   ],
   controllers: [AppController],
 })

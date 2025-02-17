@@ -1,6 +1,6 @@
+import { AvatarLikePlanEntity } from 'src/avatar-like-plan/avatar-like-plan.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Status } from 'src/common/enum/status';
-import { UserLikePlanEntity } from 'src/user-like-plan/user-like-plan.entity';
 import {
   Column,
   Entity,
@@ -21,7 +21,7 @@ export class PlanEntity extends CommonEntity {
   @Column({ length: 30 })
   planTitle: string;
 
-  @Column({ nullable: true, default: null })
+  @Column({ default: 'uploads/planImages/default.png' })
   planMainImage: string;
 
   @Column({
@@ -53,6 +53,6 @@ export class PlanEntity extends CommonEntity {
   @OneToMany(() => PlanDestinationEntity, (destination) => destination.plan)
   destinations: PlanDestinationEntity[];
 
-  @OneToMany(() => UserLikePlanEntity, (like) => like.plan)
-  likes: UserLikePlanEntity[];
+  @OneToMany(() => AvatarLikePlanEntity, (like) => like.plan)
+  likes: AvatarLikePlanEntity[];
 }

@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserService } from 'src/about-user/user/user.service';
+import { AvatarService } from 'src/about-user/avatar/avatar.service';
 import { CategoryEntity } from './category.entity';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -15,14 +15,14 @@ import { UpdateCategoryDto } from './dtos/category.update.dto';
 export class CategoryService {
   constructor(
     private readonly categoryRepository: CategoryRepository,
-    private readonly userService: UserService,
+    private readonly avatarService: AvatarService,
   ) {}
 
   /**
    * 카테고리를 생성하는 메서드
    */
-  async createCategory(createCategoryDto: CreateCategoryDto, userId: number) {
-    const user = await this.userService.findUserById(userId);
+  async createCategory(createCategoryDto: CreateCategoryDto, avatarId: number) {
+    const avatar = await this.avatarService.findAvatarById(avatarId);
 
     if (createCategoryDto.categoryTitle.length > 20) {
       throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
@@ -30,16 +30,16 @@ export class CategoryService {
 
     // 중복 확인(본인 카테고리 내에서)
     await this.checkDuplicateTitleWhenCreate(
-      userId,
+      avatar.avatarId,
       createCategoryDto.categoryTitle,
     );
 
     const category = await this.categoryRepository.createCategory(
-      user,
+      avatar,
       createCategoryDto,
     );
 
-    return await this.findCategoryWithPlansByCategoryId(category.categoryId);
+    return await this.findCategoryById(category.categoryId);
   }
 
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
@@ -75,9 +75,9 @@ export class CategoryService {
    * 특정 사용자의 모든 여행 카테고리를 조회하는 메서드
    * 특정 사용자 내에서 CategoryTitle 중복 확인용으로 사용됨.
    */
-  async findUserTravelCategoriesByUserId(userId: number) {
+  async findCategoriesOfAvatarByAvatarId(userId: number) {
     const categories =
-      await this.categoryRepository.findUserTravelCategoriesByUserId(userId);
+      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(userId);
 
     // 카테고리가 없으면 예외를 발생시킴
     if (!categories || categories.length === 0) {
@@ -105,14 +105,14 @@ export class CategoryService {
     }
 
     // 카테고리 title 제약조건
-    if (updateCategoryDto.categoryTitle.length > 50) {
-      throw new BadRequestException(`카테고리 제목은 50자 내여야 합니다.`);
+    if (updateCategoryDto.categoryTitle.length > 20) {
+      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
     }
 
     // 한 사용자 내에서 CategoryTitle 중복 확인
     if (updateCategoryDto.categoryTitle !== category.categoryTitle) {
       await this.checkDuplicateTitleWhenUpdate(
-        category.user.id,
+        category.avatar.avatarId,
         categoryId,
         updateCategoryDto.categoryTitle,
       );
@@ -145,7 +145,7 @@ export class CategoryService {
     categoryTitle: string,
   ): Promise<void> {
     const existingCategories =
-      await this.categoryRepository.findUserTravelCategoriesByUserId(userId);
+      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(userId);
 
     // 하나라도 중복 요소가 있으면 예외처리
     if (
@@ -166,7 +166,7 @@ export class CategoryService {
     categoryTitle: string,
   ): Promise<void> {
     const existingCategories =
-      await this.categoryRepository.findUserTravelCategoriesByUserId(userId);
+      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(userId);
 
     const isDuplicate = existingCategories.some(
       (category) =>

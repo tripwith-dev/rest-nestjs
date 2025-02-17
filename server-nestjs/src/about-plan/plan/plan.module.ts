@@ -3,7 +3,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { UserLikePlanModule } from 'src/user-like-plan/user-like-plan.module';
+import { AvatarLikePlanModule } from 'src/avatar-like-plan/avatar-like-plan.module';
 import { CategoryModule } from '../category/category.module';
 import { DestinationModule } from '../destination/destination.module';
 import { PlanDestinationModule } from '../plan-destination/plan-destination.module';
@@ -16,7 +16,7 @@ import { PlanService } from './plan.service';
   imports: [
     MulterModule.register({
       storage: diskStorage({
-        destination: './uploads/category-images',
+        destination: './uploads/planImages',
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -31,7 +31,7 @@ import { PlanService } from './plan.service';
     CategoryModule,
     DestinationModule,
     PlanDestinationModule,
-    UserLikePlanModule,
+    AvatarLikePlanModule,
   ],
   controllers: [PlanController],
   providers: [PlanService, PlanRepository],

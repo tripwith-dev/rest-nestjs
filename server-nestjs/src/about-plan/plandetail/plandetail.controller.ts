@@ -10,6 +10,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { IsAvatarSelfGuard } from 'src/about-user/jwt/avatar.self.guard';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
 import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
@@ -19,11 +20,12 @@ import { PlanDetailService } from './plandetail.service';
 export class PlanDetailController {
   constructor(private readonly planDetailService: PlanDetailService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @Post('create')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async createPlanDetail(
     @Query('planId') planId: number,
+    @Query('avatarId') avatarId: number,
     @Body() createPlanDetailDto: CreatePlanDetailDto,
   ) {
     return await this.planDetailService.createPlanDetail(
@@ -38,10 +40,11 @@ export class PlanDetailController {
     return detail;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
   @Patch(':detailId/update')
   async updateTravelDetail(
     @Param('detailId') detailId: number,
+    @Query('avatarId') avatarId: number,
     @Body() updatePlanDetailDto: UpdatePlanDetailDto,
   ) {
     return await this.planDetailService.updateTravelDetail(

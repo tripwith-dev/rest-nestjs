@@ -32,6 +32,8 @@ npm i bcrypt
 npm i --save @nestjs/passport passport
 npm i --save @nestjs/jwt passport-jwt
 npm i --save-dev @types/passport-jwt
+npm i @nestjs/serve-static
+npm i --save-dev @types/multer
 ```
 
 **3. `.eslintrc.js/prettier rule`**
