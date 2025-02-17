@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { AvatarLikePlanRepository } from 'src/avatar-like-plan/avatar-like-plan.repository';
+import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { CategoryService } from '../category/category.service';
 import { DestinationService } from '../destination/destination.service';
@@ -23,7 +23,7 @@ export class PlanService {
     private readonly categoryService: CategoryService,
     private readonly destinationService: DestinationService,
     private readonly planDestinationService: PlanDestinationService,
-    private readonly avatarLikePlanRepository: AvatarLikePlanRepository,
+    private readonly avatarLikePlanService: AvatarLikePlanService,
   ) {}
 
   async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
@@ -611,7 +611,7 @@ export class PlanService {
     planId: number,
     avatarId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanService.hasUserLikedPlan(
       planId,
       avatarId,
     );
@@ -620,7 +620,7 @@ export class PlanService {
       throw new ConflictException('이미 좋아요를 누른 여행 계획입니다.');
     }
 
-    await this.avatarLikePlanRepository.addLike(planId, avatarId);
+    await this.avatarLikePlanService.addLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {
@@ -639,7 +639,7 @@ export class PlanService {
     planId: number,
     avatarId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.avatarLikePlanRepository.hasUserLikedPlan(
+    const alreadyLiked = await this.avatarLikePlanService.hasUserLikedPlan(
       planId,
       avatarId,
     );
@@ -648,7 +648,7 @@ export class PlanService {
       throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
     }
 
-    await this.avatarLikePlanRepository.softDeleteLike(planId, avatarId);
+    await this.avatarLikePlanService.softDeleteLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {
