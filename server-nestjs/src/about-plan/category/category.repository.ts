@@ -90,7 +90,6 @@ export class CategoryRepository {
   ): Promise<void> {
     await this.repository.update(categoryId, {
       ...updateTravelCategoryDto,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }

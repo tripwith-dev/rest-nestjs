@@ -118,7 +118,6 @@ export class UserRepository {
   ): Promise<UpdateResult> {
     return await this.repository.update(userId, {
       ...updateUserName,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }
@@ -135,7 +134,6 @@ export class UserRepository {
   ): Promise<UpdateResult> {
     return await this.repository.update(userId, {
       password: hashedPassword,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }

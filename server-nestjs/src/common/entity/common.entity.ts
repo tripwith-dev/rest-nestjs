@@ -13,9 +13,6 @@ export abstract class CommonEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ default: false })
-  isUpdated: boolean;
-
   @Exclude()
   @DeleteDateColumn({ select: false })
   deletedAt?: Date | null;

@@ -12,7 +12,7 @@ import {
 @Entity('avatarlikeplan')
 export class AvatarLikePlanEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
-  likeId: number;
+  pLikeId: number;
 
   @Column()
   avatarId: number;

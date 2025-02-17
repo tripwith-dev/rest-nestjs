@@ -128,7 +128,6 @@ export class PlanRepository {
   ): Promise<void> {
     await this.repository.update(planId, {
       ...updateTravelPlanDto,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }
@@ -142,7 +141,6 @@ export class PlanRepository {
   ): Promise<void> {
     await this.repository.update(planId, {
       totalExpenses,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }
@@ -195,7 +193,6 @@ export class PlanRepository {
   ): Promise<UpdateResult> {
     return await this.repository.update(categoryId, {
       planMainImage: mainImageUrl,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }

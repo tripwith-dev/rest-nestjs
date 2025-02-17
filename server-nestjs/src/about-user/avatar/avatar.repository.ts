@@ -101,7 +101,6 @@ export class AvatarRepository {
   ): Promise<UpdateResult> {
     return await this.repository.update(avatarId, {
       ...updateNicknameDto,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }
@@ -112,7 +111,6 @@ export class AvatarRepository {
   ): Promise<UpdateResult> {
     return await this.repository.update(avatarId, {
       ...updateIntroduceDto,
-      isUpdated: true,
       updatedAt: new Date(),
     });
   }
