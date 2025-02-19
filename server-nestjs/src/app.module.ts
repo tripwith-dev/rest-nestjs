@@ -8,10 +8,16 @@ import { ArticleModule } from './about-article/article/article.module';
 import { ArticleCommentModule } from './about-article/articlecomment/articlecomment.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
 import { CategoryModule } from './about-plan/category/category.module';
+import { DestinationTagEntity } from './about-plan/destination-tag/destination-tag.entity';
 import { DestinationTagModule } from './about-plan/destination-tag/destination-tag.module';
+import { LocationEntity } from './about-plan/location/location.entity';
+import { LocationModule } from './about-plan/location/location.module';
 import { PlanCommentModule } from './about-plan/plan-comment/plan-comment.module';
+import { PlanDestinationEntity } from './about-plan/plan-destination/plan-destination.entity';
 import { PlanDestinationModule } from './about-plan/plan-destination/plan-destination.module';
+import { PlanDetailEntity } from './about-plan/plan-detail/plan-detail.entity';
 import { PlanDetailModule } from './about-plan/plan-detail/plan-detail.module';
+import { PlanEntity } from './about-plan/plan/plan.entity';
 import { PlanModule } from './about-plan/plan/plan.module';
 import { AuthModule } from './about-user/auth/auth.module';
 import { AvatarEntity } from './about-user/avatar/avatar.entity';
@@ -20,9 +26,9 @@ import { UserEntity } from './about-user/user/user.entity';
 import { UserModule } from './about-user/user/user.module';
 import { AppController } from './app.controller';
 import { AvatarLikeArticleModule } from './avatar-like-article/user-like-article.module';
+import { AvatarLikePlanEntity } from './avatar-like-plan/avatar-like-plan.entity';
 import { AvatarLikePlanModule } from './avatar-like-plan/avatar-like-plan.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
-import { LocationModule } from './about-plan/location/location.module';
 
 @Module({
   imports: [
@@ -43,7 +49,17 @@ import { LocationModule } from './about-plan/location/location.module';
       database: process.env.DB_NAME,
       synchronize: true, // 배포환경에서는 false
       logging: true,
-      entities: [UserEntity, AvatarEntity, CategoryEntity],
+      entities: [
+        UserEntity,
+        AvatarEntity,
+        CategoryEntity,
+        PlanEntity,
+        PlanDetailEntity,
+        LocationEntity,
+        AvatarLikePlanEntity,
+        DestinationTagEntity,
+        PlanDestinationEntity,
+      ],
       autoLoadEntities: true,
     }),
     UserModule,

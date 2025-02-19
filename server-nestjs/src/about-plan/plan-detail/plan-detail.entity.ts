@@ -26,25 +26,26 @@ export class PlanDetailEntity extends CommonEntity {
   detailTitle: string;
 
   @Column({ nullable: true })
-  price?: number;
+  price: number;
 
   @IsEnum(Currency)
   @Column({
     type: 'enum',
     enum: Currency,
-    nullable: true,
     default: Currency.KRW,
   })
-  currency?: Currency;
+  currency: Currency;
 
   @Column({ nullable: true })
-  notes?: string;
+  notes: string;
 
   @ManyToOne(() => PlanEntity, (plan) => plan.details)
   @JoinColumn({ name: 'planId' })
   plan: PlanEntity;
 
-  @ManyToOne(() => LocationEntity, (location) => location.details)
+  @ManyToOne(() => LocationEntity, (location) => location.details, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'locationId' })
   location: LocationEntity;
 }
