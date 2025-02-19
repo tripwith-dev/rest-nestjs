@@ -210,6 +210,10 @@ export class PlanService {
   ): Promise<PlanEntity[]> {
     const travelPlans = await this.planRepository.findAllTravelPlans();
 
+    if (!travelPlans) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
     for (const plan of travelPlans) {
       if (plan && plan.totalExpenses) {
         plan.totalExpenses = convertTotalExpenses(

@@ -67,14 +67,14 @@ export class PlanController {
     );
   }
 
-  @Get('topten/likes')
+  @Get('top-ten/likes')
   async findTopTenTravelPlans(
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
     return await this.planService.findTopTenTravelPlan(currency);
   }
 
-  @Get('all/plans')
+  @Get()
   async findAllTravelPlans(
     @Query('currency') currency: Currency = Currency.KRW,
   ) {

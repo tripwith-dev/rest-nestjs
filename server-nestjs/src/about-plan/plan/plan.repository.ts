@@ -105,13 +105,13 @@ export class PlanRepository {
    */
   async findAllTravelPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .leftJoinAndSelect('category.avatar', 'avatar')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
+      .createQueryBuilder('travel-plan')
+      .leftJoinAndSelect('travel-plan.category', 'category')
+      .leftJoinAndSelect('travel-plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destination', 'destination')
       .where('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
+      .andWhere('travel-plan.isDeleted = false')
+      .orderBy('travel-plan.updatedAt', 'DESC')
       .getMany();
 
     return plans;
