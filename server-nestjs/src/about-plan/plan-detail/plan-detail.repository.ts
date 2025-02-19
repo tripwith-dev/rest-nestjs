@@ -4,7 +4,7 @@ import { LessThan, Repository } from 'typeorm';
 import { PlanEntity } from '../plan/plan.entity';
 import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
 import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
-import { PlanDetailEntity } from './plandetail.entity';
+import { PlanDetailEntity } from './plan-detail.entity';
 
 @Injectable()
 export class PlanDetailRepository {
@@ -28,6 +28,22 @@ export class PlanDetailRepository {
     const travelDetail = await this.repository
       .createQueryBuilder('plandetail')
       .leftJoinAndSelect('plandetail.plan', 'plan')
+      .where('plandetail.detailId = :detailId', { detailId })
+      .andWhere('plandetail.isDeleted = false')
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    return travelDetail;
+  }
+
+  async findPlanDetailOwnerByDetailId(
+    detailId: number,
+  ): Promise<PlanDetailEntity> {
+    const travelDetail = await this.repository
+      .createQueryBuilder('plandetail')
+      .leftJoinAndSelect('plandetail.plan', 'plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plandetail.detailId = :detailId', { detailId })
       .andWhere('plandetail.isDeleted = false')
       .andWhere('plan.isDeleted = false')

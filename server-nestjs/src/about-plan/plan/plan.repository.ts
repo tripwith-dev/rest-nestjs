@@ -34,7 +34,21 @@ export class PlanRepository {
     const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    return plan;
+  }
+
+  async findPlanWithOwnerByPlanId(
+    planId: number,
+  ): Promise<PlanEntity | undefined> {
+    const plan = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .getOne();
@@ -52,8 +66,8 @@ export class PlanRepository {
     const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.category', 'category')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .leftJoinAndSelect('plan.destinations', 'destinations')
+      .leftJoinAndSelect('destinations.destinationTag', 'destinationTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('category.isDeleted = false')
       .andWhere('plan.isDeleted = false')
@@ -73,7 +87,7 @@ export class PlanRepository {
       .leftJoinAndSelect('plan.category', 'category')
       .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('category.isDeleted = false')
       .andWhere('plan.isDeleted = false')
       .andWhere('plan.status = :status', { status: 'PUBLIC' })
@@ -91,13 +105,13 @@ export class PlanRepository {
    */
   async findAllTravelPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
-      .leftJoinAndSelect('category.avatar', 'avatar')
-      .leftJoinAndSelect('travelplan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .createQueryBuilder('travel-plan')
+      .leftJoinAndSelect('travel-plan.category', 'category')
+      .leftJoinAndSelect('travel-plan.destinations', 'planDestinations')
+      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
+      .andWhere('travel-plan.isDeleted = false')
+      .orderBy('travel-plan.updatedAt', 'DESC')
       .getMany();
 
     return plans;
@@ -162,7 +176,7 @@ export class PlanRepository {
     const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = true')
       .getOne();

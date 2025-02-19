@@ -16,7 +16,7 @@ export enum Currency {
   EUR = 'EUR',
 }
 
-@Entity('plandetail')
+@Entity('plan_detail')
 export class PlanDetailEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
   detailId: number;

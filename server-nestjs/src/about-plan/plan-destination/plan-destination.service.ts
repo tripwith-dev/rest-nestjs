@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DestinationEntity } from '../destination/destination.entity';
+import { DestinationTagEntity } from '../destination-tag/destination-tag.entity';
 import { PlanEntity } from '../plan/plan.entity';
 import { PlanDestinationEntity } from './plan-destination.entity';
 import { PlanDestinationRepository } from './plan-destination.repository';
@@ -12,7 +12,7 @@ export class PlanDestinationService {
 
   async createPlanDestination(
     plan: PlanEntity,
-    destination: DestinationEntity,
+    destination: DestinationTagEntity,
   ) {
     return await this.planDestinationRepository.createPlanDestination(
       plan,

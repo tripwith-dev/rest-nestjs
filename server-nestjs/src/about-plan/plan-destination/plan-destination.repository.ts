@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DestinationEntity } from '../destination/destination.entity';
+import { DestinationTagEntity } from '../destination-tag/destination-tag.entity';
 import { PlanEntity } from '../plan/plan.entity';
 import { PlanDestinationEntity } from './plan-destination.entity';
 
@@ -13,11 +13,11 @@ export class PlanDestinationRepository {
   ) {}
   async createPlanDestination(
     travelPlan: PlanEntity,
-    destination: DestinationEntity,
+    destinationTag: DestinationTagEntity,
   ) {
     const categoryDestination = this.repository.create({
       plan: travelPlan,
-      destination,
+      destinationTag,
     });
 
     return await this.repository.save(categoryDestination);

@@ -1,3 +1,8 @@
+/**
+ * 파라미터(or쿼리)의 avatarId와 req.user.avatar.avatarId를 비교하여 일치하는 지 확인.
+ * 일치 해야만 API 요청 가능
+ */
+
 import {
   BadRequestException,
   CanActivate,

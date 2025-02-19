@@ -1,19 +1,22 @@
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
-import { DestinationEntity } from '../destination/destination.entity';
+import { DestinationTagEntity } from '../destination-tag/destination-tag.entity';
 import { PlanEntity } from '../plan/plan.entity';
 
-@Entity('plandestination')
+@Entity('plan_destination')
 export class PlanDestinationEntity extends CommonEntity {
   @PrimaryColumn()
-  destinationId: number;
+  destinationTagId: number;
 
   @PrimaryColumn()
   planId: number;
 
-  @ManyToOne(() => DestinationEntity, (destination) => destination.categories)
-  @JoinColumn({ name: 'destinationId' })
-  destination: DestinationEntity;
+  @ManyToOne(
+    () => DestinationTagEntity,
+    (destination) => destination.categories,
+  )
+  @JoinColumn({ name: 'destinationTagId' })
+  destinationTag: DestinationTagEntity;
 
   @ManyToOne(() => PlanEntity, (plan) => plan.destinations)
   @JoinColumn({ name: 'planId' })

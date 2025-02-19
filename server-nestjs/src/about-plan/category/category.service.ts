@@ -18,6 +18,14 @@ export class CategoryService {
     private readonly avatarService: AvatarService,
   ) {}
 
+  async isCategoryOwner(
+    categoryId: number,
+    avatarId: number,
+  ): Promise<boolean> {
+    const category = await this.findCategoryById(categoryId);
+    return category.avatar.avatarId === avatarId;
+  }
+
   /**
    * 카테고리를 생성하는 메서드
    */

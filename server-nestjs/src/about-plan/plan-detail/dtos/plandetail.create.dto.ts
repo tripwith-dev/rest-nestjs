@@ -7,7 +7,7 @@ import {
   IsString,
   Matches,
 } from 'class-validator';
-import { Currency, PlanDetailEntity } from '../plandetail.entity';
+import { Currency, PlanDetailEntity } from '../plan-detail.entity';
 
 export class CreatePlanDetailDto extends PickType(PlanDetailEntity, [
   'detailTitle',
