@@ -8,6 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { LocationEntity } from '../location/location.entity';
 import { PlanEntity } from '../plan/plan.entity';
 
 @Entity('plan_detail')
@@ -37,18 +38,13 @@ export class PlanDetailEntity extends CommonEntity {
   currency?: Currency;
 
   @Column({ nullable: true })
-  location?: string;
-
-  @Column({ nullable: true })
-  latitude?: string;
-
-  @Column({ nullable: true })
-  longitude?: string;
-
-  @Column({ nullable: true })
   notes?: string;
 
   @ManyToOne(() => PlanEntity, (plan) => plan.details)
   @JoinColumn({ name: 'planId' })
   plan: PlanEntity;
+
+  @ManyToOne(() => LocationEntity, (location) => location.details)
+  @JoinColumn({ name: 'locationId' })
+  location: LocationEntity;
 }

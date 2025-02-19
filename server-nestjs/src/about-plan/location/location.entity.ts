@@ -1,5 +1,6 @@
 import { CommonEntity } from 'src/common/entity/common.entity';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { PlanDetailEntity } from '../plan-detail/plan-detail.entity';
 
 @Entity('location')
 export class LocationEntity extends CommonEntity {
@@ -14,4 +15,7 @@ export class LocationEntity extends CommonEntity {
 
   @Column({ nullable: true })
   longitude?: string;
+
+  @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
+  details: PlanDetailEntity[];
 }
