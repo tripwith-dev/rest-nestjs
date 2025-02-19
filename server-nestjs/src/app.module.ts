@@ -22,6 +22,7 @@ import { AppController } from './app.controller';
 import { AvatarLikeArticleModule } from './avatar-like-article/user-like-article.module';
 import { AvatarLikePlanModule } from './avatar-like-plan/avatar-like-plan.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
+import { LocationModule } from './about-plan/location/location.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
     ArticleCommentModule,
     AvatarLikeArticleModule,
     AvatarModule,
+    LocationModule,
   ],
   controllers: [AppController],
 })

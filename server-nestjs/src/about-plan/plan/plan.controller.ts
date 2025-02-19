@@ -97,7 +97,7 @@ export class PlanController {
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
-    console.log(updatePlanWithDestinationDto);
+
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
   }
 
@@ -118,6 +118,7 @@ export class PlanController {
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
+
     return this.planService.softDeletedTravelPlan(planId);
   }
 
