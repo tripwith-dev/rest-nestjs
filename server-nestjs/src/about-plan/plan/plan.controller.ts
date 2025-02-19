@@ -17,8 +17,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
+import { Currency } from 'src/common/enum/currency';
 import { CategoryService } from '../category/category.service';
-import { Currency } from '../plan-detail/plan-detail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanService } from './plan.service';

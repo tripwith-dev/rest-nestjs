@@ -1,5 +1,6 @@
 import { IsEnum } from 'class-validator';
 import { CommonEntity } from 'src/common/entity/common.entity';
+import { Currency } from 'src/common/enum/currency';
 import {
   Column,
   Entity,
@@ -8,13 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PlanEntity } from '../plan/plan.entity';
-
-export enum Currency {
-  USD = 'USD',
-  JPY = 'JPY',
-  KRW = 'KRW',
-  EUR = 'EUR',
-}
 
 @Entity('plan_detail')
 export class PlanDetailEntity extends CommonEntity {

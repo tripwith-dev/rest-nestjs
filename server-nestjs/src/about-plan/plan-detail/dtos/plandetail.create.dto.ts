@@ -7,7 +7,8 @@ import {
   IsString,
   Matches,
 } from 'class-validator';
-import { Currency, PlanDetailEntity } from '../plan-detail.entity';
+import { Currency } from 'src/common/enum/currency';
+import { PlanDetailEntity } from '../plan-detail.entity';
 
 export class CreatePlanDetailDto extends PickType(PlanDetailEntity, [
   'detailTitle',

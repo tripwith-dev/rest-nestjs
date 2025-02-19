@@ -1,6 +1,7 @@
 import { CategoryEntity } from 'src/about-plan/category/category.entity';
 import { AvatarLikePlanEntity } from 'src/avatar-like-plan/avatar-like-plan.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
+import { Currency } from 'src/common/enum/currency';
 import {
   Column,
   Entity,
@@ -23,6 +24,9 @@ export class AvatarEntity extends CommonEntity {
 
   @Column({ default: 'uploads/profileImages/default.png' })
   profileImage: string;
+
+  @Column({ default: Currency.KRW })
+  currency: Currency;
 
   @OneToOne(() => UserEntity, (user) => user.avatar)
   user: UserEntity;

@@ -6,11 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
+import { Currency } from 'src/common/enum/currency';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { CategoryService } from '../category/category.service';
 import { DestinationTagService } from '../destination-tag/destination-tag.service';
 import { PlanDestinationService } from '../plan-destination/plan-destination.service';
-import { Currency } from '../plan-detail/plan-detail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanEntity } from './plan.entity';
