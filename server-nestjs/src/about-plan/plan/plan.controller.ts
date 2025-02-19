@@ -18,7 +18,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { CategoryService } from '../category/category.service';
-import { Currency } from '../plandetail/plandetail.entity';
+import { Currency } from '../plan-detail/plan-detail.entity';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanService } from './plan.service';
@@ -97,7 +97,7 @@ export class PlanController {
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
-
+    console.log(updatePlanWithDestinationDto);
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
   }
 

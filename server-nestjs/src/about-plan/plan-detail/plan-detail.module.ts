@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlanModule } from '../plan/plan.module';
-import { PlanDetailController } from './plandetail.controller';
-import { PlanDetailEntity } from './plandetail.entity';
-import { PlanDetailRepository } from './plandetail.repository';
-import { PlanDetailService } from './plandetail.service';
+import { PlanDetailController } from './plan-detail.controller';
+import { PlanDetailEntity } from './plan-detail.entity';
+import { PlanDetailRepository } from './plan-detail.repository';
+import { PlanDetailService } from './plan-detail.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PlanDetailEntity]), PlanModule],

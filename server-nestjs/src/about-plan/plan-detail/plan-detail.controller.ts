@@ -16,7 +16,7 @@ import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { PlanService } from '../plan/plan.service';
 import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
 import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
-import { PlanDetailService } from './plandetail.service';
+import { PlanDetailService } from './plan-detail.service';
 
 @Controller('plan-detail')
 export class PlanDetailController {

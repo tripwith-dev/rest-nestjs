@@ -50,7 +50,7 @@ export class CategoryRepository {
       .leftJoinAndSelect('category.plans', 'plan')
       .leftJoinAndSelect('category.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destination', 'destination')
+      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();

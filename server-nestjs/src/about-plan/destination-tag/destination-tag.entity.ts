@@ -1,15 +1,15 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { PlanDestinationEntity } from '../plan-destination/plan-destination.entity';
 
-@Entity('destination')
-export class DestinationEntity {
+@Entity('destination_tag')
+export class DestinationTagEntity {
   @PrimaryGeneratedColumn()
-  destinationId: number;
+  destinationTagId: number;
 
   @Column()
-  destinationName: string;
+  destinationTagName: string;
 
   // 아래부터 FK
-  @OneToMany(() => PlanDestinationEntity, (plan) => plan.destination)
+  @OneToMany(() => PlanDestinationEntity, (plan) => plan.destinationTag)
   categories: PlanDestinationEntity[];
 }

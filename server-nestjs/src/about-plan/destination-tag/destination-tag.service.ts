@@ -1,18 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { DestinationEntity } from './destination.entity';
-import { DestinationRepository } from './destination.repository';
+import { DestinationTagEntity } from './destination-tag.entity';
+import { DestinationTagRepository } from './destination-tag.repository';
 
 @Injectable()
-export class DestinationService {
-  constructor(private readonly destinationRepository: DestinationRepository) {}
+export class DestinationTagService {
+  constructor(
+    private readonly destinationRepository: DestinationTagRepository,
+  ) {}
 
   /**
    * 새로운 여행지(Destination)를 생성하는 메서드
    * @param destinationName - 생성할 여행지의 이름
    * @returns 생성된 DestinationEntity
    */
-  async createDestination(destinationName: string): Promise<DestinationEntity> {
-    return await this.destinationRepository.createDestination(destinationName);
+  async createDestination(
+    destinationTagName: string,
+  ): Promise<DestinationTagEntity> {
+    return await this.destinationRepository.createDestination(
+      destinationTagName,
+    );
   }
 
   /**
@@ -21,10 +27,10 @@ export class DestinationService {
    * @returns 찾은 DestinationEntity 또는 데이터가 없을 경우 undefined
    */
   async findOneByDestinationName(
-    destinationName: string,
-  ): Promise<DestinationEntity | undefined> {
+    destinationTagName: string,
+  ): Promise<DestinationTagEntity | undefined> {
     return await this.destinationRepository.findDestinationByName(
-      destinationName,
+      destinationTagName,
     );
   }
 }

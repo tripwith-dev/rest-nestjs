@@ -4,7 +4,7 @@ import { LessThan, Repository } from 'typeorm';
 import { PlanEntity } from '../plan/plan.entity';
 import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
 import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
-import { PlanDetailEntity } from './plandetail.entity';
+import { PlanDetailEntity } from './plan-detail.entity';
 
 @Injectable()
 export class PlanDetailRepository {

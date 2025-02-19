@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('avatarlikeplan')
+@Entity('avatar_like_plan')
 export class AvatarLikePlanEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
   pLikeId: number;

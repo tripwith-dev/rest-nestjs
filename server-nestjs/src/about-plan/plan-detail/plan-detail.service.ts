@@ -7,8 +7,8 @@ import { Cron } from '@nestjs/schedule';
 import { PlanService } from '../plan/plan.service';
 import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
 import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
-import { PlanDetailEntity } from './plandetail.entity';
-import { PlanDetailRepository } from './plandetail.repository';
+import { PlanDetailEntity } from './plan-detail.entity';
+import { PlanDetailRepository } from './plan-detail.repository';
 
 @Injectable()
 export class PlanDetailService {

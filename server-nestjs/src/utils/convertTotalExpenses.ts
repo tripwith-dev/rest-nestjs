@@ -1,4 +1,4 @@
-import { Currency } from 'src/about-plan/plandetail/plandetail.entity';
+import { Currency } from 'src/about-plan/plan-detail/plan-detail.entity';
 
 /**
  * 총 비용을 다른 통화로 변환하는 로직

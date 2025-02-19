@@ -8,11 +8,11 @@ import { ArticleModule } from './about-article/article/article.module';
 import { ArticleCommentModule } from './about-article/articlecomment/articlecomment.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
 import { CategoryModule } from './about-plan/category/category.module';
-import { DestinationModule } from './about-plan/destination/destination.module';
+import { DestinationTagModule } from './about-plan/destination-tag/destination-tag.module';
+import { PlanCommentModule } from './about-plan/plan-comment/plan-comment.module';
 import { PlanDestinationModule } from './about-plan/plan-destination/plan-destination.module';
+import { PlanDetailModule } from './about-plan/plan-detail/plan-detail.module';
 import { PlanModule } from './about-plan/plan/plan.module';
-import { PlanCommentModule } from './about-plan/plancomment/plancomment.module';
-import { PlanDetailModule } from './about-plan/plandetail/plandetail.module';
 import { AuthModule } from './about-user/auth/auth.module';
 import { AvatarEntity } from './about-user/avatar/avatar.entity';
 import { AvatarModule } from './about-user/avatar/avatar.module';
@@ -48,7 +48,7 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
     UserModule,
     CategoryModule,
     AuthModule,
-    DestinationModule,
+    DestinationTagModule,
     PlanDestinationModule,
     PlanModule,
     PlanDetailModule,

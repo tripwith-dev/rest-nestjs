@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { CategoryEntity } from '../category/category.entity';
 import { PlanDestinationEntity } from '../plan-destination/plan-destination.entity';
-import { PlanDetailEntity } from '../plandetail/plandetail.entity';
+import { PlanDetailEntity } from '../plan-detail/plan-detail.entity';
 
 @Entity('plan')
 export class PlanEntity extends CommonEntity {
