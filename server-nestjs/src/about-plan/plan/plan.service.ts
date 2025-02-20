@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { Currency } from 'src/common/enum/currency';
+import { Status } from 'src/common/enum/status';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { CategoryService } from '../category/category.service';
 import { DestinationTagService } from '../destination-tag/destination-tag.service';
@@ -43,6 +44,16 @@ export class PlanService {
     return plan;
   }
 
+  // 타이틀 제약조건 확인
+  async validatePlanTitle(createTravelPlanDto: CreatePlanDto) {
+    if (
+      createTravelPlanDto.planTitle &&
+      createTravelPlanDto.planTitle.length > 30
+    ) {
+      throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
+    }
+  }
+
   /**
    * 여행 계획 생성
    *
@@ -56,16 +67,11 @@ export class PlanService {
     categoryId: number,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
-    const category = await this.categoryService.findCategoryById(categoryId);
+    const category =
+      await this.categoryService.findCategoryWithAvatarByCategoryId(categoryId);
 
-    // 1. 제목 제약 조건 확인
-    if (
-      createTravelPlanDto.planTitle &&
-      createTravelPlanDto.planTitle.length > 30
-    ) {
-      throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
-    }
-
+    // 1. title 검증
+    await this.validatePlanTitle(createTravelPlanDto);
     // 2. 특정 카테고리 내에 planTitle 중복 확인
     await this.checkDuplicateTitle(categoryId, createTravelPlanDto.planTitle);
 
@@ -81,7 +87,21 @@ export class PlanService {
       createTravelPlanDto,
     );
 
-    // 5. 여행지 데이터 처리
+    // 5. 여행지 처리
+    await this.processDestinations(createTravelPlanDto, plan);
+
+    return await this.findPlanById(plan.planId);
+  }
+
+  /**
+   * 여행지가 존재하면 존재하는 지역에 연결, 존재하지 않으면 새로 생성 후 연결
+   * @param createTravelPlanDto
+   * @param plan
+   */
+  async processDestinations(
+    createTravelPlanDto: CreatePlanDto,
+    plan: PlanEntity,
+  ) {
     if (
       createTravelPlanDto.destinations &&
       createTravelPlanDto.destinations.length > 0
@@ -89,27 +109,25 @@ export class PlanService {
       for (const destination of createTravelPlanDto.destinations) {
         const destinationName = destination.destinationTag.destinationTagName;
 
-        // 5-1. Destination이 이미 존재하는지 확인
+        // 1. Destination이 이미 존재하는지 확인
         let destinationEntity =
           await this.destinationTagService.findOneByDestinationName(
             destinationName,
           );
 
-        // 5-2. 존재하지 않는다면 새로 생성
+        // 2. 존재하지 않는다면 새로 생성
         if (!destinationEntity) {
           destinationEntity =
             await this.destinationTagService.createDestination(destinationName);
         }
 
-        // 5-3. CategoryDestination 관계 생성
+        // 3. CategoryDestination 관계 생성
         await this.planDestinationService.createPlanDestination(
           plan,
           destinationEntity,
         );
       }
     }
-
-    return await this.findPlanById(plan.planId);
   }
 
   /**
@@ -153,6 +171,7 @@ export class PlanService {
   async findPlanWithCategoryByPlanId(
     planId: number,
     currency: Currency = Currency.KRW,
+    isOwner?: boolean,
   ): Promise<PlanEntity | undefined> {
     const travelPlan =
       await this.planRepository.findPlanWithCategoryByPlanId(planId);
@@ -161,6 +180,10 @@ export class PlanService {
       throw new NotFoundException(
         `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
       );
+    }
+
+    if (travelPlan.status === Status.PRIVATE && !isOwner) {
+      throw new NotFoundException('해당 여행 계획은 비공개 상태입니다.');
     }
 
     // 통화 변환
@@ -251,12 +274,7 @@ export class PlanService {
       }
 
       // 1. planTitle 예외처리
-      if (
-        updatePlanWithDestinationDto.planTitle &&
-        updatePlanWithDestinationDto.planTitle.length > 30
-      ) {
-        throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
-      }
+      await this.validatePlanTitle(updatePlanWithDestinationDto);
 
       // 2. planTitle이 변경된 경우에 중복 확인(동일 category 내에서만 중복 확인)
       if (plan.planTitle !== updatePlanWithDestinationDto.planTitle) {
@@ -321,12 +339,12 @@ export class PlanService {
     newDestinations: string[],
   ) {
     // 기존 destination 가져오기
-    const existingCategoryDestinations = plan.destinations;
+    const existingPlanDestinations = plan.destinations;
 
     // destinationName만 비교하기 위해 매핑
     // 기존 destinationName과 새로운 destinationName 비교를 위해 Set 이용
     const existingNames = new Set(
-      existingCategoryDestinations.map(
+      existingPlanDestinations.map(
         (dest) => dest.destinationTag.destinationTagName,
       ),
     );
@@ -334,8 +352,8 @@ export class PlanService {
 
     // newDestinations가 null 또는 빈 배열인 경우 모든 요소 삭제
     if (!newDestinations || newDestinations.length === 0) {
-      await this.planDestinationService.softDeletePlanDestinations(
-        existingCategoryDestinations,
+      await this.planDestinationService.deletePlanDestinations(
+        existingPlanDestinations,
       );
     } else {
       // 생성할 요소 찾기: 새로운 데이터에는 있고, 기존 데이터에는 없는 것을 초이스
@@ -344,14 +362,16 @@ export class PlanService {
       );
 
       // 삭제할 요소 찾기: 새로운 데이터에는 없고, 기존 데이터에는 있는 것을 초이스
-      const destinationsToRemove = existingCategoryDestinations.filter(
+      const destinationsToRemove = existingPlanDestinations.filter(
         (categoryDest) =>
           !newNames.has(categoryDest.destinationTag.destinationTagName),
       );
 
       // 삭제 요소 제거
       if (destinationsToRemove.length > 0) {
-        await this.planDestinationService.softDeletePlanDestinations(
+        console.log(destinationsToRemove);
+
+        await this.planDestinationService.deletePlanDestinations(
           destinationsToRemove,
         );
       }

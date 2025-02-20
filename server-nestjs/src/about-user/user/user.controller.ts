@@ -26,13 +26,13 @@ export class UserController {
    * email, 이름 등 계정 정보 조회
    */
   @Get('/:userId')
-  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
     return await this.userService.findUserById(userId);
   }
 
   @Patch('/:userId/username')
-  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async updateUserName(
     @Param('userId') userId,
     @Body() updateUserNameDto: UpdateUserNameDto,
@@ -41,7 +41,7 @@ export class UserController {
   }
 
   @Patch('/:userId/password')
-  @UseGuards(JwtAuthGuard, IsUserSelfGuard)
+  @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async updatePassword(
     @Param('userId') userId,
     @Body() updatePasswordDto: UpdatePasswordDto,

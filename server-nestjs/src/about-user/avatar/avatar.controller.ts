@@ -39,7 +39,7 @@ export class AvatarController {
    * 사용자 프로필 설정 페이지에서 사용됨.
    */
   @Get(':avatarId/profile')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard) // IsAvatarSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async findAvatarById(
     @Param('avatarId') avatarId,
   ): Promise<AvatarEntity | undefined> {
@@ -47,10 +47,10 @@ export class AvatarController {
   }
 
   /**
-   * 사용자 프로필 설정 페이지에서 사용됨.
+   * 사용자가 좋아요를 누른 plan들을 조회
    */
   @Get(':avatarId/like-plans')
-  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard) // IsAvatarSelfGuard로 로그인 한 사용자가 파라미터 avatarId와 같아야만 요청 가능
   async findAvatarWithLikePlansByAvatarId(
     @Param('avatarId') avatarId,
   ): Promise<AvatarEntity | undefined> {
@@ -86,7 +86,7 @@ export class AvatarController {
    */
   @Patch(':avatarId/profileImage')
   @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard) // IsAvatarSelfGuard로 로그인 한 사용자가 파라미터 avatarId와 같아야만 요청 가능
   async replaceProfileImage(
     @Param('avatarId') avatarId: number,
     @UploadedFile() file: Express.Multer.File,
@@ -97,7 +97,7 @@ export class AvatarController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    console.log(file);
+
     const newProfileImagePath = file.path;
     if (!newProfileImagePath) {
       throw new HttpException(
@@ -105,7 +105,7 @@ export class AvatarController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    console.log(`newProfileImage: ${newProfileImagePath}`);
+
     return await this.avatarService.replaceProfileImage(
       avatarId,
       newProfileImagePath,
@@ -118,7 +118,7 @@ export class AvatarController {
    * @returns 업데이트된 사용자 엔티티
    */
   @Delete(':avatarId/profileImage')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsAvatarSelfGuard) // IsAvatarSelfGuard로 로그인 한 사용자가 파라미터 avatarId와 같아야만 요청 가능)
   async deleteProfileImage(
     @Param('avatarId') avatarId: number,
   ): Promise<AvatarEntity> {

@@ -20,10 +20,10 @@ export class PlanDestinationService {
     );
   }
 
-  async softDeletePlanDestinations(
+  async deletePlanDestinations(
     planDestinations: PlanDestinationEntity[],
   ): Promise<void> {
-    await this.planDestinationRepository.softDeletePlanDestinations(
+    await this.planDestinationRepository.deletePlanDestinations(
       planDestinations,
     );
   }

@@ -80,6 +80,7 @@ export class PlanRepository {
    * 좋아요 top10
    * 동점일 경우 최신 순 조회
    * 메인페이지 배너에서 사용됨
+   * 공개 플랜만 가능
    */
   async findTopTenTravelPlan(): Promise<PlanEntity[]> {
     const plans = await this.repository

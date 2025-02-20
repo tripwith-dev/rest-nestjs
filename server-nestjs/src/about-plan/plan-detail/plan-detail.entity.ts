@@ -1,6 +1,7 @@
 import { IsEnum, IsString, Matches } from 'class-validator';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Currency } from 'src/common/enum/currency';
+import { PriceType } from 'src/common/enum/priceType';
 import {
   Column,
   Entity,
@@ -36,10 +37,12 @@ export class PlanDetailEntity extends CommonEntity {
   @Column({ nullable: true })
   price: number;
 
+  @IsEnum(PriceType)
+  @Column({ default: PriceType.OTHER })
+  priceType: PriceType;
+
   @IsEnum(Currency)
   @Column({
-    type: 'enum',
-    enum: Currency,
     default: Currency.KRW,
   })
   currency: Currency;

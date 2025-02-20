@@ -17,7 +17,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
+import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
 import { Currency } from 'src/common/enum/currency';
+import { Status } from 'src/common/enum/status';
 import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
@@ -38,6 +40,7 @@ export class PlanController {
     @Request() req: any,
   ) {
     const avatarId = req.user.avatar.avatarId;
+    // 본인 카테고리 내에서 생성하는게 맞는지 확인
     const isOwner = await this.categoryService.isCategoryOwner(
       categoryId,
       avatarId,
@@ -57,20 +60,28 @@ export class PlanController {
    * 특정 여행 계획을 조회하는 엔드포인트
    */
   @Get(':planId')
+  @UseGuards(OptionalAuthGuard)
   async findPlanWithCategoryByPlanId(
     @Param('planId') planId: number,
     @Query('currency') currency: Currency = Currency.KRW,
+    @Request() req?: any,
   ) {
+    // 소유자가 아니면 비공개 플랜은 조회할 수 없음
+    const avatarId = req?.user?.avatar?.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     return await this.planService.findPlanWithCategoryByPlanId(
       planId,
-      currency,
+      req?.user?.avatar?.currency || currency,
+      isOwner,
     );
   }
 
   @Get('top-ten/likes')
+  @UseGuards(OptionalAuthGuard)
   async findTopTenTravelPlans(
     @Query('currency') currency: Currency = Currency.KRW,
   ) {
+    // 소유자가 아니면 비공개 플랜은 조회할 수 없음
     return await this.planService.findTopTenTravelPlan(currency);
   }
 
@@ -91,9 +102,9 @@ export class PlanController {
     @Body() updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
     @Request() req: any,
   ) {
+    // 소유자만 가능
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
@@ -112,9 +123,9 @@ export class PlanController {
     @Param('planId') planId: number,
     @Request() req: any,
   ) {
+    // 소유자만 가능
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
@@ -154,9 +165,9 @@ export class PlanController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: any,
   ) {
+    // 소유자만 가능
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
@@ -168,16 +179,15 @@ export class PlanController {
       );
     }
     const mainImageUrl = file.path;
-    console.log(mainImageUrl);
     return await this.planService.replaceMainImage(planId, mainImageUrl);
   }
 
   @Delete(':planId/delete/main-image')
   @UseGuards(JwtAuthGuard)
   async deleteMainImage(@Param('planId') planId: number, @Request() req: any) {
+    // 소유자만 가능
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
     if (!isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
@@ -194,10 +204,11 @@ export class PlanController {
   @Post(':planId/like')
   @UseGuards(JwtAuthGuard)
   async addLike(@Param('planId') planId: number, @Request() req: any) {
+    // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 할 수 없음
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
-    if (!isOwner) {
+    const plan = await this.planService.findPlanById(planId);
+    if (plan.status === Status.PRIVATE && !isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
 
@@ -213,10 +224,11 @@ export class PlanController {
   @Patch(':planId/like')
   @UseGuards(JwtAuthGuard)
   async softDeleteLike(@Param('planId') planId: number, @Request() req: any) {
+    // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 제거할 수 없음
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
-    if (!isOwner) {
+    const plan = await this.planService.findPlanById(planId);
+    if (plan.status === Status.PRIVATE && !isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
     return await this.planService.softDeleteLike(planId, avatarId);

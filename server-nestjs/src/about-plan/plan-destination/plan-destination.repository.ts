@@ -23,17 +23,21 @@ export class PlanDestinationRepository {
     return await this.repository.save(categoryDestination);
   }
 
-  async softDeletePlanDestinations(
+  async deletePlanDestinations(
     planDestinations: PlanDestinationEntity[],
   ): Promise<void> {
-    if (planDestinations && planDestinations.length > 0) {
-      const updatedDestinations = planDestinations.map((destination) => ({
-        ...destination,
-        deletedAt: new Date(),
-        isDeleted: true,
-      }));
-
-      await this.repository.save(updatedDestinations);
+    if (!planDestinations || planDestinations.length === 0) {
+      return;
     }
+
+    // 복합 키를 올바르게 넘겨서 삭제
+    await Promise.all(
+      planDestinations.map((destination) =>
+        this.repository.delete({
+          planId: destination.planId, // ✅ planId 포함
+          destinationTagId: destination.destinationTagId, // ✅ destinationTagId 포함
+        }),
+      ),
+    );
   }
 }

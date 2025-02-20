@@ -30,7 +30,9 @@ export class CategoryRepository {
     return await this.repository.save(travelCategory);
   }
 
-  async findCategoryById(categoryId: number): Promise<CategoryEntity> {
+  async findCategoryWithAvatarByCategoryId(
+    categoryId: number,
+  ): Promise<CategoryEntity> {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.avatar', 'avatar')
