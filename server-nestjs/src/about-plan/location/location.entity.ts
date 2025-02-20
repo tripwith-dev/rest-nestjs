@@ -22,7 +22,7 @@ export class LocationEntity {
   @Column({ nullable: false })
   longitude: string;
 
-  @Column({ default: null })
+  @Column({ type: 'float', nullable: true })
   locationRating: number;
 
   @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
