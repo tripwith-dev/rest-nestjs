@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
+import { LocationEntity } from '../location/location.entity';
 import { PlanEntity } from '../plan/plan.entity';
-import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
-import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
+import { CreateDetailDto } from './dtos/plandetail.create.dto';
+import { UpdateDetailDto } from './dtos/plandetail.update.dto';
 import { PlanDetailEntity } from './plan-detail.entity';
 
 @Injectable()
@@ -15,7 +16,7 @@ export class PlanDetailRepository {
 
   async createPlanDetail(
     plan: PlanEntity,
-    createTravelDetailDto: CreatePlanDetailDto,
+    createTravelDetailDto: CreateDetailDto,
   ): Promise<PlanDetailEntity> {
     const detail = this.repository.create({
       ...createTravelDetailDto,
@@ -66,7 +67,7 @@ export class PlanDetailRepository {
 
   async updateTravelDetail(
     detailId: number,
-    updateTravelDetailDto: UpdatePlanDetailDto,
+    updateTravelDetailDto: UpdateDetailDto,
   ): Promise<void> {
     await this.repository.update(detailId, updateTravelDetailDto);
   }
@@ -80,6 +81,10 @@ export class PlanDetailRepository {
 
   async delete(detailId: number): Promise<void> {
     await this.repository.delete(detailId);
+  }
+
+  async updateDetailLocation(detailId: number, location: LocationEntity) {
+    return await this.repository.update(detailId, { location });
   }
 
   async findOverlap(

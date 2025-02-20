@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsString, Matches } from 'class-validator';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Currency } from 'src/common/enum/currency';
 import {
@@ -17,9 +17,17 @@ export class PlanDetailEntity extends CommonEntity {
   detailId: number;
 
   @Column({ nullable: false })
+  @IsString()
+  @Matches(/^\d{12}$/, {
+    message: 'startTime 은 YYYYMMDDHHMM 형태의 string으로 입력받아야 합니다.',
+  })
   startTime: string;
 
   @Column({ nullable: false })
+  @IsString()
+  @Matches(/^\d{12}$/, {
+    message: 'endTime 은 YYYYMMDDHHMM 형태의 string으로 입력받아야 합니다.',
+  })
   endTime: string;
 
   @Column({ nullable: false })

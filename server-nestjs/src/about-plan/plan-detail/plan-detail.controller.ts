@@ -9,13 +9,11 @@ import {
   Request,
   UnauthorizedException,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { PlanService } from '../plan/plan.service';
-import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
-import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
+import { CreateDetailWithLocationDto } from './dtos/plandetail.withLocation..create.dto';
+import { UpdateDetailWithLocationDto } from './dtos/plandetail.withLocation.update.dto';
 import { PlanDetailService } from './plan-detail.service';
 
 @Controller('plan-detail')
@@ -27,12 +25,13 @@ export class PlanDetailController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create')
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async createPlanDetail(
     @Query('planId') planId: number,
-    @Body() createPlanDetailDto: CreatePlanDetailDto,
+    @Body() createDetailWithLocationDto: CreateDetailWithLocationDto,
     @Request() req: any,
   ) {
+    console.log(createDetailWithLocationDto);
+
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
 
@@ -42,7 +41,7 @@ export class PlanDetailController {
 
     return await this.planDetailService.createPlanDetail(
       planId,
-      createPlanDetailDto,
+      createDetailWithLocationDto,
     );
   }
 
@@ -56,7 +55,7 @@ export class PlanDetailController {
   @Patch(':detailId/update')
   async updateTravelDetail(
     @Param('detailId') detailId: number,
-    @Body() updatePlanDetailDto: UpdatePlanDetailDto,
+    @Body() updateDetailWithLocationDto: UpdateDetailWithLocationDto,
     @Request() req: any,
   ) {
     const avatarId = req.user.avatar.avatarId;
@@ -71,7 +70,7 @@ export class PlanDetailController {
 
     return await this.planDetailService.updateTravelDetail(
       detailId,
-      updatePlanDetailDto,
+      updateDetailWithLocationDto,
     );
   }
 

@@ -4,9 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { LocationEntity } from '../location/location.entity';
+import { LocationService } from '../location/location.service';
 import { PlanService } from '../plan/plan.service';
-import { CreatePlanDetailDto } from './dtos/plandetail.create.dto';
-import { UpdatePlanDetailDto } from './dtos/plandetail.update.dto';
+import { CreateDetailWithLocationDto } from './dtos/plandetail.withLocation..create.dto';
+import { UpdateDetailWithLocationDto } from './dtos/plandetail.withLocation.update.dto';
 import { PlanDetailEntity } from './plan-detail.entity';
 import { PlanDetailRepository } from './plan-detail.repository';
 
@@ -15,6 +17,7 @@ export class PlanDetailService {
   constructor(
     private readonly planDetailRepository: PlanDetailRepository,
     private readonly planService: PlanService,
+    private readonly locationService: LocationService,
   ) {}
 
   /**
@@ -33,26 +36,43 @@ export class PlanDetailService {
    */
   async createPlanDetail(
     planId: number,
-    createPlanDetailDto: CreatePlanDetailDto,
+    createDetailWithLocationDto: CreateDetailWithLocationDto,
   ): Promise<PlanDetailEntity> {
     const plan = await this.planService.findPlanById(planId);
     this.validateTimeRange(
-      createPlanDetailDto.startTime,
-      createPlanDetailDto.endTime,
+      createDetailWithLocationDto.createDetailDto.startTime,
+      createDetailWithLocationDto.createDetailDto.endTime,
     );
     await this.deleteOverlap(
       planId,
-      createPlanDetailDto.startTime,
-      createPlanDetailDto.endTime,
+      createDetailWithLocationDto.createDetailDto.startTime,
+      createDetailWithLocationDto.createDetailDto.endTime,
     );
 
     const newDetail = await this.planDetailRepository.createPlanDetail(
       plan,
-      createPlanDetailDto,
+      createDetailWithLocationDto.createDetailDto,
     );
     await this.planService.updateTotalExpenses(planId);
 
+    if (createDetailWithLocationDto.createLocationDto) {
+      // createLocation 함수 내부에서 location이 존재하는 지 확인 후
+      // 이미 존재하면 만들지 않음
+      const location = await this.locationService.createLocation(
+        createDetailWithLocationDto.createLocationDto,
+      );
+      await this.updateDetailLocation(newDetail.detailId, location);
+    }
+
     return newDetail;
+  }
+
+  async updateDetailLocation(detailId: number, location: LocationEntity) {
+    console.log(location);
+    return await this.planDetailRepository.updateDetailLocation(
+      detailId,
+      location,
+    );
   }
 
   private validateTimeRange(startTime: string, endTime: string): void {
@@ -129,31 +149,43 @@ export class PlanDetailService {
 
   async updateTravelDetail(
     detailId: number,
-    updateTravelDetailDto: UpdatePlanDetailDto,
+    updateDetailWithLocationDto: UpdateDetailWithLocationDto,
   ): Promise<PlanDetailEntity> {
     const detail = await this.findPlanDetailById(detailId);
 
     this.validateTimeRange(
-      updateTravelDetailDto.startTime,
-      updateTravelDetailDto.endTime,
+      updateDetailWithLocationDto.updateDetailDto.startTime,
+      updateDetailWithLocationDto.updateDetailDto.endTime,
     );
 
     // 중복된 시간의 트래블 디테일 삭제
     await this.deleteOverlap(
       detail.plan.planId,
-      updateTravelDetailDto.startTime,
-      updateTravelDetailDto.endTime,
+      updateDetailWithLocationDto.updateDetailDto.startTime,
+      updateDetailWithLocationDto.updateDetailDto.endTime,
       detailId, // update할 detail은 삭제 목록에서 제외
     );
 
     await this.planDetailRepository.updateTravelDetail(
       detailId,
-      updateTravelDetailDto,
+      updateDetailWithLocationDto.updateDetailDto,
     );
 
     // 총 비용 갱신
     await this.planService.updateTotalExpenses(detail.plan.planId);
 
+    if (updateDetailWithLocationDto.createLocationDto.locationName) {
+      // createLocation 함수 내부에서 location이 존재하는 지 확인 후
+      // 이미 존재하면 만들지 않음
+      const location = await this.locationService.createLocation(
+        updateDetailWithLocationDto.createLocationDto,
+      );
+      await this.updateDetailLocation(detailId, location);
+      return await this.findPlanDetailById(detailId);
+    }
+
+    // locationName이 존재하지 않으면 주소를 삭제한 것이므로 null로 갱신
+    await this.updateDetailLocation(detailId, null);
     return await this.findPlanDetailById(detailId);
   }
 

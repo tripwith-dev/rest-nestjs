@@ -193,6 +193,7 @@ export class PlanRepository {
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.details', 'detail')
       .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('detail.location', 'location')
       .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')

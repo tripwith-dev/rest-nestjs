@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PickType } from '@nestjs/swagger';
 import { PlanDetailEntity } from '../plan-detail.entity';
 
-export class UpdatePlanDetailDto extends PartialType(PlanDetailEntity) {}
+export class UpdateDetailDto extends PickType(PlanDetailEntity, [
+  'detailTitle',
+  'startTime',
+  'endTime',
+  'notes',
+  'price',
+  'currency',
+]) {}
