@@ -7,6 +7,9 @@ export class LocationEntity {
   @PrimaryGeneratedColumn()
   locationId: number;
 
+  @Column({ nullable: false, unique: true })
+  placeId: string;
+
   @Column({ nullable: true })
   locationName: string;
 
@@ -18,6 +21,9 @@ export class LocationEntity {
 
   @Column({ nullable: false })
   longitude: string;
+
+  @Column({ default: null })
+  locationRating: number;
 
   @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
   details: PlanDetailEntity[];

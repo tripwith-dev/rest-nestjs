@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LocationTypeEntity } from './location-type.entity';
 import { LocationEntity } from './location.entity';
 
@@ -10,10 +10,12 @@ export class LocationTypeMappingEntity {
   @ManyToOne(() => LocationEntity, (location) => location.typeMappings, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'locationId' })
   location: LocationEntity;
 
   @ManyToOne(() => LocationTypeEntity, (type) => type.locationMappings, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'locationTypeId' })
   type: LocationTypeEntity;
 }

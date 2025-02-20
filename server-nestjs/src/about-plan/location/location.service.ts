@@ -11,13 +11,28 @@ export class LocationService {
     createLocationDto: CreateLocationDto,
   ): Promise<LocationEntity> {
     // location name이 이미 있는지 확인
-    const location = await this.locationRepository.findLocationByName(
-      createLocationDto.address,
+    let location = await this.locationRepository.findLocationByPlaceId(
+      createLocationDto.placeId,
     );
 
-    // 이미 있으면 location 그대로 return, 없으면 새로 만듦
+    // 없으면 새로 생성
     if (!location) {
-      return await this.locationRepository.createLocation(createLocationDto);
+      const newLocation =
+        await this.locationRepository.createLocation(createLocationDto);
+
+      // 타입 매핑 추가
+      if (
+        newLocation &&
+        createLocationDto.types &&
+        createLocationDto.types.length > 0
+      ) {
+        await this.locationRepository.addLocationTypes(
+          newLocation,
+          createLocationDto.types,
+        );
+      }
+
+      location = newLocation; // location을 새로 생성된 newLocation으로 설정
     }
 
     return location;
