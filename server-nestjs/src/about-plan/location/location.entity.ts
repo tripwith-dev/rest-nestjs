@@ -1,13 +1,17 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { PlanDetailEntity } from '../plan-detail/plan-detail.entity';
+import { LocationTypeMappingEntity } from './location-type-mapping.entity';
 
 @Entity('location')
 export class LocationEntity {
   @PrimaryGeneratedColumn()
   locationId: number;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   locationName: string;
+
+  @Column({ nullable: false })
+  address: string;
 
   @Column({ nullable: false })
   latitude: string;
@@ -17,4 +21,9 @@ export class LocationEntity {
 
   @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
   details: PlanDetailEntity[];
+
+  @OneToMany(() => LocationTypeMappingEntity, (mapping) => mapping.location, {
+    cascade: true,
+  })
+  typeMappings: LocationTypeMappingEntity[];
 }

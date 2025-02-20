@@ -174,7 +174,7 @@ export class PlanDetailService {
     // 총 비용 갱신
     await this.planService.updateTotalExpenses(detail.plan.planId);
 
-    if (updateDetailWithLocationDto.createLocationDto.locationName) {
+    if (updateDetailWithLocationDto.createLocationDto.address) {
       // createLocation 함수 내부에서 location이 존재하는 지 확인 후
       // 이미 존재하면 만들지 않음
       const location = await this.locationService.createLocation(

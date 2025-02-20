@@ -12,7 +12,7 @@ export class LocationService {
   ): Promise<LocationEntity> {
     // location name이 이미 있는지 확인
     const location = await this.locationRepository.findLocationByName(
-      createLocationDto.locationName,
+      createLocationDto.address,
     );
 
     // 이미 있으면 location 그대로 return, 없으면 새로 만듦
