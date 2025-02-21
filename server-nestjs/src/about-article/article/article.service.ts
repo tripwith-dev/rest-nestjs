@@ -5,7 +5,6 @@ import { AvatarService } from 'src/about-user/avatar/avatar.service';
 import { ArticleEntity } from './article.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { UpdateArticleDto } from './dtos/article.update.dto';
-import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 
 @Injectable()
 export class ArticleService {
