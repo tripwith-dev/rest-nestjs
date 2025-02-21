@@ -52,7 +52,7 @@ export class ArticleController {
     @Request() req: any,
   ): Promise<UpdateResult> {
     const avatarId = req.user.avatar.avatarId;
-    return await this.articleService.updateArticleByArticleId(
+    return await this.articleService.updateArticle(
       articleId,
       updateArticleDto,
       avatarId,

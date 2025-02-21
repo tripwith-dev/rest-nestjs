@@ -40,7 +40,7 @@ export class ArticleRepository {
       .getMany();
   }
 
-  async updateArticleByArticleId(
+  async updateArticle(
     articleId: number,
     updateArticleDto: UpdateArticleDto,
   ): Promise<UpdateResult> {

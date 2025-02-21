@@ -1,14 +1,14 @@
-import { CreateArticleCommentDto } from './dtos/article-comment.create.dto';
 import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AvatarService } from 'src/about-user/avatar/avatar.service';
+import { DeleteResult, UpdateResult } from 'typeorm';
 import { ArticleService } from '../article/article.service';
 import { ArticleCommentEntity } from './article-comment.entity';
 import { ArticleCommentRepository } from './article-comment.repository';
-import { DeleteResult, UpdateResult } from 'typeorm';
+import { CreateArticleCommentDto } from './dtos/article-comment.create.dto';
 import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 
 @Injectable()
@@ -23,14 +23,10 @@ export class ArticleCommentService {
     articleId: number,
     createArticleCommentDto: CreateArticleCommentDto,
     avatarId: number,
-    // 이곳에 createArticleDto를 추가
   ): Promise<ArticleCommentEntity> {
     const avatar = await this.avatarService.findAvatarById(avatarId);
-    const article = await this.articleService.findArticleByArticleId(
-      articleId,
-      avatarId,
-    );
-    // 위 함수에서 avatar 존재 여부 확인하니까 여기서 안해도 됨.
+    const article = await this.articleService.findArticleById(articleId);
+
     await this.isPossibleAccessIntoArticleWithComment(articleId, avatarId);
     return await this.articleCommentRepository.createArticleComment(
       article,
@@ -43,10 +39,7 @@ export class ArticleCommentService {
     articleId: number,
     avatarId: number,
   ) {
-    const article = await this.articleService.findArticleByArticleId(
-      articleId,
-      avatarId,
-    );
+    const article = await this.articleService.findArticleById(articleId);
     if (!article) {
       throw new UnauthorizedException('해당하는 게시글을 찾을 수 없습니다.');
     }

@@ -33,13 +33,20 @@ export class ArticleService {
     return await this.articleRepository.findAllComments();
   }
 
-  async updateArticleByArticleId(
+  async updateArticle(
     articleId: number,
     updateArticleDto: UpdateArticleDto,
     avatarId: number,
   ): Promise<UpdateResult> {
     const article = await this.findArticleById(articleId);
-    return await this.articleRepository.updateArticleByArticleId(
+    const ownerId = article.avatar.avatarId;
+
+    const isOwner = await this.isOwner(ownerId, avatarId);
+    if (!isOwner) {
+      throw new NotFoundException('게시글 작성자만 수정할 수 있습니다.');
+    }
+
+    return await this.articleRepository.updateArticle(
       articleId,
       updateArticleDto,
     );
@@ -49,7 +56,18 @@ export class ArticleService {
     articleId: number,
     avatarId: number,
   ): Promise<DeleteResult> {
-    const article = this.findArticleByArticleId(articleId, avatarId);
+    const article = await this.findArticleById(articleId);
+    const ownerId = article.avatar.avatarId;
+
+    const isOwner = await this.isOwner(ownerId, avatarId);
+    if (!isOwner) {
+      throw new NotFoundException('게시글 작성자만 수정할 수 있습니다.');
+    }
+
     return await this.articleRepository.deleteArticle(articleId);
+  }
+
+  async isOwner(ownerId: number, avatarId: number) {
+    return ownerId === avatarId;
   }
 }
