@@ -4,7 +4,7 @@ import { LocationTypeMappingEntity } from './location-type-mapping.entity';
 @Entity('location_type')
 export class LocationTypeEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  typeId: number;
 
   @Column({ nullable: false })
   type: string;
