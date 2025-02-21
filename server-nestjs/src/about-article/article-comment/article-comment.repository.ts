@@ -27,7 +27,7 @@ export class ArticleCommentRepository {
     return await this.repository.save(comment);
   }
 
-  async findArticleCommentByCommentId(
+  async findArticleCommentById(
     commentId: number,
   ): Promise<ArticleCommentEntity> {
     return await this.repository
@@ -46,7 +46,7 @@ export class ArticleCommentRepository {
       .getMany();
   }
 
-  async updateArticleCommentByCommentId(
+  async updateArticleCommentById(
     commentId: number,
     updateArticleCommentDto: UpdateArticleCommentDto,
   ): Promise<UpdateResult> {

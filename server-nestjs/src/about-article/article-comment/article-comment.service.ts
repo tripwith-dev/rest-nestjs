@@ -34,19 +34,13 @@ export class ArticleCommentService {
     );
   }
 
-  async findArticleCommentByCommentId(
+  async findArticleCommentById(
     commentId: number,
-    avatarId: number,
   ): Promise<ArticleCommentEntity> {
     const comment =
-      await this.articleCommentRepository.findArticleCommentByCommentId(
-        commentId,
-      );
+      await this.articleCommentRepository.findArticleCommentById(commentId);
     if (!comment || !comment.article) {
       throw new NotFoundException('해당하는 게시물에 접근할 수 없습니다 ');
-    }
-    if (comment.avatar.avatarId !== avatarId) {
-      throw new UnauthorizedException('해당 댓글에 접근할 수 없습니다.');
     }
     // 공개 비공개 게시글인지 확인 후 게시글 주인과 로그인한 아바타와 동일한지 비교하고 게시글의 댓글을 확인
     // 근데 이거를 게시글 find함수에서 불러올 수 있나
@@ -57,13 +51,20 @@ export class ArticleCommentService {
     return await this.articleCommentRepository.findAllArticleComments();
   }
 
-  async updateArticleCommentByCommentId(
+  async isOwnerOfComment(commentId: number, avatarId: number) {
+    const comment = await this.findArticleCommentById(commentId);
+    if (comment.avatar.avatarId !== avatarId) {
+      throw new UnauthorizedException('댓글 작성자만 수정할 수 있습니다.');
+    }
+  }
+
+  async updateArticleCommentById(
     commentId: number,
     updateArticleCommentDto: UpdateArticleCommentDto,
     avatarId: number,
   ): Promise<UpdateResult> {
-    await this.findArticleCommentByCommentId(commentId, avatarId);
-    return await this.articleCommentRepository.updateArticleCommentByCommentId(
+    await this.isOwnerOfComment(commentId, avatarId);
+    return await this.articleCommentRepository.updateArticleCommentById(
       commentId,
       updateArticleCommentDto,
     );
@@ -73,7 +74,7 @@ export class ArticleCommentService {
     commentId: number,
     avatarId: number,
   ): Promise<DeleteResult> {
-    await this.findArticleCommentByCommentId(commentId, avatarId);
+    await this.isOwnerOfComment(commentId, avatarId);
     return await this.articleCommentRepository.deleteArticleComment(commentId);
   }
 }
