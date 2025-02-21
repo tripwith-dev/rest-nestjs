@@ -10,7 +10,6 @@ import { ArticleCommentEntity } from './article-comment.entity';
 import { ArticleCommentRepository } from './article-comment.repository';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
-import { ArticleEntity } from '../article/article.entity';
 
 @Injectable()
 export class ArticleCommentService {
