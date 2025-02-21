@@ -27,27 +27,11 @@ export class ArticleCommentService {
     const avatar = await this.avatarService.findAvatarById(avatarId);
     const article = await this.articleService.findArticleById(articleId);
 
-    await this.isPossibleAccessIntoArticleWithComment(articleId, avatarId);
     return await this.articleCommentRepository.createArticleComment(
       article,
       createArticleCommentDto,
       avatar,
     );
-  }
-
-  async isPossibleAccessIntoArticleWithComment(
-    articleId: number,
-    avatarId: number,
-  ) {
-    const article = await this.articleService.findArticleById(articleId);
-    if (!article) {
-      throw new UnauthorizedException('해당하는 게시글을 찾을 수 없습니다.');
-    }
-    if (article.avatar.avatarId !== avatarId) {
-      throw new UnauthorizedException(
-        '비공개 게시글에는 댓글을 작성할 수 없습니다.',
-      );
-    }
   }
 
   async findArticleCommentByCommentId(
