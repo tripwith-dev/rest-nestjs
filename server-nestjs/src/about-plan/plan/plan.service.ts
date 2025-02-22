@@ -198,6 +198,8 @@ export class PlanService {
     return travelPlan;
   }
 
+  async findPlansByCategoryId() {}
+
   /**
    * 좋아요 Top 10 여행 계획 조회
    * 동점일 경우 최신 순으로 정렬
