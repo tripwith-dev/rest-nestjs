@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { validateNickname } from 'src/utils/validateUserInput';
+import { UpdateResult } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarRepository } from './avatar.repository';
@@ -137,6 +138,11 @@ export class AvatarService {
     await this.avatarRepository.updateProfileImageToDefault(avatar.avatarId);
 
     return await this.findAvatarById(avatarId);
+  }
+
+  async softDeleteAvatar(avatarId: number): Promise<UpdateResult> {
+    const avatar = await this.findAvatarById(avatarId);
+    return await this.avatarRepository.softDeleteAvatar(avatar.avatarId);
   }
 
   // =========================== SUB ===========================

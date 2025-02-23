@@ -1,5 +1,6 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
+import { UpdateResult } from 'typeorm';
 import { LoginUserDto } from '../user/dtos/user.login.req.dto';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
@@ -33,5 +34,10 @@ export class AuthController {
   @Post('logout')
   async logOut(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('jwt');
+  }
+
+  @Patch(':userId/delete')
+  async softDeleteUser(@Param('userId') userId: number): Promise<UpdateResult> {
+    return await this.authService.softDeleteUser(userId);
   }
 }

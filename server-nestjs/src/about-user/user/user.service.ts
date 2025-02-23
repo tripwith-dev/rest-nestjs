@@ -10,6 +10,7 @@ import {
   validatePassword,
   validateUsername,
 } from 'src/utils/validateUserInput';
+import { UpdateResult } from 'typeorm';
 import { RegisterUserDto } from './dtos/user.register.req.dto';
 import { UpdateUserNameDto } from './dtos/username.update.dto';
 import { UserEntity } from './user.entity';
@@ -123,7 +124,26 @@ export class UserService {
     }
   }
 
+  async softDeleteUser(userId: number): Promise<UpdateResult> {
+    const user = await this.findUserById(userId);
+    return await this.userRepository.softDeleteUser(user.id);
+  }
+
   // =========================== SUB ===========================
+
+  async existsByEmail(email: string) {
+    return await this.userRepository.existsByEmail(email);
+  }
+
+  async findUserAllInfo(userId: number): Promise<UserEntity> {
+    const user = await this.userRepository.findUserAllInfo(userId);
+
+    if (!user) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    return user;
+  }
 
   /**
    * 사용자 email을 통해 진짜 password를 조회 후 비교

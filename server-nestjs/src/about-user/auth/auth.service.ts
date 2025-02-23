@@ -12,10 +12,10 @@ import {
   validatePassword,
   validateUsername,
 } from 'src/utils/validateUserInput';
+import { UpdateResult } from 'typeorm';
 import { AvatarService } from '../avatar/avatar.service';
 import { ConfirmUserDto } from '../user/dtos/user.comfirm.dto';
 import { LoginUserDto } from '../user/dtos/user.login.req.dto';
-import { UserRepository } from '../user/user.repository';
 import { UserService } from '../user/user.service';
 import { RegisterDto } from './dtos/register.dto';
 
@@ -25,7 +25,6 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly userService: UserService,
     private readonly avatarService: AvatarService,
-    private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
   ) {}
 
@@ -39,7 +38,7 @@ export class AuthService {
     const { nickname } = registerDto.avatar;
 
     // email 중복 확인
-    const isEmailExist = await this.userRepository.existsByEmail(email);
+    const isEmailExist = await this.userService.existsByEmail(email);
     if (isEmailExist) {
       throw new UnauthorizedException('이미 존재하는 이메일입니다.');
     }
@@ -95,6 +94,12 @@ export class AuthService {
     );
 
     return { loginUser, jwt };
+  }
+
+  async softDeleteUser(userId: number): Promise<UpdateResult> {
+    const user = await this.userService.findUserAllInfo(userId);
+    await this.userService.softDeleteUser(user.id);
+    return await this.avatarService.softDeleteAvatar(user.avatar.avatarId);
   }
 
   // =========================== SUB ===========================

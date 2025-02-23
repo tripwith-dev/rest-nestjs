@@ -164,4 +164,11 @@ export class AvatarRepository {
       .where('avatarId = :avatarId', { avatarId })
       .execute();
   }
+
+  async softDeleteAvatar(avatarId: number): Promise<UpdateResult> {
+    return await this.repository.update(avatarId, {
+      isDeleted: true,
+      deletedAt: new Date(),
+    });
+  }
 }

@@ -10,7 +10,7 @@ import { AvatarEntity } from '../avatar/avatar.entity';
 
 @Entity('user')
 export class UserEntity extends CommonEntity {
-  @PrimaryGeneratedColumn() // 자동으로 NOT NULL 포함
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ nullable: false, unique: true })

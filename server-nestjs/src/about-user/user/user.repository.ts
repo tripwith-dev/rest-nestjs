@@ -23,7 +23,7 @@ export class UserRepository {
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  async findUserWithAvatarByUserId(userId): Promise<UserEntity> {
+  async findUserWithAvatarByUserId(userId: number): Promise<UserEntity> {
     const user = await this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
@@ -136,5 +136,23 @@ export class UserRepository {
       password: hashedPassword,
       updatedAt: new Date(),
     });
+  }
+
+  async softDeleteUser(userId: number): Promise<UpdateResult> {
+    return await this.repository.update(userId, {
+      isDeleted: true,
+      deletedAt: new Date(),
+    });
+  }
+
+  async findUserAllInfo(userId: number): Promise<UserEntity> {
+    return await this.repository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar')
+      .leftJoinAndSelect('avatar.categories', 'category')
+      .leftJoinAndSelect('category.plans', 'plan')
+      .where('user.id = :userId', { userId })
+      .andWhere('user.isDeleted = false')
+      .getOne();
   }
 }
