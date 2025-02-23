@@ -22,8 +22,10 @@ export class UserController {
   }
 
   /**
-   * 사용자 계정 정보에서 사용됨
-   * email, 이름 등 계정 정보 조회
+   * 사용자 계정 설정 페이지에서 계정 정보를 조회하기 위해서 사용.
+   * 따라서 본인만 조회 가능하도록 IsUserSelfGuard를 사용.
+   * @param userId
+   * @returns
    */
   @Get('/:userId')
   @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
@@ -31,6 +33,13 @@ export class UserController {
     return await this.userService.findUserById(userId);
   }
 
+  /**
+   * 계정 설정 페이지에서 본인의 이름을 수정하기 위해서 사용됨.
+   * 따라서 본인만 수정 가능하도록 IsUserSelfGuard를 사용.
+   * @param userId
+   * @param updateUserNameDto
+   * @returns
+   */
   @Patch('/:userId/username')
   @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async updateUserName(
@@ -40,6 +49,13 @@ export class UserController {
     return await this.userService.updateUserName(userId, updateUserNameDto);
   }
 
+  /**
+   * 계정 설정 페이지에서 본인의 패스워드 수정하기 위해서 사용됨.
+   * 따라서 본인만 수정 가능하도록 IsUserSelfGuard를 사용.
+   * @param userId
+   * @param updatePasswordDto
+   * @returns
+   */
   @Patch('/:userId/password')
   @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
   async updatePassword(

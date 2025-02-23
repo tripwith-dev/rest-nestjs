@@ -16,6 +16,18 @@ import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 export class AvatarService {
   constructor(private readonly avatarRepository: AvatarRepository) {}
 
+  // =========================== MAIN ===========================
+
+  /**
+   * 회원가입 시에 사용됨
+   */
+  async createAvatar(
+    createAvatarDto: CreateAvatarDto,
+    user: UserEntity,
+  ): Promise<AvatarEntity> {
+    return await this.avatarRepository.createAvatar(createAvatarDto, user);
+  }
+
   /**
    * 사용자 페이지에서 사용됨.
    * 사용자가 생성한 카테고리도 같이 볼 수 있음.
@@ -55,24 +67,6 @@ export class AvatarService {
     }
 
     return avatar;
-  }
-
-  /**
-   * 닉네임 검증
-   * 회원가입, 닉네임 수정 시에 사용됨
-   */
-  async existsByNickname(nickname: string): Promise<boolean> {
-    return await this.avatarRepository.existsByNickname(nickname);
-  }
-
-  /**
-   * 회원가입 시에 사용됨
-   */
-  async createAvatar(
-    createAvatarDto: CreateAvatarDto,
-    user: UserEntity,
-  ): Promise<AvatarEntity> {
-    return await this.avatarRepository.createAvatar(createAvatarDto, user);
   }
 
   async updateNickname(
@@ -143,5 +137,15 @@ export class AvatarService {
     await this.avatarRepository.updateProfileImageToDefault(avatar.avatarId);
 
     return await this.findAvatarById(avatarId);
+  }
+
+  // =========================== SUB ===========================
+
+  /**
+   * 닉네임 검증
+   * 회원가입, 닉네임 수정 시에 사용됨
+   */
+  async existsByNickname(nickname: string): Promise<boolean> {
+    return await this.avatarRepository.existsByNickname(nickname);
   }
 }

@@ -18,19 +18,9 @@ export class CategoryService {
     private readonly avatarService: AvatarService,
   ) {}
 
-  /**
-   * 카테고리 오너가 맞는지 확인하는 메서드
-   * @param categoryId
-   * @param avatarId
-   * @returns
-   */
-  async isCategoryOwner(
-    categoryId: number,
-    avatarId: number,
-  ): Promise<boolean> {
-    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
-    return category.avatar.avatarId === avatarId;
-  }
+  // ============================================================
+  // =========================== MAIN ===========================
+  // ============================================================
 
   /**
    * 카테고리 생성 메서드
@@ -107,6 +97,76 @@ export class CategoryService {
   }
 
   /**
+   * 카테고리를 업데이트하는 메서드
+   */
+  async updateCategory(
+    categoryId: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ) {
+    const category =
+      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
+        categoryId,
+      );
+
+    // 업데이트 요소가 있는지 확인. 없으면 메서드 중단
+    const hasChanges = this.hasChanges(category, updateCategoryDto);
+    if (!hasChanges) {
+      return category;
+    }
+
+    // 카테고리 title 제약조건
+    if (updateCategoryDto.categoryTitle.length > 20) {
+      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
+    }
+
+    // 한 사용자 내에서 CategoryTitle 중복 확인
+    if (updateCategoryDto.categoryTitle !== category.categoryTitle) {
+      await this.checkDuplicateTitleWhenUpdate(
+        category.avatar.avatarId,
+        categoryId,
+        updateCategoryDto.categoryTitle,
+      );
+    }
+
+    await this.categoryRepository.updateCategory(categoryId, updateCategoryDto);
+
+    return await this.findCategoryWithAvatarByCategoryId(categoryId);
+  }
+
+  /**
+   * 특정 여행 카테고리를 소프트 삭제하는 메서드
+   */
+  async softDeletedCategory(categoryId: number): Promise<any> {
+    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
+    if (category) {
+      await this.categoryRepository.softDeletedCategory(categoryId);
+      return { message: '성공적으로 삭제되었습니다.' };
+    } else {
+      throw new InternalServerErrorException(
+        `${categoryId}에 해당하는 travel container를 삭제할 수 없습니다.`,
+      );
+    }
+  }
+
+  // ============================================================
+  // =========================== SUB ============================
+  // ============================================================
+
+  /**
+   * 카테고리 오너가 맞는지 확인하는 메서드
+   * @param categoryId
+   * @param avatarId
+   * @returns
+   */
+  async isCategoryOwner(
+    categoryId: number,
+    avatarId: number,
+  ): Promise<boolean> {
+    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
+    return category.avatar.avatarId === avatarId;
+  }
+
+  /**
    * isOwner가 false면 PUBLIC인 plan만 남기는 메서드
    * @param isOwner
    * @param category
@@ -143,43 +203,6 @@ export class CategoryService {
     }
 
     return categories;
-  }
-
-  /**
-   * 카테고리를 업데이트하는 메서드
-   */
-  async updateCategory(
-    categoryId: number,
-    updateCategoryDto: UpdateCategoryDto,
-  ) {
-    const category =
-      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
-        categoryId,
-      );
-
-    // 업데이트 요소가 있는지 확인. 없으면 메서드 중단
-    const hasChanges = this.hasChanges(category, updateCategoryDto);
-    if (!hasChanges) {
-      return category;
-    }
-
-    // 카테고리 title 제약조건
-    if (updateCategoryDto.categoryTitle.length > 20) {
-      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
-    }
-
-    // 한 사용자 내에서 CategoryTitle 중복 확인
-    if (updateCategoryDto.categoryTitle !== category.categoryTitle) {
-      await this.checkDuplicateTitleWhenUpdate(
-        category.avatar.avatarId,
-        categoryId,
-        updateCategoryDto.categoryTitle,
-      );
-    }
-
-    await this.categoryRepository.updateCategory(categoryId, updateCategoryDto);
-
-    return await this.findCategoryWithAvatarByCategoryId(categoryId);
   }
 
   /**
@@ -240,21 +263,6 @@ export class CategoryService {
 
     if (isDuplicate) {
       throw new ConflictException('동일한 제목의 카테고리가 이미 존재합니다.');
-    }
-  }
-
-  /**
-   * 특정 여행 카테고리를 소프트 삭제하는 메서드
-   */
-  async softDeletedCategory(categoryId: number): Promise<any> {
-    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
-    if (category) {
-      await this.categoryRepository.softDeletedCategory(categoryId);
-      return { message: '성공적으로 삭제되었습니다.' };
-    } else {
-      throw new InternalServerErrorException(
-        `${categoryId}에 해당하는 travel container를 삭제할 수 없습니다.`,
-      );
     }
   }
 }

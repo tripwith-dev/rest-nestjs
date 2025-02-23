@@ -29,6 +29,8 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
+  // =========================== MAIN ===========================
+
   /**
    * 회원가입
    */
@@ -94,6 +96,8 @@ export class AuthService {
 
     return { loginUser, jwt };
   }
+
+  // =========================== SUB ===========================
 
   /**
    * id, password 확인 + jwt 생성

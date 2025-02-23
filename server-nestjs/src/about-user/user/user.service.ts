@@ -19,10 +19,23 @@ import { UserRepository } from './user.repository';
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
+  // =========================== MAIN ===========================
+
+  async findUserById(userId: number): Promise<UserEntity | undefined> {
+    const user = await this.userRepository.findUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    return user;
+  }
+
   /**
-   * 사용자 페이지에서 사용됨.
-   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
-   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
+   * user와 avatar를 같이 반환함.
+   * req.user에 avatar 정보도 같이 전달하기 위해서 사용됨.
+   * @param userId
+   * @returns
    */
   async findUserWithAvatarByUserId(
     userId: number,
@@ -36,23 +49,6 @@ export class UserService {
     return user;
   }
 
-  /**
-   * 사용자 계정 정보에서 사용됨
-   * email, 이름 등 계정 정보 조회
-   */
-  async findUserById(userId: number): Promise<UserEntity | undefined> {
-    const user = await this.userRepository.findUserById(userId);
-
-    if (!user) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    return user;
-  }
-
-  /**
-   * user 생성
-   */
   async createUser(userRegisterDto: RegisterUserDto): Promise<UserEntity> {
     try {
       const createdUser = await this.userRepository.createUser(userRegisterDto);
@@ -96,14 +92,14 @@ export class UserService {
   ): Promise<UserEntity> {
     const user = await this.findUserById(userId);
 
-    validatePassword(newPassword);
-
     // 기존 비밀번호 확인
     const checkOldPassword = await this.checkPassword(user.email, oldPassword);
 
     if (!checkOldPassword) {
       throw new UnauthorizedException('기존 비밀번호가 일치하지 않습니다.');
     }
+
+    validatePassword(newPassword);
 
     // 비밀번호 업데이트 처리
     try {
@@ -127,17 +123,19 @@ export class UserService {
     }
   }
 
+  // =========================== SUB ===========================
+
   /**
-   * 비밀번호 체크
-   * @param user 사용자 계정 정보
-   * @param password 비밀번호
-   * @returns 비밀번호 일치 여부 (true/false)
+   * 사용자 email을 통해 진짜 password를 조회 후 비교
+   * @param email
+   * @param password
+   * @returns
    */
   private async checkPassword(
     email: string,
     password: string,
   ): Promise<boolean> {
-    const userAllInfo = await this.userRepository.findUserByEmail(email);
+    const userAllInfo = await this.findUserByEmail(email);
     return await bcrypt.compare(password, userAllInfo.password);
   }
 
@@ -145,6 +143,7 @@ export class UserService {
    * 사용자 서브 정보로 유효성 검사를 위한 사용자 조회
    */
   async validateUserBySub(sub: string): Promise<UserEntity> {
+    // 이 user가 req.user
     const user = await this.userRepository.validateUserBySub(sub);
 
     if (!user) {
@@ -156,7 +155,9 @@ export class UserService {
 
   /**
    * 사용자 서브 정보로 유효성 검사를 위한 사용자 조회
-   * 이메일로 유저 조회
+   * 이메일로 유저 조회, password도 같이 조회하므로 주의
+   * @param email
+   * @returns
    */
   async findUserByEmail(email: string): Promise<any | null> {
     const user = await this.userRepository.findUserByEmail(email);
