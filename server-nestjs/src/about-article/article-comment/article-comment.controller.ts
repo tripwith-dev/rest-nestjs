@@ -1,5 +1,3 @@
-import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
-import { ArticleCommentService } from './article-comment.service';
 import {
   Body,
   Controller,
@@ -11,11 +9,13 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CreateArticleCommentDto } from './dtos/article-comment.create.dto';
-import { ArticleCommentEntity } from './article-comment.entity';
+import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
-import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { ArticleCommentEntity } from './article-comment.entity';
+import { ArticleCommentService } from './article-comment.service';
+import { CreateArticleCommentDto } from './dtos/article-comment.create.dto';
+import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 
 @Controller('article-comment')
 export class ArticleCommentController {
@@ -37,15 +37,12 @@ export class ArticleCommentController {
 
   @Get(':commentId')
   @UseGuards(OptionalAuthGuard)
-  async findArticleCommentByCommentId(
+  async findArticleCommentById(
     @Param('commentId') commentId: number,
     @Request() req?: any,
   ): Promise<ArticleCommentEntity> {
     const avatarId = req?.user?.avatar?.avatarId || null;
-    return await this.articleCommentService.findArticleCommentByCommentId(
-      commentId,
-      avatarId,
-    );
+    return await this.articleCommentService.findArticleCommentById(commentId);
   }
 
   @Get()
@@ -55,13 +52,13 @@ export class ArticleCommentController {
 
   @Patch(':commentId/update')
   @UseGuards(JwtAuthGuard)
-  async updateArticleCommentByCommentId(
+  async updateArticleCommentById(
     @Param('commentId') commentId: number,
     @Body() updateArticleCommentDto: UpdateArticleCommentDto,
     @Request() req: any,
   ): Promise<UpdateResult> {
     const avatarId = req.user.avatar.avatarId;
-    return await this.articleCommentService.updateArticleCommentByCommentId(
+    return await this.articleCommentService.updateArticleCommentById(
       commentId,
       updateArticleCommentDto,
       avatarId,
