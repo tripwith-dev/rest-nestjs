@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -70,11 +69,7 @@ export class UserService {
 
     validateUsername(updateUserNameDto.username);
 
-    if (user.username === updateUserNameDto.username) {
-      throw new BadRequestException('동일한 이름으로 변경할 수 없습니다.');
-    }
-
-    await this.userRepository.updateUserName(userId, updateUserNameDto);
+    await this.userRepository.updateUserName(user.id, updateUserNameDto);
     return await this.findUserById(userId);
   }
 
@@ -82,38 +77,19 @@ export class UserService {
     userId: number,
     oldPassword: string,
     newPassword: string,
-  ): Promise<UserEntity> {
+  ): Promise<UpdateResult> {
     const user = await this.findUserById(userId);
+    const userWithPassword = await this.findUserByEmail(user.email);
 
-    // 기존 비밀번호 확인
-    const checkOldPassword = await this.checkPassword(user.email, oldPassword);
+    // 1. 기존 비밀번호 확인
+    await this.checkPassword(userWithPassword.password, oldPassword);
 
-    if (!checkOldPassword) {
-      throw new UnauthorizedException('기존 비밀번호가 일치하지 않습니다.');
-    }
-
+    // 2. 새 패스워드 유효성 검증
     validatePassword(newPassword);
 
     // 비밀번호 업데이트 처리
-    try {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      const updatedUser = await this.userRepository.updatePassword(
-        user.id,
-        hashedPassword,
-      );
-
-      if (!updatedUser) {
-        throw new InternalServerErrorException(
-          '비밀번호 업데이트에 실패했습니다.',
-        );
-      }
-
-      return await this.findUserById(userId);
-    } catch (error) {
-      throw new InternalServerErrorException(
-        '비밀번호 업데이트 중 오류가 발생했습니다.',
-      );
-    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await this.userRepository.updatePassword(user.id, hashedPassword);
   }
 
   async softDeleteUser(userId: number): Promise<UpdateResult> {
@@ -143,17 +119,18 @@ export class UserService {
   }
 
   /**
-   * 사용자 email을 통해 진짜 password를 조회 후 비교
-   * @param email
-   * @param password
-   * @returns
+   * 실제 패스워드와 입력받은 기존 패스워드 비교함
+   * @param realUserPassword
+   * @param inputOldPassword
    */
   private async checkPassword(
-    email: string,
-    password: string,
-  ): Promise<boolean> {
-    const userAllInfo = await this.findUserByEmail(email);
-    return await bcrypt.compare(password, userAllInfo.password);
+    realUserPassword: string,
+    inputOldPassword: string,
+  ): Promise<void> {
+    const isCorrect = await bcrypt.compare(inputOldPassword, realUserPassword);
+    if (!isCorrect) {
+      throw new UnauthorizedException('기존 패스워드가 틀렸습니다.');
+    }
   }
 
   /**

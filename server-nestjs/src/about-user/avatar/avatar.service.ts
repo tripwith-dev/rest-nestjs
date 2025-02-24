@@ -16,7 +16,9 @@ import { UpdateNicknameDto } from './dtos/nickname.update.dto';
 export class AvatarService {
   constructor(private readonly avatarRepository: AvatarRepository) {}
 
+  // ============================================================
   // =========================== MAIN ===========================
+  // ============================================================
 
   /**
    * 회원가입 시에 사용됨
@@ -139,7 +141,9 @@ export class AvatarService {
     return await this.avatarRepository.softDeleteAvatar(avatar.avatarId);
   }
 
+  // ===========================================================
   // =========================== SUB ===========================
+  // ===========================================================
 
   /**
    * 닉네임 검증

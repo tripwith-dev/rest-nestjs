@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
 import { IsUserSelfGuard } from '../jwt/user.self.guard';
 import { UpdatePasswordDto } from './dtos/password.update.dto';
@@ -61,7 +62,7 @@ export class UserController {
   async updatePassword(
     @Param('userId') userId,
     @Body() updatePasswordDto: UpdatePasswordDto,
-  ): Promise<UserEntity | undefined> {
+  ): Promise<UpdateResult> {
     const oldPassword = updatePasswordDto.oldPassword;
     const newPassword = updatePasswordDto.newPassword;
     return await this.userService.updatePassword(
