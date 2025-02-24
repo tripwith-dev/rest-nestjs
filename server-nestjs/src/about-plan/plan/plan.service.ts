@@ -173,31 +173,28 @@ export class PlanService {
     currency: Currency = Currency.KRW,
     isOwner?: boolean,
   ): Promise<PlanEntity | undefined> {
-    const travelPlan =
-      await this.planRepository.findPlanWithCategoryByPlanId(planId);
+    const plan = await this.planRepository.findPlanWithCategoryByPlanId(planId);
 
-    console.log(travelPlan);
-
-    if (!travelPlan) {
+    if (!plan) {
       throw new NotFoundException(
         `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
       );
     }
 
-    if (travelPlan.status === Status.PRIVATE && !isOwner) {
+    if (plan.status === Status.PRIVATE && !isOwner) {
       throw new NotFoundException('해당 여행 계획은 비공개 상태입니다.');
     }
 
     // 통화 변환
-    if (travelPlan.totalExpenses) {
-      travelPlan.totalExpenses = convertTotalExpenses(
-        travelPlan.totalExpenses,
+    if (plan.totalExpenses) {
+      plan.totalExpenses = convertTotalExpenses(
+        plan.totalExpenses,
         Currency.KRW, // default는 KRW
         currency,
       );
     }
 
-    return travelPlan;
+    return plan;
   }
 
   async findPlansByCategoryId() {}
