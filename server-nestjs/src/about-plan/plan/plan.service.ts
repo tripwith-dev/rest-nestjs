@@ -29,7 +29,7 @@ export class PlanService {
 
   async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
     const plan = await this.findPlanWithOwnerByPlanId(planId);
-    return plan.category.avatar.avatarId === avatarId;
+    return plan.category?.avatar.avatarId === avatarId;
   }
 
   async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
@@ -175,6 +175,8 @@ export class PlanService {
   ): Promise<PlanEntity | undefined> {
     const travelPlan =
       await this.planRepository.findPlanWithCategoryByPlanId(planId);
+
+    console.log(travelPlan);
 
     if (!travelPlan) {
       throw new NotFoundException(

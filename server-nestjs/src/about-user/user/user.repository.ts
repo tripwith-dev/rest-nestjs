@@ -150,7 +150,8 @@ export class UserRepository {
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
       .leftJoinAndSelect('avatar.categories', 'category')
-      .leftJoinAndSelect('category.plans', 'plan')
+      .leftJoinAndSelect('avatar.articles', 'article')
+      .leftJoinAndSelect('avatar.articleComments', 'articleComment')
       .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
       .getOne();

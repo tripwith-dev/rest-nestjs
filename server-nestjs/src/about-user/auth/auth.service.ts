@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
+import { CategoryService } from 'src/about-plan/category/category.service';
 import {
   validateNickname,
   validatePassword,
@@ -25,6 +26,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly userService: UserService,
     private readonly avatarService: AvatarService,
+    private readonly categoryService: CategoryService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -98,8 +100,11 @@ export class AuthService {
 
   async softDeleteUser(userId: number): Promise<UpdateResult> {
     const user = await this.userService.findUserAllInfo(userId);
-    await this.userService.softDeleteUser(user.id);
-    return await this.avatarService.softDeleteAvatar(user.avatar.avatarId);
+    await this.categoryService.softDeleteCategoriesByAvatar(
+      user.avatar.avatarId,
+    );
+    await this.avatarService.softDeleteAvatar(user.avatar.avatarId);
+    return await this.userService.softDeleteUser(user.id);
   }
 
   // =========================== SUB ===========================

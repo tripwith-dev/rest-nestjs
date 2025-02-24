@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { CategoryEntity } from './category.entity';
 import { CreateCategoryDto } from './dtos/category.create.dto';
 import { UpdateCategoryDto } from './dtos/category.update.dto';
@@ -101,10 +101,27 @@ export class CategoryRepository {
    * @param containerId 여행 컨테이너 ID
    * @returns void
    */
-  async softDeletedCategory(categoryId: number): Promise<void> {
-    await this.repository.update(categoryId, {
+  async softDeletedCategory(categoryId: number): Promise<UpdateResult> {
+    return await this.repository.update(categoryId, {
       isDeleted: true,
       deletedAt: new Date(),
     });
+  }
+
+  /**
+   * 특정 avatar에 속한 모든 category를 소프트 삭제하는 리포지토리 로직
+   * @param avatarId 아바타 ID
+   * @returns UpdateResult
+   */
+  async softDeleteCategoriesByAvatar(avatarId: number): Promise<UpdateResult> {
+    return await this.repository
+      .createQueryBuilder()
+      .update(CategoryEntity)
+      .set({
+        isDeleted: true,
+        deletedAt: new Date(),
+      })
+      .where('avatarId = :avatarId', { avatarId })
+      .execute();
   }
 }

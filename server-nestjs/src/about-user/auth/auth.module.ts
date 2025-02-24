@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CategoryModule } from 'src/about-plan/category/category.module';
 import { AvatarEntity } from '../avatar/avatar.entity';
 import { AvatarModule } from '../avatar/avatar.module';
 import { JwtStrategy } from '../jwt/jwt.strategy';
@@ -20,6 +21,7 @@ import { AuthService } from './auth.service';
     }),
     UserModule,
     AvatarModule,
+    CategoryModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

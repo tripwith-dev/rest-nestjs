@@ -86,6 +86,7 @@ export class PlanController {
     // 소유자가 아니면 비공개 플랜은 조회할 수 없음
     const avatarId = req?.user?.avatar?.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
     return await this.planService.findPlanWithCategoryByPlanId(
       planId,
       req?.user?.avatar?.currency || currency,

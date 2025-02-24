@@ -69,7 +69,6 @@ export class PlanRepository {
       .leftJoinAndSelect('plan.destinations', 'destinations')
       .leftJoinAndSelect('destinations.destinationTag', 'destinationTag')
       .where('plan.planId = :planId', { planId })
-      .andWhere('category.isDeleted = false')
       .andWhere('plan.isDeleted = false')
       .getOne();
 

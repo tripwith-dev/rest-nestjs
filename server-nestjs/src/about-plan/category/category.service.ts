@@ -2,10 +2,10 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { AvatarService } from 'src/about-user/avatar/avatar.service';
+import { UpdateResult } from 'typeorm';
 import { CategoryEntity } from './category.entity';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto } from './dtos/category.create.dto';
@@ -136,16 +136,18 @@ export class CategoryService {
   /**
    * 특정 여행 카테고리를 소프트 삭제하는 메서드
    */
-  async softDeletedCategory(categoryId: number): Promise<any> {
+  async softDeletedCategory(categoryId: number): Promise<UpdateResult> {
     const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
-    if (category) {
-      await this.categoryRepository.softDeletedCategory(categoryId);
-      return { message: '성공적으로 삭제되었습니다.' };
-    } else {
-      throw new InternalServerErrorException(
-        `${categoryId}에 해당하는 travel container를 삭제할 수 없습니다.`,
-      );
-    }
+    return await this.categoryRepository.softDeletedCategory(
+      category.categoryId,
+    );
+  }
+
+  async softDeleteCategoriesByAvatar(avatarId: number): Promise<UpdateResult> {
+    const avatar = await this.avatarService.findAvatarById(avatarId);
+    return await this.categoryRepository.softDeleteCategoriesByAvatar(
+      avatar.avatarId,
+    );
   }
 
   // ============================================================
