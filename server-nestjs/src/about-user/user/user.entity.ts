@@ -13,7 +13,9 @@ export class UserEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false, unique: true })
+  // softDelete 후 새로 생성할 때 unique: true 설정 시 에러 발생
+  // 중복 체크 따로 해줄거임
+  @Column({ nullable: false })
   email: string;
 
   @Column({ nullable: false, select: false })

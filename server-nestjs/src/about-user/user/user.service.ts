@@ -20,7 +20,9 @@ import { UserRepository } from './user.repository';
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
+  // ============================================================
   // =========================== MAIN ===========================
+  // ============================================================
 
   async findUserById(userId: number): Promise<UserEntity | undefined> {
     const user = await this.userRepository.findUserById(userId);
@@ -51,23 +53,13 @@ export class UserService {
   }
 
   async createUser(userRegisterDto: RegisterUserDto): Promise<UserEntity> {
-    try {
-      const createdUser = await this.userRepository.createUser(userRegisterDto);
+    const createdUser = await this.userRepository.createUser(userRegisterDto);
 
-      if (!createdUser) {
-        throw new BadRequestException('회원가입에 실패하였습니다.');
-      }
-
-      return await this.findUserById(createdUser.id);
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException('회원가입 처리 중 오류가 발생했습니다.');
+    if (!createdUser) {
+      throw new BadRequestException('회원가입에 실패하였습니다.');
     }
+
+    return await this.findUserById(createdUser.id);
   }
 
   async updateUserName(
@@ -129,10 +121,15 @@ export class UserService {
     return await this.userRepository.softDeleteUser(user.id);
   }
 
+  // ===========================================================
   // =========================== SUB ===========================
+  // ===========================================================
 
-  async existsByEmail(email: string) {
-    return await this.userRepository.existsByEmail(email);
+  async existsByEmail(email: string): Promise<void> {
+    const isEmailExist = await this.userRepository.existsByEmail(email);
+    if (isEmailExist) {
+      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+    }
   }
 
   async findUserAllInfo(userId: number): Promise<UserEntity> {

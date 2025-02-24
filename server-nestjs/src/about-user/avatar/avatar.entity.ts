@@ -18,7 +18,9 @@ export class AvatarEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
   avatarId: number;
 
-  @Column({ nullable: false, unique: true, length: 20 })
+  // softDelete 후 새로 생성할 때 unique: true 설정 시 에러 발생
+  // 중복 체크 따로 해줄거임
+  @Column({ nullable: false, length: 20 })
   nickname: string;
 
   @Column({ nullable: true })

@@ -30,7 +30,9 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
+  // ============================================================
   // =========================== MAIN ===========================
+  // ============================================================
 
   /**
    * 회원가입
@@ -39,41 +41,31 @@ export class AuthService {
     const { email, password, username } = registerDto.user;
     const { nickname } = registerDto.avatar;
 
-    // email 중복 확인
-    const isEmailExist = await this.userService.existsByEmail(email);
-    if (isEmailExist) {
-      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
-    }
+    // 1. email 중복 확인
+    await this.userService.existsByEmail(email);
 
-    // 유효성 검사
+    // 2. 닉네임 중복 확인
+    await this.avatarService.existsByNickname(nickname);
+
+    // 3. 유효성 검사
     validatePassword(password);
     validateUsername(username);
     validateNickname(nickname);
 
-    // 닉네임 중복 확인
-    const isNicknameExist = await this.avatarService.existsByNickname(nickname);
-    if (isNicknameExist) {
-      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
-    }
-
-    // user 데이터 생성
+    // 4. 패스워드 해시화 후 user 데이터 생성
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const registeredUser = await this.userService.createUser({
       email,
       password: hashedPassword,
       username,
     });
 
+    // 5. 아바타(프로필) 생성
     if (registeredUser) {
       await this.avatarService.createAvatar(registerDto.avatar, registeredUser);
     }
 
-    const user = await this.userService.findUserWithAvatarByUserId(
-      registeredUser.id,
-    );
-
-    return user;
+    return await this.userService.findUserWithAvatarByUserId(registeredUser.id);
   }
 
   /**
@@ -107,7 +99,9 @@ export class AuthService {
     return await this.userService.softDeleteUser(user.id);
   }
 
+  // ===========================================================
   // =========================== SUB ===========================
+  // ===========================================================
 
   /**
    * id, password 확인 + jwt 생성

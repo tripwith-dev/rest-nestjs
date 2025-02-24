@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -76,20 +75,14 @@ export class AvatarService {
   ): Promise<AvatarEntity | undefined> {
     const avatar = await this.findAvatarById(avatarId);
 
+    // 닉네임 중복 확인 및 유효성 검증
+    await this.existsByNickname(updateNicknameDto.nickname);
     validateNickname(updateNicknameDto.nickname);
 
-    if (avatar.nickname === updateNicknameDto.nickname) {
-      throw new BadRequestException('동일한 닉네임으로 변경할 수 없습니다.');
-    }
-
-    const isNicknameExist = await this.existsByNickname(
-      updateNicknameDto.nickname,
+    await this.avatarRepository.updateNickname(
+      avatar.avatarId,
+      updateNicknameDto,
     );
-    if (isNicknameExist) {
-      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
-    }
-
-    await this.avatarRepository.updateNickname(avatarId, updateNicknameDto);
     return await this.findAvatarById(avatarId);
   }
 
@@ -99,10 +92,11 @@ export class AvatarService {
   ): Promise<AvatarEntity | undefined> {
     const avatar = await this.findAvatarById(avatarId);
 
-    if (avatar) {
-      await this.avatarRepository.updateIntroduce(avatarId, updateIntroduceDto);
-      return await this.findAvatarById(avatarId);
-    }
+    await this.avatarRepository.updateIntroduce(
+      avatar.avatarId,
+      updateIntroduceDto,
+    );
+    return await this.findAvatarById(avatarId);
   }
 
   /**
@@ -151,7 +145,11 @@ export class AvatarService {
    * 닉네임 검증
    * 회원가입, 닉네임 수정 시에 사용됨
    */
-  async existsByNickname(nickname: string): Promise<boolean> {
-    return await this.avatarRepository.existsByNickname(nickname);
+  async existsByNickname(nickname: string): Promise<void> {
+    const isNicknameExist =
+      await this.avatarRepository.existsByNickname(nickname);
+    if (isNicknameExist) {
+      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
+    }
   }
 }
