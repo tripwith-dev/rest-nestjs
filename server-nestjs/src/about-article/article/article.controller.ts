@@ -1,5 +1,3 @@
-import { ArticleService } from './article.service';
-import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import {
   Body,
   Controller,
@@ -11,11 +9,12 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CreateArticleDto } from './dtos/article.create.dto';
-import { ArticleEntity } from './article.entity';
-import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
-import { UpdateArticleDto } from './dtos/article.update.dto';
+import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { ArticleEntity } from './article.entity';
+import { ArticleService } from './article.service';
+import { CreateArticleDto } from './dtos/article.create.dto';
+import { UpdateArticleDto } from './dtos/article.update.dto';
 
 @Controller('article')
 export class ArticleController {
@@ -34,16 +33,10 @@ export class ArticleController {
   }
 
   @Get(':articleId')
-  @UseGuards(OptionalAuthGuard)
-  async findArticleByArticleId(
+  async findArticleById(
     @Param('articleId') articleId: number,
-    @Request() req?: any,
   ): Promise<ArticleEntity> {
-    const avatarId = req?.user?.avatar?.avatarId || null;
-    return await this.articleService.findArticleByArticleId(
-      articleId,
-      avatarId,
-    );
+    return await this.articleService.findArticleById(articleId);
   }
 
   @Get()
@@ -59,7 +52,7 @@ export class ArticleController {
     @Request() req: any,
   ): Promise<UpdateResult> {
     const avatarId = req.user.avatar.avatarId;
-    return await this.articleService.updateArticleByArticleId(
+    return await this.articleService.updateArticle(
       articleId,
       updateArticleDto,
       avatarId,

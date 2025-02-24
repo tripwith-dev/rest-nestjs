@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dtos/article.create.dto';
-import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { UpdateArticleDto } from './dtos/article.update.dto';
 
 @Injectable()
@@ -17,14 +17,14 @@ export class ArticleRepository {
     createArticleDto: CreateArticleDto,
     avatar: AvatarEntity,
   ): Promise<ArticleEntity> {
-    const article = await this.repository.create({
+    const article = this.repository.create({
       ...createArticleDto,
       avatar,
     });
     return await this.repository.save(article);
   }
 
-  async findArticleByArticleId(articleId: number): Promise<ArticleEntity> {
+  async findArticleById(articleId: number): Promise<ArticleEntity> {
     return await this.repository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.avatar', 'avatar')
@@ -40,7 +40,7 @@ export class ArticleRepository {
       .getMany();
   }
 
-  async updateArticleByArticleId(
+  async updateArticle(
     articleId: number,
     updateArticleDto: UpdateArticleDto,
   ): Promise<UpdateResult> {
