@@ -52,3 +52,9 @@ export function validateNickname(nickname: string): void {
     );
   }
 }
+
+export function validateCategoryTitle(title: string): void {
+  if (title.length > 20) {
+    throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
+  }
+}

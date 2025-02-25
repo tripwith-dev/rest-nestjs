@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AvatarService } from 'src/about-user/avatar/avatar.service';
+import { validateCategoryTitle } from 'src/utils/validateUserInput';
 import { UpdateResult } from 'typeorm';
 import { CategoryEntity } from './category.entity';
 import { CategoryRepository } from './category.repository';
@@ -28,25 +29,25 @@ export class CategoryService {
    * @param avatarId
    * @returns
    */
-  async createCategory(createCategoryDto: CreateCategoryDto, avatarId: number) {
+  async createCategory(
+    createCategoryDto: CreateCategoryDto,
+    avatarId: number,
+  ): Promise<CategoryEntity> {
     const avatar = await this.avatarService.findAvatarById(avatarId);
 
-    if (createCategoryDto.categoryTitle.length > 20) {
-      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
-    }
+    // 1. 유효성 검증
+    validateCategoryTitle(createCategoryDto.categoryTitle);
 
-    // 중복 확인(본인 아바타 내에서)
+    // 2. 중복 확인(본인 아바타 내에서)
     await this.checkDuplicateTitleWhenCreate(
       avatar.avatarId,
       createCategoryDto.categoryTitle,
     );
 
-    const category = await this.categoryRepository.createCategory(
+    return await this.categoryRepository.createCategory(
       avatar,
       createCategoryDto,
     );
-
-    return await this.findCategoryWithAvatarByCategoryId(category.categoryId);
   }
 
   /**
