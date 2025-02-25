@@ -23,7 +23,6 @@ export class AvatarLikePlanRepository {
       where: {
         plan: { planId },
         avatar: { avatarId },
-        isDeleted: false,
       },
     });
     return !!result;
@@ -49,18 +48,13 @@ export class AvatarLikePlanRepository {
   }
 
   /**
-   * 여행 계획에서 좋아요를 제거 (Soft Delete) 및 likesCount 감소
+   * 여행 계획에서 좋아요를 제거 (Hard Delete) 및 likesCount 감소
    * @param planId 여행 계획 ID
    * @param avatarId 사용자 ID
    */
-  async softDeleteLike(planId: number, avatarId: number): Promise<void> {
+  async deleteLike(planId: number, avatarId: number): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
-      // 좋아요 isDeleted를 true로 변경 (Soft Delete)
-      await manager.update(
-        AvatarLikePlanEntity,
-        { planId, avatarId },
-        { isDeleted: true },
-      );
+      await manager.delete(AvatarLikePlanEntity, { planId, avatarId });
 
       // likesCount 감소
       await manager.decrement(PlanEntity, { planId }, 'likesCount', 1);

@@ -338,7 +338,7 @@ export class PlanService {
   private async updateDestinationTags(
     plan: PlanEntity,
     newDestinations: string[],
-  ) {
+  ): Promise<void> {
     // 기존 destination 가져오기
     const existingPlanDestinations = plan.destinations;
 
@@ -660,7 +660,7 @@ export class PlanService {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async softDeleteLike(
+  async deleteLike(
     planId: number,
     avatarId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
@@ -673,7 +673,7 @@ export class PlanService {
       throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
     }
 
-    await this.avatarLikePlanService.softDeleteLike(planId, avatarId);
+    await this.avatarLikePlanService.deleteLike(planId, avatarId);
     const plan = await this.findPlanById(planId);
 
     if (!plan) {

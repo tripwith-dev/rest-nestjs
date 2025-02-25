@@ -1,3 +1,4 @@
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { AvatarLikePlanEntity } from 'src/avatar-like-plan/avatar-like-plan.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
 import { Status } from 'src/common/enum/status';
@@ -46,6 +47,10 @@ export class PlanEntity extends CommonEntity {
   @ManyToOne(() => CategoryEntity, (category) => category.plans)
   @JoinColumn({ name: 'categoryId' })
   category: CategoryEntity;
+
+  @ManyToOne(() => AvatarEntity, (avatar) => avatar.plans)
+  @JoinColumn({ name: 'avatarId' })
+  avatar: AvatarEntity;
 
   @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
   details: PlanDetailEntity[];

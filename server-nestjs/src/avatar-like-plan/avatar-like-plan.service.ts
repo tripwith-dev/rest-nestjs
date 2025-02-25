@@ -30,11 +30,11 @@ export class AvatarLikePlanService {
   }
 
   /**
-   * 여행 계획에서 좋아요를 제거 (Soft Delete) 및 likesCount 감소
+   * 여행 계획에서 좋아요를 제거 hard delete
    * @param planId 여행 계획 ID
    * @param avatarId 사용자 ID
    */
-  async softDeleteLike(planId: number, avatarId: number): Promise<void> {
-    await this.avatarLikePlanRepository.softDeleteLike(planId, avatarId);
+  async deleteLike(planId: number, avatarId: number): Promise<void> {
+    await this.avatarLikePlanRepository.deleteLike(planId, avatarId);
   }
 }

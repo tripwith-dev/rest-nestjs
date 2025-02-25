@@ -268,7 +268,7 @@ export class PlanController {
     if (plan.status === Status.PRIVATE && !isOwner) {
       throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
     }
-    return await this.planService.softDeleteLike(planId, avatarId);
+    return await this.planService.deleteLike(planId, avatarId);
   }
 
   /**
