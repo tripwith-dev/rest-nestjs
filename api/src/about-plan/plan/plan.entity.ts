@@ -11,8 +11,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CategoryEntity } from '../category/category.entity';
-import { PlanDestinationEntity } from '../plan-destination/plan-destination.entity';
 import { PlanDetailEntity } from '../plan-detail/plan-detail.entity';
+import { PlanTagMappingEntity } from '../plan-tag-mapping/plan-tag-mapping.entity';
 
 @Entity('plan')
 export class PlanEntity extends CommonEntity {
@@ -55,8 +55,8 @@ export class PlanEntity extends CommonEntity {
   @OneToMany(() => PlanDetailEntity, (detail) => detail.plan)
   details: PlanDetailEntity[];
 
-  @OneToMany(() => PlanDestinationEntity, (destination) => destination.plan)
-  destinations: PlanDestinationEntity[];
+  @OneToMany(() => PlanTagMappingEntity, (tagMapping) => tagMapping.plan)
+  tagMappings: PlanTagMappingEntity[];
 
   @OneToMany(() => AvatarLikePlanEntity, (like) => like.plan)
   likes: AvatarLikePlanEntity[];

@@ -5,8 +5,8 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { AvatarLikePlanModule } from 'src/avatar-like-plan/avatar-like-plan.module';
 import { CategoryModule } from '../category/category.module';
-import { DestinationTagModule } from '../destination-tag/destination-tag.module';
-import { PlanDestinationModule } from '../plan-destination/plan-destination.module';
+import { PlanTagMappingModule } from '../plan-tag-mapping/plan-tag-mapping.module';
+import { PlanTagModule } from '../plan-tag/plan-tag.module';
 import { PlanController } from './plan.controller';
 import { PlanEntity } from './plan.entity';
 import { PlanRepository } from './plan.repository';
@@ -29,8 +29,8 @@ import { PlanService } from './plan.service';
     }),
     TypeOrmModule.forFeature([PlanEntity]),
     CategoryModule,
-    DestinationTagModule,
-    PlanDestinationModule,
+    PlanTagModule,
+    PlanTagMappingModule,
     AvatarLikePlanModule,
   ],
   controllers: [PlanController],

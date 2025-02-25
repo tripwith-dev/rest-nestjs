@@ -36,8 +36,8 @@ export class PlanRepository {
   async findPlanById(planId: number): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .getOne();
@@ -58,8 +58,23 @@ export class PlanRepository {
     return plan;
   }
 
+  async findPlanWithCategoryByPlanId(
+    planId: number,
+  ): Promise<PlanEntity | undefined> {
+    const plan = await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
+      .getOne();
+
+    return plan;
+  }
+
   /**
-   * 특정 여행 계획과 카테고리까지 조회
+   * 특정 여행 계획과 아바타까지 조회
    * 업데이트 시에 중복 확인을 위해서 사용
    */
   async findPlanWithAvatarByPlanId(
@@ -68,8 +83,8 @@ export class PlanRepository {
     const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.destinations', 'destinations')
-      .leftJoinAndSelect('destinations.destinationTag', 'destinationTag')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .getOne();
@@ -87,9 +102,8 @@ export class PlanRepository {
     const plans = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
-      .where('category.isDeleted = false')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .andWhere('plan.isDeleted = false')
       .andWhere('plan.status = :status', { status: 'PUBLIC' })
       .orderBy('plan.likesCount', 'DESC')
@@ -107,11 +121,10 @@ export class PlanRepository {
   async findAllPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
-      .where('category.isDeleted = false')
-      .andWhere('travel-plan.isDeleted = false')
-      .orderBy('travel-plan.updatedAt', 'DESC')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
+      .andWhere('plan.isDeleted = false')
+      .orderBy('plan.updatedAt', 'DESC')
       .getMany();
 
     return plans;
@@ -138,10 +151,10 @@ export class PlanRepository {
    */
   async updatePlan(
     planId: number,
-    updateTravelPlanDto: UpdatePlanDto,
+    updatePlanDto: UpdatePlanDto,
   ): Promise<void> {
     await this.repository.update(planId, {
-      ...updateTravelPlanDto,
+      ...updatePlanDto,
       updatedAt: new Date(),
     });
   }
@@ -172,8 +185,8 @@ export class PlanRepository {
   async findDeletedPlanById(planId: number): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = true')
       .getOne();
@@ -188,10 +201,9 @@ export class PlanRepository {
   async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
     return await this.repository
       .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.avatar', 'avatar')
       .leftJoinAndSelect('plan.details', 'detail')
-      .leftJoinAndSelect('plan.category', 'category')
       .leftJoinAndSelect('detail.location', 'location')
-      .leftJoinAndSelect('category.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')

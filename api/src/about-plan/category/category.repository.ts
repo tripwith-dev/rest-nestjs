@@ -60,8 +60,8 @@ export class CategoryRepository {
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.plans', 'plan')
       .leftJoinAndSelect('category.avatar', 'avatar')
-      .leftJoinAndSelect('plan.destinations', 'planDestinations')
-      .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();

@@ -8,15 +8,15 @@ import { ArticleCommentModule } from './about-article/article-comment/article-co
 import { ArticleModule } from './about-article/article/article.module';
 import { CategoryEntity } from './about-plan/category/category.entity';
 import { CategoryModule } from './about-plan/category/category.module';
-import { DestinationTagEntity } from './about-plan/destination-tag/destination-tag.entity';
-import { DestinationTagModule } from './about-plan/destination-tag/destination-tag.module';
 import { LocationEntity } from './about-plan/location/location.entity';
 import { LocationModule } from './about-plan/location/location.module';
 import { PlanCommentModule } from './about-plan/plan-comment/plan-comment.module';
-import { PlanDestinationEntity } from './about-plan/plan-destination/plan-destination.entity';
-import { PlanDestinationModule } from './about-plan/plan-destination/plan-destination.module';
 import { PlanDetailEntity } from './about-plan/plan-detail/plan-detail.entity';
 import { PlanDetailModule } from './about-plan/plan-detail/plan-detail.module';
+import { PlanTagMappingEntity } from './about-plan/plan-tag-mapping/plan-tag-mapping.entity';
+import { PlanTagMappingModule } from './about-plan/plan-tag-mapping/plan-tag-mapping.module';
+import { PlanTagEntity } from './about-plan/plan-tag/plan-tag.entity';
+import { PlanTagModule } from './about-plan/plan-tag/plan-tag.module';
 import { PlanEntity } from './about-plan/plan/plan.entity';
 import { PlanModule } from './about-plan/plan/plan.module';
 import { AuthModule } from './about-user/auth/auth.module';
@@ -57,16 +57,16 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
         PlanDetailEntity,
         LocationEntity,
         AvatarLikePlanEntity,
-        DestinationTagEntity,
-        PlanDestinationEntity,
+        PlanTagEntity,
+        PlanTagMappingEntity,
       ],
       autoLoadEntities: true,
     }),
     UserModule,
     CategoryModule,
     AuthModule,
-    DestinationTagModule,
-    PlanDestinationModule,
+    PlanTagModule,
+    PlanTagMappingModule,
     PlanModule,
     PlanDetailModule,
     AvatarLikePlanModule,

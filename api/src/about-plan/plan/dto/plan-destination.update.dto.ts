@@ -7,7 +7,7 @@ export class UpdatePlanWithDestinationDto extends PickType(PlanEntity, [
   'status',
   'travelStartDate',
   'travelEndDate',
-  'destinations',
+  'tagMappings',
 ] as const) {
   @IsNotEmpty()
   @IsString()

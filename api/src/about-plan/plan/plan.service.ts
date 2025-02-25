@@ -11,8 +11,8 @@ import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
 import { validateDates, validatePlanTitle } from 'src/utils/validateUserInput';
 import { CategoryService } from '../category/category.service';
-import { DestinationTagService } from '../destination-tag/destination-tag.service';
-import { PlanDestinationService } from '../plan-destination/plan-destination.service';
+import { PlanTagMappingService } from '../plan-tag-mapping/plan-tag-mapping.service';
+import { PlanTagService } from '../plan-tag/plan-tag.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanEntity } from './plan.entity';
@@ -23,8 +23,8 @@ export class PlanService {
   constructor(
     private readonly planRepository: PlanRepository,
     private readonly categoryService: CategoryService,
-    private readonly destinationTagService: DestinationTagService,
-    private readonly planDestinationService: PlanDestinationService,
+    private readonly planTagService: PlanTagService,
+    private readonly planTagMappingService: PlanTagMappingService,
     private readonly avatarLikePlanService: AvatarLikePlanService,
   ) {}
 
@@ -181,7 +181,7 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanWithAvatarByPlanId(planId);
+    const plan = await this.findPlanWithCategoryByPlanId(planId);
     // 1. planTitle 예외처리
     validatePlanTitle(updatePlanWithDestinationDto.planTitle);
 
@@ -199,18 +199,13 @@ export class PlanService {
     );
 
     // 4. 위 조건이 문제 없으면 여행지를 제외한 데이터들만 변경
-    const { destinations, ...planData } = updatePlanWithDestinationDto;
+    const { tagMappings, ...planData } = updatePlanWithDestinationDto;
     await this.planRepository.updatePlan(planId, planData);
 
-    // 5. destination 업데이트 (destinationName만 보내기 위해 map 함수 사용)
-    const destinationNames =
-      destinations?.map(
-        (destination) => destination.destinationTag.destinationTagName,
-      ) || [];
-    await this.planDestinationService.updateDestinationTags(
-      plan,
-      destinationNames,
-    );
+    // 5. tagMappings 업데이트 (pTagName만 보내기 위해 map 함수 사용)
+    const pTagNames =
+      tagMappings?.map((tagMapping) => tagMapping.planTag.pTagName) || [];
+    await this.planTagMappingService.updatePlanTags(plan, pTagNames);
 
     //plan 기한 내에 있는 detail의 총금액만 계산
     if (
@@ -336,6 +331,25 @@ export class PlanService {
   }
 
   /**
+   * plan을 업데이트할 때 카테고리 중복을 확인하기 위해서
+   * 카테고리 정보를 가져와야 함
+   * 아주 조금 더 빠름. 딱히 큰 차이는 없음
+   * @param planId
+   * @returns
+   */
+  async findPlanWithCategoryByPlanId(planId: number): Promise<PlanEntity> {
+    const plan = await this.planRepository.findPlanWithCategoryByPlanId(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
    * findPlanWithAvatarByPlanId와 비슷해보이지만, tag를 조인하지 않기에
    * 아주 조금 더 빠름. 딱히 큰 차이는 없음
    * @param planId
@@ -363,29 +377,23 @@ export class PlanService {
     plan: PlanEntity,
   ) {
     if (
-      createTravelPlanDto.destinations &&
-      createTravelPlanDto.destinations.length > 0
+      createTravelPlanDto.tagMappings &&
+      createTravelPlanDto.tagMappings.length > 0
     ) {
-      for (const destination of createTravelPlanDto.destinations) {
-        const destinationName = destination.destinationTag.destinationTagName;
+      for (const tagMapping of createTravelPlanDto.tagMappings) {
+        const tagName = tagMapping.planTag.pTagName;
 
         // 1. Destination이 이미 존재하는지 확인
-        let destinationEntity =
-          await this.destinationTagService.findOneByDestinationName(
-            destinationName,
-          );
+        let tagEntity =
+          await this.planTagService.findOneByDestinationName(tagName);
 
         // 2. 존재하지 않는다면 새로 생성
-        if (!destinationEntity) {
-          destinationEntity =
-            await this.destinationTagService.createDestination(destinationName);
+        if (!tagEntity) {
+          tagEntity = await this.planTagService.createDestination(tagName);
         }
 
         // 3. CategoryDestination 관계 생성
-        await this.planDestinationService.createPlanDestination(
-          plan,
-          destinationEntity,
-        );
+        await this.planTagMappingService.createPlanDestination(plan, tagEntity);
       }
     }
   }
@@ -430,7 +438,7 @@ export class PlanService {
       await this.planRepository.findPlansByCategoryId(categoryId);
 
     const isDuplicate = existingPlans.some(
-      (plan) => plan.planTitle === planTitle && plan.planId !== planId,
+      (plan) => plan.planTitle === planTitle && plan.planId !== Number(planId),
     );
 
     if (isDuplicate) {
