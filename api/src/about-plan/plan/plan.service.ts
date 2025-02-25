@@ -4,13 +4,13 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
 import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
+import { validateDates, validatePlanTitle } from 'src/utils/validateUserInput';
 import { CategoryService } from '../category/category.service';
 import { DestinationTagService } from '../destination-tag/destination-tag.service';
 import { PlanDestinationService } from '../plan-destination/plan-destination.service';
@@ -29,32 +29,9 @@ export class PlanService {
     private readonly avatarLikePlanService: AvatarLikePlanService,
   ) {}
 
-  async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanWithOwnerByPlanId(planId);
-    return plan.category?.avatar.avatarId === avatarId;
-  }
-
-  async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
-    const plan = await this.planRepository.findPlanWithOwnerByPlanId(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
-  }
-
-  // 타이틀 제약조건 확인
-  async validatePlanTitle(createTravelPlanDto: CreatePlanDto) {
-    if (
-      createTravelPlanDto.planTitle &&
-      createTravelPlanDto.planTitle.length > 30
-    ) {
-      throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
-    }
-  }
+  // ============================================================
+  // =========================== MAIN ===========================
+  // ============================================================
 
   /**
    * 여행 계획 생성
@@ -65,7 +42,7 @@ export class PlanService {
    * @throws {BadRequestException} - 제목 길이가 30자를 초과한 경우 또는 동일 카테고리 내 제목이 중복된 경우
    * @throws {Error} - 날짜 유효성 검사 실패 또는 여행지 생성/조회 실패 시 발생할 수 있음
    */
-  async createTravelPlan(
+  async createPlan(
     avatar: AvatarEntity,
     categoryId: number,
     createTravelPlanDto: CreatePlanDto,
@@ -73,29 +50,21 @@ export class PlanService {
     const category =
       await this.categoryService.findCategoryWithAvatarByCategoryId(categoryId);
 
-    // 본인 카테고리 내에서 생성하는게 맞는지 확인
-    const isOwner = await this.categoryService.isCategoryOwner(
-      categoryId,
-      avatar.avatarId,
-    );
-
-    if (!isOwner) {
-      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
-    }
-
     // 1. title 검증
-    await this.validatePlanTitle(createTravelPlanDto);
+    validatePlanTitle(createTravelPlanDto.planTitle);
+
     // 2. 특정 카테고리 내에 planTitle 중복 확인
     await this.checkDuplicateTitle(categoryId, createTravelPlanDto.planTitle);
 
     // 3. 계획 일정 검증
-    this.validateDates(
+    validateDates(
       createTravelPlanDto.travelStartDate,
       createTravelPlanDto.travelEndDate,
     );
 
     // 4. plan 생성
-    const plan = await this.planRepository.createTravelPlan(
+    const plan = await this.planRepository.createPlan(
+      avatar,
       category,
       createTravelPlanDto,
     );
@@ -107,40 +76,29 @@ export class PlanService {
   }
 
   /**
-   * 여행지가 존재하면 존재하는 지역에 연결, 존재하지 않으면 새로 생성 후 연결
-   * @param createTravelPlanDto
-   * @param plan
+   * 여행 계획과 카테고리까지 조회
+   * @param planId - 조회할 여행 계획의 ID
+   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
+   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
+   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
    */
-  async processDestinations(
-    createTravelPlanDto: CreatePlanDto,
-    plan: PlanEntity,
-  ) {
-    if (
-      createTravelPlanDto.destinations &&
-      createTravelPlanDto.destinations.length > 0
-    ) {
-      for (const destination of createTravelPlanDto.destinations) {
-        const destinationName = destination.destinationTag.destinationTagName;
+  async findPlanWithAvatarByPlanId(
+    planId: number,
+    isOwner?: boolean,
+  ): Promise<PlanEntity | undefined> {
+    const plan = await this.planRepository.findPlanWithAvatarByPlanId(planId);
 
-        // 1. Destination이 이미 존재하는지 확인
-        let destinationEntity =
-          await this.destinationTagService.findOneByDestinationName(
-            destinationName,
-          );
-
-        // 2. 존재하지 않는다면 새로 생성
-        if (!destinationEntity) {
-          destinationEntity =
-            await this.destinationTagService.createDestination(destinationName);
-        }
-
-        // 3. CategoryDestination 관계 생성
-        await this.planDestinationService.createPlanDestination(
-          plan,
-          destinationEntity,
-        );
-      }
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
     }
+
+    if (plan.status === Status.PRIVATE && !isOwner) {
+      throw new NotFoundException('해당 여행 계획은 비공개 상태입니다.');
+    }
+
+    return plan;
   }
 
   /**
@@ -163,9 +121,9 @@ export class PlanService {
     }
 
     // 통화 변환
-    if (plan.totalExpenses) {
-      plan.totalExpenses = convertTotalExpenses(
-        plan.totalExpenses,
+    if (plan.totalPrice) {
+      plan.totalPrice = convertTotalExpenses(
+        plan.totalPrice,
         Currency.KRW, // default는 KRW
         currency,
       );
@@ -175,18 +133,12 @@ export class PlanService {
   }
 
   /**
-   * 여행 계획과 카테고리까지 조회
-   * @param planId - 조회할 여행 계획의 ID
-   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
-   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
-   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
+   * 특정 여행 계획에 속한 여행 디테일들의 제목을 조회하는 서비스 로직
+   * @param planId 여행 계획 ID
+   * @returns 여행 디테일 제목 리스트를 반환
    */
-  async findPlanWithCategoryByPlanId(
-    planId: number,
-    currency: Currency = Currency.KRW,
-    isOwner?: boolean,
-  ): Promise<PlanEntity | undefined> {
-    const plan = await this.planRepository.findPlanWithCategoryByPlanId(planId);
+  async findPlanWithDetailByPlanId(planId: number) {
+    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
 
     if (!plan) {
       throw new NotFoundException(
@@ -194,23 +146,8 @@ export class PlanService {
       );
     }
 
-    if (plan.status === Status.PRIVATE && !isOwner) {
-      throw new NotFoundException('해당 여행 계획은 비공개 상태입니다.');
-    }
-
-    // 통화 변환
-    if (plan.totalExpenses) {
-      plan.totalExpenses = convertTotalExpenses(
-        plan.totalExpenses,
-        Currency.KRW, // default는 KRW
-        currency,
-      );
-    }
-
     return plan;
   }
-
-  async findPlansByCategoryId() {}
 
   /**
    * 좋아요 Top 10 여행 계획 조회
@@ -226,9 +163,9 @@ export class PlanService {
     const travelPlans = await this.planRepository.findTopTenTravelPlan();
 
     for (const plan of travelPlans) {
-      if (plan && plan.totalExpenses) {
-        plan.totalExpenses = convertTotalExpenses(
-          plan.totalExpenses,
+      if (plan && plan.totalPrice) {
+        plan.totalPrice = convertTotalExpenses(
+          plan.totalPrice,
           Currency.KRW,
           currency,
         );
@@ -252,9 +189,9 @@ export class PlanService {
     }
 
     for (const plan of travelPlans) {
-      if (plan && plan.totalExpenses) {
-        plan.totalExpenses = convertTotalExpenses(
-          plan.totalExpenses,
+      if (plan && plan.totalPrice) {
+        plan.totalPrice = convertTotalExpenses(
+          plan.totalPrice,
           Currency.KRW,
           currency,
         );
@@ -277,39 +214,23 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanWithCategoryByPlanId(planId);
+    const plan = await this.findPlanWithAvatarByPlanId(planId);
     if (plan) {
-      /** 변경 사항이 있는지 체크(변경 사항이 없으면 기존 plan 반환)
-       * 변한게 없는 요소는 그대로 냅두고, 변한 요소만 덮어씌우기 때문에
-       * 아래 로직을 안써도 되긴 함. */
-      const hasChanges = this.hasChanges(plan, updatePlanWithDestinationDto);
-      if (!hasChanges) {
-        return plan;
-      }
-
       // 1. planTitle 예외처리
-      await this.validatePlanTitle(updatePlanWithDestinationDto);
+      validatePlanTitle(updatePlanWithDestinationDto.planTitle);
 
       // 2. planTitle이 변경된 경우에 중복 확인(동일 category 내에서만 중복 확인)
-      if (plan.planTitle !== updatePlanWithDestinationDto.planTitle) {
-        await this.checkDuplicateTitleWhenUpdate(
-          plan.category.categoryId,
-          planId,
-          updatePlanWithDestinationDto.planTitle,
-        );
-      }
+      await this.checkDuplicateTitleWhenUpdate(
+        plan.category.categoryId,
+        planId,
+        updatePlanWithDestinationDto.planTitle,
+      );
 
       // 3. 여행 날짜 변경 시에 날짜가 올바른지 확인
-      if (
-        updatePlanWithDestinationDto.travelStartDate ||
-        updatePlanWithDestinationDto.travelEndDate
-      ) {
-        // plan 시간대 확인
-        this.validateDates(
-          updatePlanWithDestinationDto.travelStartDate,
-          updatePlanWithDestinationDto.travelEndDate,
-        );
-      }
+      validateDates(
+        updatePlanWithDestinationDto.travelStartDate,
+        updatePlanWithDestinationDto.travelEndDate,
+      );
 
       // 4. 위 조건이 문제 없으면 여행지를 제외한 데이터들만 변경
       const { destinations, ...planData } = updatePlanWithDestinationDto;
@@ -427,125 +348,6 @@ export class PlanService {
         `${planId}에 해당하는 여행 계획을 삭제할 수 없습니다.`,
       );
     }
-  }
-
-  /**
-   * plan을 생성 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
-   * @param categoryId - 확인할 카테고리의 ID
-   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
-   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
-   * @returns {Promise<void>} - 반환값 없음
-   */
-  private async checkDuplicateTitle(
-    categoryId: number,
-    planTitle: string,
-  ): Promise<void> {
-    const existingPlans =
-      await this.planRepository.findPlansByCategoryId(categoryId);
-
-    // 하나라도 중복 요소가 있으면 예외처리
-    if (
-      existingPlans &&
-      existingPlans.some((plan) => plan.planTitle === planTitle)
-    ) {
-      throw new ConflictException('동일한 제목의 여행 계획이 이미 존재합니다.');
-    }
-  }
-
-  /**
-   * plan을 업데이트 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
-   * @param categoryId - 확인할 카테고리의 ID
-   * @param planId - 현재 업데이트하려는 여행 계획의 ID
-   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
-   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
-   * @returns {Promise<void>} - 반환값 없음
-   */
-  private async checkDuplicateTitleWhenUpdate(
-    categoryId: number,
-    planId: number,
-    planTitle: string,
-  ): Promise<void> {
-    const existingPlans =
-      await this.planRepository.findPlansByCategoryId(categoryId);
-
-    const isDuplicate = existingPlans.some(
-      (plan) => plan.planTitle === planTitle && plan.planId !== planId,
-    );
-
-    if (isDuplicate) {
-      throw new ConflictException(
-        '동일한 제목의 travel container가 이미 존재합니다.',
-      );
-    }
-  }
-
-  /**
-   * 여행 시작 날짜와 종료 날짜의 유효성을 검사하는 로직
-   * @param startDate 여행 시작 날짜 (YYYYMMDD 형식)
-   * @param endDate 여행 종료 날짜 (YYYYMMDD 형식)
-   * @returns void
-   */
-  private validateDates(startDate?: string, endDate?: string): void {
-    if (startDate && endDate) {
-      // YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
-      const formattedStartDate = `${startDate.slice(0, 4)}-${startDate.slice(4, 6)}-${startDate.slice(6, 8)}`;
-      const formattedEndDate = `${endDate.slice(0, 4)}-${endDate.slice(4, 6)}-${endDate.slice(6, 8)}`;
-
-      const start = new Date(formattedStartDate);
-      const end = new Date(formattedEndDate);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        throw new BadRequestException('유효한 날짜 형식이 아닙니다.');
-      }
-
-      if (start > end) {
-        throw new BadRequestException(
-          '여행 시작 날짜는 종료 날짜보다 클 수 없습니다.',
-        );
-      }
-    }
-  }
-
-  /**
-   * 업데이트 DTO와 기존 컨테이너의 변경 여부를 확인하는 로직
-   * @param container 기존 컨테이너 객체
-   * @param updateDto 업데이트 DTO
-   * @returns 변경 사항이 있는 경우 true, 없는 경우 false
-   */
-  private hasChanges(
-    plan: PlanEntity,
-    updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
-  ): boolean {
-    return (
-      (updatePlanWithDestinationDto.planTitle &&
-        plan.planTitle !== updatePlanWithDestinationDto.planTitle) ||
-      (updatePlanWithDestinationDto.travelStartDate &&
-        plan.travelStartDate !==
-          updatePlanWithDestinationDto.travelStartDate) ||
-      (updatePlanWithDestinationDto.travelEndDate &&
-        plan.travelEndDate !== updatePlanWithDestinationDto.travelEndDate) ||
-      (updatePlanWithDestinationDto.status &&
-        plan.status !== updatePlanWithDestinationDto.status) ||
-      (updatePlanWithDestinationDto.destinations &&
-        plan.destinations !== updatePlanWithDestinationDto.destinations)
-    );
-  }
-
-  /**
-   * 특정 여행 계획에 속한 여행 디테일들의 제목을 조회하는 서비스 로직
-   * @param planId 여행 계획 ID
-   * @returns 여행 디테일 제목 리스트를 반환
-   */
-  async findPlanWithDetailByPlanId(planId: number) {
-    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
   }
 
   /**
@@ -694,5 +496,113 @@ export class PlanService {
     }
 
     return { message: '좋아요가 추가되었습니다.', plan };
+  }
+
+  // ============================================================
+  // =========================== SUB ============================
+  // ============================================================
+
+  async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
+    const plan = await this.findPlanWithOwnerByPlanId(planId);
+    return plan.avatar.avatarId === avatarId;
+  }
+
+  async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
+    const plan = await this.planRepository.findPlanWithOwnerByPlanId(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
+   * 여행지가 존재하면 존재하는 지역에 연결, 존재하지 않으면 새로 생성 후 연결
+   * @param createTravelPlanDto
+   * @param plan
+   */
+  async processDestinations(
+    createTravelPlanDto: CreatePlanDto,
+    plan: PlanEntity,
+  ) {
+    if (
+      createTravelPlanDto.destinations &&
+      createTravelPlanDto.destinations.length > 0
+    ) {
+      for (const destination of createTravelPlanDto.destinations) {
+        const destinationName = destination.destinationTag.destinationTagName;
+
+        // 1. Destination이 이미 존재하는지 확인
+        let destinationEntity =
+          await this.destinationTagService.findOneByDestinationName(
+            destinationName,
+          );
+
+        // 2. 존재하지 않는다면 새로 생성
+        if (!destinationEntity) {
+          destinationEntity =
+            await this.destinationTagService.createDestination(destinationName);
+        }
+
+        // 3. CategoryDestination 관계 생성
+        await this.planDestinationService.createPlanDestination(
+          plan,
+          destinationEntity,
+        );
+      }
+    }
+  }
+
+  /**
+   * plan을 생성 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
+   * @param categoryId - 확인할 카테고리의 ID
+   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
+   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
+   * @returns {Promise<void>} - 반환값 없음
+   */
+  private async checkDuplicateTitle(
+    categoryId: number,
+    planTitle: string,
+  ): Promise<void> {
+    const existingPlans =
+      await this.planRepository.findPlansByCategoryId(categoryId);
+
+    // 하나라도 중복 요소가 있으면 예외처리
+    if (
+      existingPlans &&
+      existingPlans.some((plan) => plan.planTitle === planTitle)
+    ) {
+      throw new ConflictException('동일한 제목의 여행 계획이 이미 존재합니다.');
+    }
+  }
+
+  /**
+   * plan을 업데이트 할 때, 동일 카테고리 내에 중복되는 plan title이 있는지 확인
+   * @param categoryId - 확인할 카테고리의 ID
+   * @param planId - 현재 업데이트하려는 여행 계획의 ID
+   * @param planTitle - 중복 여부를 확인할 여행 계획의 제목
+   * @throws {ConflictException} - 동일한 제목의 여행 계획이 이미 존재할 경우 발생
+   * @returns {Promise<void>} - 반환값 없음
+   */
+  private async checkDuplicateTitleWhenUpdate(
+    categoryId: number,
+    planId: number,
+    planTitle: string,
+  ): Promise<void> {
+    const existingPlans =
+      await this.planRepository.findPlansByCategoryId(categoryId);
+
+    const isDuplicate = existingPlans.some(
+      (plan) => plan.planTitle === planTitle && plan.planId !== planId,
+    );
+
+    if (isDuplicate) {
+      throw new ConflictException(
+        '동일한 제목의 travel container가 이미 존재합니다.',
+      );
+    }
   }
 }

@@ -58,3 +58,30 @@ export function validateCategoryTitle(title: string): void {
     throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
   }
 }
+
+export function validatePlanTitle(planTitle: string) {
+  if (planTitle.length > 30) {
+    throw new BadRequestException(`계획 제목은 30자 이내입니다.`);
+  }
+}
+
+export function validateDates(startDate?: string, endDate?: string): void {
+  if (startDate && endDate) {
+    // YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
+    const formattedStartDate = `${startDate.slice(0, 4)}-${startDate.slice(4, 6)}-${startDate.slice(6, 8)}`;
+    const formattedEndDate = `${endDate.slice(0, 4)}-${endDate.slice(4, 6)}-${endDate.slice(6, 8)}`;
+
+    const start = new Date(formattedStartDate);
+    const end = new Date(formattedEndDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('유효한 날짜 형식이 아닙니다.');
+    }
+
+    if (start > end) {
+      throw new BadRequestException(
+        '여행 시작 날짜는 종료 날짜보다 클 수 없습니다.',
+      );
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { CategoryEntity } from '../category/category.entity';
 import { CreatePlanDto } from './dto/plan.create.dto';
@@ -16,12 +17,14 @@ export class PlanRepository {
   /**
    * 여행 계획 생성
    */
-  async createTravelPlan(
+  async createPlan(
+    avatar: AvatarEntity,
     category: CategoryEntity,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
     const plan = this.repository.create({
       ...createTravelPlanDto,
+      avatar,
       category,
     });
     return await this.repository.save(plan);
@@ -47,8 +50,7 @@ export class PlanRepository {
   ): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.category', 'category')
-      .leftJoinAndSelect('category.avatar', 'avatar')
+      .leftJoinAndSelect('plan.avatar', 'avatar')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
       .getOne();
@@ -60,12 +62,12 @@ export class PlanRepository {
    * 특정 여행 계획과 카테고리까지 조회
    * 업데이트 시에 중복 확인을 위해서 사용
    */
-  async findPlanWithCategoryByPlanId(
+  async findPlanWithAvatarByPlanId(
     planId: number,
   ): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoinAndSelect('plan.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'destinations')
       .leftJoinAndSelect('destinations.destinationTag', 'destinationTag')
       .where('plan.planId = :planId', { planId })
@@ -149,12 +151,9 @@ export class PlanRepository {
   /**
    * 특정 여행 계획의 totalExpenses를 업데이트
    */
-  async updateTotalExpenses(
-    planId: number,
-    totalExpenses: number,
-  ): Promise<void> {
+  async updateTotalExpenses(planId: number, totalPrice: number): Promise<void> {
     await this.repository.update(planId, {
-      totalExpenses,
+      totalPrice,
       updatedAt: new Date(),
     });
   }

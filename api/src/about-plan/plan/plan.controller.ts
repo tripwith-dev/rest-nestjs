@@ -20,13 +20,17 @@ import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
+import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanService } from './plan.service';
 
 @Controller('plans')
 export class PlanController {
-  constructor(private readonly planService: PlanService) {}
+  constructor(
+    private readonly planService: PlanService,
+    private readonly categoryService: CategoryService,
+  ) {}
 
   /**
    * plan 생성 엔드포인트. 로그인한 유저만 가능하다.
@@ -39,13 +43,22 @@ export class PlanController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('create')
-  async createTravelPlan(
+  async createPlan(
     @Body() createTravelPlanDto: CreatePlanDto,
     @Query('categoryId') categoryId: number,
     @Request() req: any,
   ) {
     const avatar = req.user.avatar;
-    return await this.planService.createTravelPlan(
+    const isOwner = await this.categoryService.isCategoryOwner(
+      categoryId,
+      avatar.avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+    }
+
+    return await this.planService.createPlan(
       avatar,
       categoryId,
       createTravelPlanDto,
@@ -56,8 +69,6 @@ export class PlanController {
    * 특정 여행 계획을 조회하는 엔드포인트.
    * 로그인을 하지 않은 사용자도 조회가 가능하지만 private은 조회할 수 없다.
    * 따라서 OptionalAuthGuard와 req를 통해 소유자인지 확인해야 한다.
-   * plan은 여행 총 비용도 보여주기에 쿼리로 currency를 받아서
-   * avatar의 currency의 맞게 총 비용을 보여주며 currency의 기본값은 KRW이다.
    * @param planId
    * @param currency
    * @param req
@@ -65,20 +76,14 @@ export class PlanController {
    */
   @Get(':planId')
   @UseGuards(OptionalAuthGuard)
-  async findPlanWithCategoryByPlanId(
+  async findPlanWithAvatarByPlanId(
     @Param('planId') planId: number,
-    @Query('currency') currency: Currency = Currency.KRW,
     @Request() req?: any,
   ) {
     // 소유자가 아니면 비공개 플랜은 조회할 수 없음
     const avatarId = req?.user?.avatar?.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-
-    return await this.planService.findPlanWithCategoryByPlanId(
-      planId,
-      req?.user?.avatar?.currency || currency,
-      isOwner,
-    );
+    return await this.planService.findPlanWithAvatarByPlanId(planId, isOwner);
   }
 
   /**
@@ -155,7 +160,7 @@ export class PlanController {
    * @returns
    */
   @Get(':planId/total-expenses')
-  async getTotalExpenses(
+  async calculateTotalExpenses(
     @Param('planId') planId: number,
     @Query('currency') currency: Currency,
   ): Promise<number> {

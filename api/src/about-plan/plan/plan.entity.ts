@@ -42,7 +42,7 @@ export class PlanEntity extends CommonEntity {
   likesCount: number;
 
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
-  totalExpenses: number;
+  totalPrice: number;
 
   @ManyToOne(() => CategoryEntity, (category) => category.plans)
   @JoinColumn({ name: 'categoryId' })
