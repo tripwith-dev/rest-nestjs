@@ -335,6 +335,12 @@ export class PlanService {
     return plan.avatar.avatarId === avatarId;
   }
 
+  /**
+   * findPlanWithAvatarByPlanId와 비슷해보이지만, tag를 조인하지 않기에
+   * 아주 조금 더 빠름. 딱히 큰 차이는 없음
+   * @param planId
+   * @returns
+   */
   async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
     const plan = await this.planRepository.findPlanWithOwnerByPlanId(planId);
 
@@ -487,7 +493,6 @@ export class PlanService {
         planId,
         Currency.KRW,
       );
-      console.log(`전체 비용 계산 ${planId}: ${totalExpenses}`);
 
       await this.planRepository.updateTotalExpenses(planId, totalExpenses);
       console.log(`전체 비용 업데이트 됨 ${planId}`);

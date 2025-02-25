@@ -20,6 +20,10 @@ export class PlanDetailService {
     private readonly locationService: LocationService,
   ) {}
 
+  // ============================================================
+  // =========================== MAIN ===========================
+  // ============================================================
+
   /**
    * 특정 여행 계획(plan)에 대한 상세 계획(planDetail)을 생성하는 함수.
    *
@@ -38,26 +42,34 @@ export class PlanDetailService {
     planId: number,
     createDetailWithLocationDto: CreateDetailWithLocationDto,
   ): Promise<PlanDetailEntity> {
+    // 1. plan 존재 여부 확인
     const plan = await this.planService.findPlanById(planId);
+
+    // 2. 시간 범위 검증
     this.validateTimeRange(
       createDetailWithLocationDto.createDetailDto.startTime,
       createDetailWithLocationDto.createDetailDto.endTime,
     );
+
+    // 3. 시간 범위가 겹치는 detail은 삭제
     await this.deleteOverlap(
       planId,
       createDetailWithLocationDto.createDetailDto.startTime,
       createDetailWithLocationDto.createDetailDto.endTime,
     );
 
+    // 4. 새로운 detail 생성
     const newDetail = await this.planDetailRepository.createPlanDetail(
       plan,
       createDetailWithLocationDto.createDetailDto,
     );
+
+    // 5. plan의 total price 업데이트
     await this.planService.updateTotalPrice(planId);
 
+    // 6. 위치정보를 추가 할 경우 location을 생성 후 연결
+    // createLocation는 이미 location 정보가 있을 경우 생성하지 않음
     if (createDetailWithLocationDto.createLocationDto) {
-      // createLocation 함수 내부에서 location이 존재하는 지 확인 후
-      // 이미 존재하면 만들지 않음
       const location = await this.locationService.createLocation(
         createDetailWithLocationDto.createLocationDto,
       );
@@ -67,8 +79,110 @@ export class PlanDetailService {
     return newDetail;
   }
 
+  /**
+   *
+   * @param detailId
+   * @returns
+   */
+  async findPlanDetailById(detailId: number): Promise<PlanDetailEntity> {
+    const detail = await this.planDetailRepository.findPlanDetailById(detailId);
+    if (!detail) {
+      throw new NotFoundException(
+        `${detailId}에 해당하는 detail을 찾을 수 없습니다.`,
+      );
+    }
+    return detail;
+  }
+
+  /**
+   *
+   * @param detailId
+   * @param updateDetailWithLocationDto
+   * @returns
+   */
+  async updateTravelDetail(
+    detailId: number,
+    updateDetailWithLocationDto: UpdateDetailWithLocationDto,
+  ): Promise<PlanDetailEntity> {
+    // 1. detail 존재 여부 확인
+    const detail = await this.findPlanDetailById(detailId);
+
+    // 2. 시간 범위 검증
+    this.validateTimeRange(
+      updateDetailWithLocationDto.updateDetailDto.startTime,
+      updateDetailWithLocationDto.updateDetailDto.endTime,
+    );
+
+    // 3. 시간 범위가 겹치는 detail은 삭제
+    await this.deleteOverlap(
+      detail.plan.planId,
+      updateDetailWithLocationDto.updateDetailDto.startTime,
+      updateDetailWithLocationDto.updateDetailDto.endTime,
+      detailId, // update할 detail은 삭제 목록에서 제외
+    );
+
+    // 4. detail 업데이트
+    await this.planDetailRepository.updateTravelDetail(
+      detailId,
+      updateDetailWithLocationDto.updateDetailDto,
+    );
+
+    // 5. plan의 total price 업데이트
+    await this.planService.updateTotalPrice(detail.plan.planId);
+
+    // 6. 위치정보를 업데이트 할 경우 location을 생성 후 업데이트
+    // createLocation는 이미 location 정보가 있을 경우 생성하지 않음
+    if (updateDetailWithLocationDto.createLocationDto.address) {
+      const location = await this.locationService.createLocation(
+        updateDetailWithLocationDto.createLocationDto,
+      );
+      await this.updateDetailLocation(detailId, location);
+      return await this.findPlanDetailById(detailId);
+    }
+
+    // locationName이 존재하지 않으면 주소를 삭제한 것이므로 null로 갱신
+    await this.updateDetailLocation(detailId, null);
+    return await this.findPlanDetailById(detailId);
+  }
+
+  /**
+   *
+   * @param detailId
+   */
+  async softDeletePlanDetail(detailId: number): Promise<void> {
+    const detail = await this.findPlanDetailById(detailId);
+    if (!detail) {
+      throw new NotFoundException(
+        `${detailId}의 세부 계획을 찾을 수 없습니다.`,
+      );
+    }
+    await this.planDetailRepository.softDeletePlanDetail(detailId);
+
+    // 총 비용 갱신
+    await this.planService.updateTotalPrice(detail.plan.planId);
+  }
+
+  /**
+   *
+   * @param planId
+   * @param startTime
+   * @param endTime
+   * @returns
+   */
+  async confirmTimeOverlap(planId: number, startTime: string, endTime: string) {
+    const overlappingDetails = await this.planDetailRepository.findOverlap(
+      planId,
+      startTime,
+      endTime,
+    );
+    return overlappingDetails.length > 0 ? true : false;
+  }
+
+  // ===========================================================
+  // =========================== SUB ===========================
+  // ===========================================================
+
   async updateDetailLocation(detailId: number, location: LocationEntity) {
-    console.log(location);
     return await this.planDetailRepository.updateDetailLocation(
       detailId,
       location,
@@ -116,22 +230,12 @@ export class PlanDetailService {
     );
   }
 
-  async findPlanDetailById(detailId: number): Promise<PlanDetailEntity> {
-    const detail = await this.planDetailRepository.findPlanDetailById(detailId);
-    if (!detail) {
-      throw new NotFoundException(
-        `${detailId}에 해당하는 detail을 찾을 수 없습니다.`,
-      );
-    }
-    return detail;
-  }
-
   async isPlanDetailOwner(
     detailId: number,
     avatarId: number,
   ): Promise<boolean> {
     const detail = await this.findPlanDetailOwnerByDetailId(detailId);
-    return detail.plan.category.avatar.avatarId === avatarId;
+    return detail.plan.avatar.avatarId === avatarId;
   }
 
   async findPlanDetailOwnerByDetailId(
@@ -145,70 +249,6 @@ export class PlanDetailService {
       );
     }
     return detail;
-  }
-
-  async updateTravelDetail(
-    detailId: number,
-    updateDetailWithLocationDto: UpdateDetailWithLocationDto,
-  ): Promise<PlanDetailEntity> {
-    const detail = await this.findPlanDetailById(detailId);
-
-    this.validateTimeRange(
-      updateDetailWithLocationDto.updateDetailDto.startTime,
-      updateDetailWithLocationDto.updateDetailDto.endTime,
-    );
-
-    // 중복된 시간의 트래블 디테일 삭제
-    await this.deleteOverlap(
-      detail.plan.planId,
-      updateDetailWithLocationDto.updateDetailDto.startTime,
-      updateDetailWithLocationDto.updateDetailDto.endTime,
-      detailId, // update할 detail은 삭제 목록에서 제외
-    );
-
-    await this.planDetailRepository.updateTravelDetail(
-      detailId,
-      updateDetailWithLocationDto.updateDetailDto,
-    );
-
-    // 총 비용 갱신
-    await this.planService.updateTotalPrice(detail.plan.planId);
-
-    if (updateDetailWithLocationDto.createLocationDto.address) {
-      // createLocation 함수 내부에서 location이 존재하는 지 확인 후
-      // 이미 존재하면 만들지 않음
-      const location = await this.locationService.createLocation(
-        updateDetailWithLocationDto.createLocationDto,
-      );
-      await this.updateDetailLocation(detailId, location);
-      return await this.findPlanDetailById(detailId);
-    }
-
-    // locationName이 존재하지 않으면 주소를 삭제한 것이므로 null로 갱신
-    await this.updateDetailLocation(detailId, null);
-    return await this.findPlanDetailById(detailId);
-  }
-
-  async softDeletePlanDetail(detailId: number): Promise<void> {
-    const detail = await this.findPlanDetailById(detailId);
-    if (!detail) {
-      throw new NotFoundException(
-        `${detailId}의 세부 계획을 찾을 수 없습니다.`,
-      );
-    }
-    await this.planDetailRepository.softDeletePlanDetail(detailId);
-
-    // 총 비용 갱신
-    await this.planService.updateTotalPrice(detail.plan.planId);
-  }
-
-  async confirmTimeOverlap(planId: number, startTime: string, endTime: string) {
-    const overlappingDetails = await this.planDetailRepository.findOverlap(
-      planId,
-      startTime,
-      endTime,
-    );
-    return overlappingDetails.length > 0 ? true : false;
   }
 
   @Cron('0 0 * * *') // 매일 자정에 실행

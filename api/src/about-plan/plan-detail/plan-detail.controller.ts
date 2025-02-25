@@ -58,9 +58,22 @@ export class PlanDetailController {
    * @returns
    */
   @Get(':detailId')
-  async findPlanDetailById(@Param('detailId') detailId: number) {
-    const detail = await this.planDetailService.findPlanDetailById(detailId);
-    return detail;
+  @UseGuards(JwtAuthGuard)
+  async findPlanDetailById(
+    @Param('detailId') detailId: number,
+    @Request() req: any,
+  ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planDetailService.isPlanDetailOwner(
+      detailId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
+    return await this.planDetailService.findPlanDetailById(detailId);
   }
 
   /**
@@ -71,8 +84,8 @@ export class PlanDetailController {
    * @param req
    * @returns
    */
-  @UseGuards(JwtAuthGuard)
   @Patch(':detailId/update')
+  @UseGuards(JwtAuthGuard)
   async updateTravelDetail(
     @Param('detailId') detailId: number,
     @Body() updateDetailWithLocationDto: UpdateDetailWithLocationDto,
@@ -110,7 +123,15 @@ export class PlanDetailController {
     @Param('planId') planId: number,
     @Param('startTime') startTime: string,
     @Param('endTime') endTime: string,
+    @Request() req: any,
   ) {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
     return await this.planDetailService.confirmTimeOverlap(
       planId,
       startTime,
