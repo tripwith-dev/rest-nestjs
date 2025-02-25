@@ -1,16 +1,17 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
   Request,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
+import { UpdateResult } from 'typeorm';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dtos/category.create.dto';
 import { UpdateCategoryDto } from './dtos/category.update.dto';
@@ -39,18 +40,13 @@ export class CategoryController {
   }
 
   /**
-   * 특정 카테고리와 카테고리를 생성한 유저를 함께 조회한다.
-   * 카테고리 자체는 공개/비공개 상태가 없기에 누구나 조회 가능하다. = 인증이 필요없다.
+   * 특정 카테고리를 조회
    * @param categoryId
    * @returns
    */
   @Get(':categoryId')
-  async findCategoryWithAvatarByCategoryId(
-    @Param('categoryId') categoryId: number,
-  ) {
-    return await this.categoryService.findCategoryWithAvatarByCategoryId(
-      categoryId,
-    );
+  async findCategoryById(@Param('categoryId') categoryId: number) {
+    return await this.categoryService.findCategoryById(categoryId);
   }
 
   /**
@@ -69,14 +65,18 @@ export class CategoryController {
     @Request() req: any,
   ) {
     const avatarId = req?.user?.avatar?.avatarId;
-
     const isOwner = await this.categoryService.isCategoryOwner(
       categoryId,
       avatarId,
     );
 
-    return await this.categoryService.findCategoryWithPlansByCategoryId(
-      isOwner,
+    // 로그인 한 사용자가 카테고리 오너라면 모든 카테고리 조회, 아니면 PUBLIC만
+    if (isOwner) {
+      return await this.categoryService.findCategoryWithPlansByCategoryId(
+        categoryId,
+      );
+    }
+    return await this.categoryService.findCategoryWithPublicPlansByCategoryId(
       categoryId,
     );
   }
@@ -95,7 +95,7 @@ export class CategoryController {
     @Param('categoryId') categoryId: number,
     @Body() updateTravelCategoryDto: UpdateCategoryDto,
     @Request() req: any,
-  ) {
+  ): Promise<UpdateResult> {
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.categoryService.isCategoryOwner(
       categoryId,
@@ -103,7 +103,7 @@ export class CategoryController {
     );
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+      throw new ForbiddenException('카테고리 수정 권한이 없습니다.');
     }
 
     return this.categoryService.updateCategory(
@@ -134,9 +134,8 @@ export class CategoryController {
     );
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+      throw new ForbiddenException('카테고리 삭제 권한이 없습니다.');
     }
-
     return this.categoryService.softDeletedCategory(categoryId);
   }
 }

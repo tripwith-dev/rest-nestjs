@@ -4,7 +4,9 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
@@ -64,11 +66,22 @@ export class PlanService {
    * @throws {Error} - 날짜 유효성 검사 실패 또는 여행지 생성/조회 실패 시 발생할 수 있음
    */
   async createTravelPlan(
+    avatar: AvatarEntity,
     categoryId: number,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
     const category =
       await this.categoryService.findCategoryWithAvatarByCategoryId(categoryId);
+
+    // 본인 카테고리 내에서 생성하는게 맞는지 확인
+    const isOwner = await this.categoryService.isCategoryOwner(
+      categoryId,
+      avatar.avatarId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+    }
 
     // 1. title 검증
     await this.validatePlanTitle(createTravelPlanDto);

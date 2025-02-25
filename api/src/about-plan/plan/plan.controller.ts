@@ -20,17 +20,13 @@ import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
-import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
 import { PlanService } from './plan.service';
 
 @Controller('plans')
 export class PlanController {
-  constructor(
-    private readonly planService: PlanService,
-    private readonly categoryService: CategoryService,
-  ) {}
+  constructor(private readonly planService: PlanService) {}
 
   /**
    * plan 생성 엔드포인트. 로그인한 유저만 가능하다.
@@ -48,18 +44,9 @@ export class PlanController {
     @Query('categoryId') categoryId: number,
     @Request() req: any,
   ) {
-    const avatarId = req.user.avatar.avatarId;
-    // 본인 카테고리 내에서 생성하는게 맞는지 확인
-    const isOwner = await this.categoryService.isCategoryOwner(
-      categoryId,
-      avatarId,
-    );
-
-    if (!isOwner) {
-      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
-    }
-
+    const avatar = req.user.avatar;
     return await this.planService.createTravelPlan(
+      avatar,
       categoryId,
       createTravelPlanDto,
     );

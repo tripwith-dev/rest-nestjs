@@ -36,7 +36,16 @@ export class CategoryRepository {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.avatar', 'avatar')
-      .addSelect(['avatar.avatarId'])
+      .where('category.categoryId = :categoryId', { categoryId })
+      .andWhere('category.isDeleted = false')
+      .getOne();
+
+    return travelCategory;
+  }
+
+  async findCategoryById(categoryId: number): Promise<CategoryEntity> {
+    const travelCategory = await this.repository
+      .createQueryBuilder('category')
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
       .getOne();
@@ -87,10 +96,9 @@ export class CategoryRepository {
    */
   async updateCategory(
     categoryId: number,
-    // 업데이트 dto에서 여행지 태그는 제외하고 나머지만 업데이트 예정
     updateTravelCategoryDto: UpdateCategoryDto,
-  ): Promise<void> {
-    await this.repository.update(categoryId, {
+  ): Promise<UpdateResult> {
+    return await this.repository.update(categoryId, {
       ...updateTravelCategoryDto,
       updatedAt: new Date(),
     });

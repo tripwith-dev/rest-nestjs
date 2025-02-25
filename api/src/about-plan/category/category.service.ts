@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -55,13 +54,8 @@ export class CategoryService {
    * @param categoryId
    * @returns
    */
-  async findCategoryWithAvatarByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
-    const category =
-      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
-        categoryId,
-      );
+  async findCategoryById(categoryId: number): Promise<CategoryEntity> {
+    const category = await this.categoryRepository.findCategoryById(categoryId);
 
     if (!category) {
       throw new NotFoundException(
@@ -79,7 +73,6 @@ export class CategoryService {
    * @returns
    */
   async findCategoryWithPlansByCategoryId(
-    isOwner: boolean,
     categoryId: number,
   ): Promise<CategoryEntity> {
     const category =
@@ -94,7 +87,19 @@ export class CategoryService {
     }
 
     // 본인 카테고리 아니면 public만 보여줌
-    return this.filterCategoryWithPublicPlans(isOwner, category);
+    return category;
+  }
+
+  /**
+   * 카테고리와 PUBLIC 플랜만 조회
+   * @param categoryId
+   * @returns
+   */
+  async findCategoryWithPublicPlansByCategoryId(
+    categoryId: number,
+  ): Promise<CategoryEntity> {
+    const category = await this.findCategoryWithPlansByCategoryId(categoryId);
+    return await this.filterOnlyPublicPlan(category);
   }
 
   /**
@@ -103,24 +108,13 @@ export class CategoryService {
   async updateCategory(
     categoryId: number,
     updateCategoryDto: UpdateCategoryDto,
-  ) {
+  ): Promise<UpdateResult> {
     const category =
       await this.categoryRepository.findCategoryWithAvatarByCategoryId(
         categoryId,
       );
 
-    // 업데이트 요소가 있는지 확인. 없으면 메서드 중단
-    const hasChanges = this.hasChanges(category, updateCategoryDto);
-    if (!hasChanges) {
-      return category;
-    }
-
-    // 카테고리 title 제약조건
-    if (updateCategoryDto.categoryTitle.length > 20) {
-      throw new BadRequestException(`카테고리 제목은 20자 내여야 합니다.`);
-    }
-
-    // 한 사용자 내에서 CategoryTitle 중복 확인
+    // 1. categoryTitle이 바꼈을 때, 한 사용자 내에서 CategoryTitle 중복 확인
     if (updateCategoryDto.categoryTitle !== category.categoryTitle) {
       await this.checkDuplicateTitleWhenUpdate(
         category.avatar.avatarId,
@@ -129,21 +123,32 @@ export class CategoryService {
       );
     }
 
-    await this.categoryRepository.updateCategory(categoryId, updateCategoryDto);
+    // 2. 유효성 검증
+    validateCategoryTitle(updateCategoryDto.categoryTitle);
 
-    return await this.findCategoryWithAvatarByCategoryId(categoryId);
+    return await this.categoryRepository.updateCategory(
+      categoryId,
+      updateCategoryDto,
+    );
   }
 
   /**
-   * 특정 여행 카테고리를 소프트 삭제하는 메서드
+   * 특정 카테고리를 삭제함
+   * @param categoryId
+   * @returns
    */
   async softDeletedCategory(categoryId: number): Promise<UpdateResult> {
-    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
+    const category = await this.findCategoryById(categoryId);
     return await this.categoryRepository.softDeletedCategory(
       category.categoryId,
     );
   }
 
+  /**
+   * 특정 사용자의 모든 카테고리를 삭제함
+   * @param categoryId
+   * @returns
+   */
   async softDeleteCategoriesByAvatar(avatarId: number): Promise<UpdateResult> {
     const avatar = await this.avatarService.findAvatarById(avatarId);
     return await this.categoryRepository.softDeleteCategoriesByAvatar(
@@ -154,6 +159,35 @@ export class CategoryService {
   // ============================================================
   // =========================== SUB ============================
   // ============================================================
+
+  /**
+   * 카테고리와 카테고리 오너의 정보를 같이 조회하는 메서드
+   * @param categoryId
+   * @returns
+   */
+  async findCategoryWithAvatarByCategoryId(
+    categoryId: number,
+  ): Promise<CategoryEntity> {
+    const category =
+      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
+        categoryId,
+      );
+
+    if (!category) {
+      throw new NotFoundException(
+        `${categoryId}에 해당하는 카테고리를 찾을 수 없습니다.`,
+      );
+    }
+
+    return category;
+  }
+
+  private async filterOnlyPublicPlan(
+    category: CategoryEntity,
+  ): Promise<CategoryEntity> {
+    category.plans = category.plans.filter((plan) => plan.status === 'PUBLIC');
+    return category;
+  }
 
   /**
    * 카테고리 오너가 맞는지 확인하는 메서드
@@ -167,26 +201,6 @@ export class CategoryService {
   ): Promise<boolean> {
     const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
     return category.avatar.avatarId === avatarId;
-  }
-
-  /**
-   * isOwner가 false면 PUBLIC인 plan만 남기는 메서드
-   * @param isOwner
-   * @param category
-   * @returns
-   */
-  private filterCategoryWithPublicPlans(
-    isOwner: boolean,
-    category: CategoryEntity,
-  ): CategoryEntity {
-    // isOwner가 false면 PUBLIC인 plan만 남김
-    if (!isOwner) {
-      category.plans = category.plans.filter(
-        (plan) => plan.status === 'PUBLIC',
-      );
-    }
-
-    return category;
   }
 
   /**
@@ -206,20 +220,6 @@ export class CategoryService {
     }
 
     return categories;
-  }
-
-  /**
-   * 업데이트 DTO와 기존 카테고리의 변경 여부를 확인하는 메서드
-   * @returns 변경 사항이 있으면 true, 없으면 false
-   */
-  private hasChanges(
-    category: CategoryEntity,
-    updateDto: UpdateCategoryDto,
-  ): boolean {
-    return (
-      updateDto.categoryTitle &&
-      category.categoryTitle !== updateDto.categoryTitle
-    );
   }
 
   /**
