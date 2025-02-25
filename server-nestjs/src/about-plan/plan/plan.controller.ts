@@ -260,7 +260,7 @@ export class PlanController {
    */
   @Patch(':planId/like')
   @UseGuards(JwtAuthGuard)
-  async softDeleteLike(@Param('planId') planId: number, @Request() req: any) {
+  async deleteLike(@Param('planId') planId: number, @Request() req: any) {
     // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 제거할 수 없음
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
