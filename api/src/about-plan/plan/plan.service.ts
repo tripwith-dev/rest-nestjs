@@ -9,7 +9,6 @@ import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
-import { convertTotalExpenses } from 'src/utils/convertTotalExpenses';
 import { validateDates, validatePlanTitle } from 'src/utils/validateUserInput';
 import { CategoryService } from '../category/category.service';
 import { DestinationTagService } from '../destination-tag/destination-tag.service';
@@ -108,24 +107,12 @@ export class PlanService {
    * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 또는 undefined
    * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
    */
-  async findPlanById(
-    planId: number,
-    currency: Currency = Currency.KRW,
-  ): Promise<PlanEntity | undefined> {
+  async findPlanById(planId: number): Promise<PlanEntity | undefined> {
     const plan = await this.planRepository.findPlanById(planId);
 
     if (!plan) {
       throw new NotFoundException(
         `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    // 통화 변환
-    if (plan.totalPrice) {
-      plan.totalPrice = convertTotalExpenses(
-        plan.totalPrice,
-        Currency.KRW, // default는 KRW
-        currency,
       );
     }
 
@@ -157,48 +144,28 @@ export class PlanService {
    * @returns {Promise<PlanEntity[]>} - 좋아요 순위 상위 10개의 여행 계획 목록
    * @throws {Error} - 여행 계획 데이터를 조회하거나 처리 중 오류가 발생할 경우
    */
-  async findTopTenTravelPlan(
-    currency: Currency = Currency.KRW,
-  ): Promise<PlanEntity[]> {
-    const travelPlans = await this.planRepository.findTopTenTravelPlan();
+  async findTopTenTravelPlan(): Promise<PlanEntity[]> {
+    const plans = await this.planRepository.findTopTenTravelPlan();
 
-    for (const plan of travelPlans) {
-      if (plan && plan.totalPrice) {
-        plan.totalPrice = convertTotalExpenses(
-          plan.totalPrice,
-          Currency.KRW,
-          currency,
-        );
-      }
+    if (!plans) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
 
-    return travelPlans;
+    return plans;
   }
 
   /**
    * <테스트용>
    * 모든 plan 조회
    */
-  async findAllTravelPlans(
-    currency: Currency = Currency.KRW,
-  ): Promise<PlanEntity[]> {
-    const travelPlans = await this.planRepository.findAllTravelPlans();
+  async findAllPlans(): Promise<PlanEntity[]> {
+    const plans = await this.planRepository.findAllPlans();
 
-    if (!travelPlans) {
+    if (!plans) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
 
-    for (const plan of travelPlans) {
-      if (plan && plan.totalPrice) {
-        plan.totalPrice = convertTotalExpenses(
-          plan.totalPrice,
-          Currency.KRW,
-          currency,
-        );
-      }
-    }
-
-    return travelPlans;
+    return plans;
   }
 
   /**
@@ -215,119 +182,45 @@ export class PlanService {
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
     const plan = await this.findPlanWithAvatarByPlanId(planId);
-    if (plan) {
-      // 1. planTitle 예외처리
-      validatePlanTitle(updatePlanWithDestinationDto.planTitle);
+    // 1. planTitle 예외처리
+    validatePlanTitle(updatePlanWithDestinationDto.planTitle);
 
-      // 2. planTitle이 변경된 경우에 중복 확인(동일 category 내에서만 중복 확인)
-      await this.checkDuplicateTitleWhenUpdate(
-        plan.category.categoryId,
-        planId,
-        updatePlanWithDestinationDto.planTitle,
-      );
-
-      // 3. 여행 날짜 변경 시에 날짜가 올바른지 확인
-      validateDates(
-        updatePlanWithDestinationDto.travelStartDate,
-        updatePlanWithDestinationDto.travelEndDate,
-      );
-
-      // 4. 위 조건이 문제 없으면 여행지를 제외한 데이터들만 변경
-      const { destinations, ...planData } = updatePlanWithDestinationDto;
-      await this.planRepository.updatePlan(planId, planData);
-
-      // 5. destination 업데이트 (destinationName만 보내기 위해 map 함수 사용)
-      const destinationNames =
-        destinations?.map(
-          (destination) => destination.destinationTag.destinationTagName,
-        ) || [];
-      await this.updateDestinationTags(plan, destinationNames);
-
-      /** plan 기간 변경 시에 plan 기간 내에 없는 detail은 전부
-       * 삭제시켜야 하지만, 이곳에서 detail을 삭제를 한다면 순환참조 문제가
-       * 발생하기에, totalExpenses 연산에서 제외시키는 정도로만 처리
-       */
-      if (
-        updatePlanWithDestinationDto.travelStartDate ||
-        updatePlanWithDestinationDto.travelEndDate
-      ) {
-        await this.updateTotalExpenses(planId);
-      }
-
-      return await this.findPlanById(planId);
-    } else {
-      throw new InternalServerErrorException(
-        `${planId}에 해당하는 여행 계획을 업데이트 할 수 없습니다.`,
-      );
-    }
-  }
-
-  /**
-   * 카테고리의 destination 태그를 업데이트
-   * @param plan - 업데이트 대상이 되는 여행 계획 엔티티
-   * @param newDestinations - 업데이트할 새로운 목적지 이름 배열
-   * @returns {Promise<void>} - 처리 완료 후 반환값 없음
-   * @throws {Error} - 목적지 추가 또는 삭제 처리 중 발생하는 문제
-   */
-  private async updateDestinationTags(
-    plan: PlanEntity,
-    newDestinations: string[],
-  ): Promise<void> {
-    // 기존 destination 가져오기
-    const existingPlanDestinations = plan.destinations;
-
-    // destinationName만 비교하기 위해 매핑
-    // 기존 destinationName과 새로운 destinationName 비교를 위해 Set 이용
-    const existingNames = new Set(
-      existingPlanDestinations.map(
-        (dest) => dest.destinationTag.destinationTagName,
-      ),
+    // 2. planTitle이 변경된 경우에 중복 확인(동일 category 내에서만 중복 확인)
+    await this.checkDuplicateTitleWhenUpdate(
+      plan.category.categoryId,
+      planId,
+      updatePlanWithDestinationDto.planTitle,
     );
-    const newNames = new Set(newDestinations || []);
 
-    // newDestinations가 null 또는 빈 배열인 경우 모든 요소 삭제
-    if (!newDestinations || newDestinations.length === 0) {
-      await this.planDestinationService.deletePlanDestinations(
-        existingPlanDestinations,
-      );
-    } else {
-      // 생성할 요소 찾기: 새로운 데이터에는 있고, 기존 데이터에는 없는 것을 초이스
-      const destinationsToAdd = [...newNames].filter(
-        (name) => !existingNames.has(name),
-      );
+    // 3. 여행 날짜 변경 시에 날짜가 올바른지 확인
+    validateDates(
+      updatePlanWithDestinationDto.travelStartDate,
+      updatePlanWithDestinationDto.travelEndDate,
+    );
 
-      // 삭제할 요소 찾기: 새로운 데이터에는 없고, 기존 데이터에는 있는 것을 초이스
-      const destinationsToRemove = existingPlanDestinations.filter(
-        (categoryDest) =>
-          !newNames.has(categoryDest.destinationTag.destinationTagName),
-      );
+    // 4. 위 조건이 문제 없으면 여행지를 제외한 데이터들만 변경
+    const { destinations, ...planData } = updatePlanWithDestinationDto;
+    await this.planRepository.updatePlan(planId, planData);
 
-      // 삭제 요소 제거
-      if (destinationsToRemove.length > 0) {
-        console.log(destinationsToRemove);
+    // 5. destination 업데이트 (destinationName만 보내기 위해 map 함수 사용)
+    const destinationNames =
+      destinations?.map(
+        (destination) => destination.destinationTag.destinationTagName,
+      ) || [];
+    await this.planDestinationService.updateDestinationTags(
+      plan,
+      destinationNames,
+    );
 
-        await this.planDestinationService.deletePlanDestinations(
-          destinationsToRemove,
-        );
-      }
-
-      // 추가 요소 처리
-      for (const destinationName of destinationsToAdd) {
-        let destination =
-          await this.destinationTagService.findOneByDestinationName(
-            destinationName,
-          );
-        // 추가할 요소가 destination 테이블에 없다면 추가 후 관계 테이블 설정
-        if (!destination) {
-          destination =
-            await this.destinationTagService.createDestination(destinationName);
-        }
-        await this.planDestinationService.createPlanDestination(
-          plan,
-          destination,
-        );
-      }
+    //plan 기한 내에 있는 detail의 총금액만 계산
+    if (
+      updatePlanWithDestinationDto.travelStartDate ||
+      updatePlanWithDestinationDto.travelEndDate
+    ) {
+      await this.updateTotalPrice(planId);
     }
+
+    return await this.findPlanById(planId);
   }
 
   /**
@@ -347,71 +240,6 @@ export class PlanService {
       throw new InternalServerErrorException(
         `${planId}에 해당하는 여행 계획을 삭제할 수 없습니다.`,
       );
-    }
-  }
-
-  /**
-   * 특정 여행 계획의 총 비용을 주어진 통화로 변환하여 계산하는 서비스 로직
-   * @param planId 여행 계획 ID
-   * @param targetCurrency 변환할 통화 (USD, JPY, KRW, EUR)
-   * @returns 총 비용
-   */
-  async calculateTotalExpenses(
-    planId: number,
-    targetCurrency: Currency,
-  ): Promise<number> {
-    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
-
-    const exchangeRates = {
-      USD: 1,
-      KRW: 1450,
-      EUR: 0.92,
-      JPY: 145,
-    };
-
-    let total = 0;
-
-    // details가 존재하지 않으면 빈 배열로 처리
-    let details = [];
-
-    if (plan) {
-      details = plan.details;
-    }
-
-    if (plan && details.length > 0) {
-      for (const detail of details) {
-        const detailPrice = detail.price || 0;
-        const detailCurrency = detail.currency || Currency.USD;
-
-        const convertedPrice =
-          detailPrice *
-          (exchangeRates[targetCurrency] / exchangeRates[detailCurrency]);
-        total += convertedPrice;
-      }
-    }
-
-    // 소수점 2자리까지 반올림
-    return parseFloat(total.toFixed(2));
-  }
-
-  /**
-   * 특정 여행 계획의 총 비용을 갱신하는 로직
-   * @param planId 여행 계획 ID
-   * @returns void
-   */
-  async updateTotalExpenses(planId: number): Promise<void> {
-    try {
-      const totalExpenses = await this.calculateTotalExpenses(
-        planId,
-        Currency.KRW,
-      );
-      console.log(`전체 비용 계산 ${planId}: ${totalExpenses}`);
-
-      await this.planRepository.updateTotalExpenses(planId, totalExpenses);
-      console.log(`전체 비용 업데이트 됨 ${planId}`);
-    } catch (error) {
-      console.error(`전체비용 업데이트 안됨 ${planId}:`, error);
-      throw error;
     }
   }
 
@@ -575,7 +403,7 @@ export class PlanService {
       existingPlans &&
       existingPlans.some((plan) => plan.planTitle === planTitle)
     ) {
-      throw new ConflictException('동일한 제목의 여행 계획이 이미 존재합니다.');
+      throw new ConflictException('동일한 제목의 plan 이미 존재합니다.');
     }
   }
 
@@ -600,9 +428,72 @@ export class PlanService {
     );
 
     if (isDuplicate) {
-      throw new ConflictException(
-        '동일한 제목의 travel container가 이미 존재합니다.',
+      throw new ConflictException('동일한 제목의 plan 이미 존재합니다.');
+    }
+  }
+
+  /**
+   * 특정 여행 계획의 총 비용을 주어진 통화로 변환하여 계산하는 서비스 로직
+   * @param planId 여행 계획 ID
+   * @param targetCurrency 변환할 통화 (USD, JPY, KRW, EUR)
+   * @returns 총 비용
+   */
+  async calculateTotalPrice(
+    planId: number,
+    targetCurrency: Currency,
+  ): Promise<number> {
+    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
+
+    const exchangeRates = {
+      USD: 1,
+      KRW: 1450,
+      EUR: 0.92,
+      JPY: 145,
+    };
+
+    let total = 0;
+
+    // details가 존재하지 않으면 빈 배열로 처리
+    let details = [];
+
+    if (plan) {
+      details = plan.details;
+    }
+
+    if (plan && details.length > 0) {
+      for (const detail of details) {
+        const detailPrice = detail.price || 0;
+        const detailCurrency = detail.currency || Currency.USD;
+
+        const convertedPrice =
+          detailPrice *
+          (exchangeRates[targetCurrency] / exchangeRates[detailCurrency]);
+        total += convertedPrice;
+      }
+    }
+
+    // 소수점 2자리까지 반올림
+    return parseFloat(total.toFixed(2));
+  }
+
+  /**
+   * 특정 여행 계획의 총 비용을 갱신하는 로직
+   * @param planId 여행 계획 ID
+   * @returns void
+   */
+  async updateTotalPrice(planId: number): Promise<void> {
+    try {
+      const totalExpenses = await this.calculateTotalPrice(
+        planId,
+        Currency.KRW,
       );
+      console.log(`전체 비용 계산 ${planId}: ${totalExpenses}`);
+
+      await this.planRepository.updateTotalExpenses(planId, totalExpenses);
+      console.log(`전체 비용 업데이트 됨 ${planId}`);
+    } catch (error) {
+      console.error(`전체비용 업데이트 안됨 ${planId}:`, error);
+      throw error;
     }
   }
 }

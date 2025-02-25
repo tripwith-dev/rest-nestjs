@@ -53,7 +53,7 @@ export class PlanDetailService {
       plan,
       createDetailWithLocationDto.createDetailDto,
     );
-    await this.planService.updateTotalExpenses(planId);
+    await this.planService.updateTotalPrice(planId);
 
     if (createDetailWithLocationDto.createLocationDto) {
       // createLocation 함수 내부에서 location이 존재하는 지 확인 후
@@ -172,7 +172,7 @@ export class PlanDetailService {
     );
 
     // 총 비용 갱신
-    await this.planService.updateTotalExpenses(detail.plan.planId);
+    await this.planService.updateTotalPrice(detail.plan.planId);
 
     if (updateDetailWithLocationDto.createLocationDto.address) {
       // createLocation 함수 내부에서 location이 존재하는 지 확인 후
@@ -199,7 +199,7 @@ export class PlanDetailService {
     await this.planDetailRepository.softDeletePlanDetail(detailId);
 
     // 총 비용 갱신
-    await this.planService.updateTotalExpenses(detail.plan.planId);
+    await this.planService.updateTotalPrice(detail.plan.planId);
   }
 
   async confirmTimeOverlap(planId: number, startTime: string, endTime: string) {

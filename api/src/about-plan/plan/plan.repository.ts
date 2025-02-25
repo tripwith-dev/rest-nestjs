@@ -86,8 +86,7 @@ export class PlanRepository {
   async findTopTenTravelPlan(): Promise<PlanEntity[]> {
     const plans = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.category', 'category')
-      .leftJoinAndSelect('category.avatar', 'avatar')
+      .leftJoinAndSelect('plan.avatar', 'avatar')
       .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('category.isDeleted = false')
@@ -105,11 +104,10 @@ export class PlanRepository {
    * <테스트용>
    * 모든 plan 조회
    */
-  async findAllTravelPlans(): Promise<PlanEntity[]> {
+  async findAllPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
-      .createQueryBuilder('travel-plan')
-      .leftJoinAndSelect('travel-plan.category', 'category')
-      .leftJoinAndSelect('travel-plan.destinations', 'planDestinations')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.destinations', 'planDestinations')
       .leftJoinAndSelect('planDestinations.destinationTag', 'destinationTag')
       .where('category.isDeleted = false')
       .andWhere('travel-plan.isDeleted = false')
@@ -125,11 +123,11 @@ export class PlanRepository {
    */
   async findPlansByCategoryId(categoryId: number): Promise<PlanEntity[]> {
     const plans = await this.repository
-      .createQueryBuilder('travelplan')
-      .leftJoinAndSelect('travelplan.category', 'category')
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.category', 'category')
       .where('category.categoryId = :categoryId', { categoryId })
       .andWhere('category.isDeleted = false')
-      .andWhere('travelplan.isDeleted = false')
+      .andWhere('plan.isDeleted = false')
       .getMany();
 
     return plans;

@@ -18,7 +18,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
-import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
 import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
@@ -95,10 +94,8 @@ export class PlanController {
    */
   @Get('top-ten/likes')
   @UseGuards(OptionalAuthGuard)
-  async findTopTenTravelPlans(
-    @Query('currency') currency: Currency = Currency.KRW,
-  ) {
-    return await this.planService.findTopTenTravelPlan(currency);
+  async findTopTenTravelPlans() {
+    return await this.planService.findTopTenTravelPlan();
   }
 
   /**
@@ -108,10 +105,8 @@ export class PlanController {
    * @returns
    */
   @Get()
-  async findAllTravelPlans(
-    @Query('currency') currency: Currency = Currency.KRW,
-  ) {
-    return await this.planService.findAllTravelPlans(currency);
+  async findAllTravelPlans() {
+    return await this.planService.findAllPlans();
   }
 
   /**
@@ -149,22 +144,6 @@ export class PlanController {
     }
 
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
-  }
-
-  /**
-   * 특정 플랜의 총 비용을 계산하는 엔드포인트
-   * private 플랜인 경우 소유자만 가능하다.
-   * 따라서 OptionalAuthGuard와 req를 통해 소유자인지 확인해야 한다.
-   * @param planId
-   * @param currency
-   * @returns
-   */
-  @Get(':planId/total-expenses')
-  async calculateTotalExpenses(
-    @Param('planId') planId: number,
-    @Query('currency') currency: Currency,
-  ): Promise<number> {
-    return await this.planService.calculateTotalExpenses(planId, currency);
   }
 
   /**
