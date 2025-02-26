@@ -46,8 +46,8 @@ export class PlanDetailRepository {
     const travelDetail = await this.repository
       .createQueryBuilder('plan_detail')
       .leftJoinAndSelect('plan_detail.location', 'location')
-      .leftJoinAndSelect('plan_detail.plan', 'plan')
-      .leftJoinAndSelect('plan.avatar', 'avatar')
+      .leftJoinAndSelect('plan_detail.plan', 'plan', 'plan.isDeleted = false')
+      .leftJoinAndSelect('plan.avatar', 'avatar', 'avatar.isDeleted = false')
       .where('plan_detail.detailId = :detailId', { detailId })
       .andWhere('plan_detail.isDeleted = false')
       .andWhere('plan.isDeleted = false')

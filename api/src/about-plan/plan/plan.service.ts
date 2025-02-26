@@ -280,6 +280,28 @@ export class PlanService {
     return { message: '좋아요가 추가되었습니다.', plan };
   }
 
+  /**
+   * PRIVATE이든 PUBLIC이든 본인만 접근 가능
+   * @param planId
+   * @param avatarId
+   * @returns
+   */
+  async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
+    const plan = await this.findPlanWithAvatar(planId);
+    return plan.avatar.avatarId === avatarId;
+  }
+
+  /**
+   * PRIVATE이라면 본인만 접근 가능
+   * @param planId
+   * @param avatarId
+   * @returns
+   */
+  async isPlanAccessible(planId: number, avatarId: number): Promise<boolean> {
+    const plan = await this.findPlanWithAvatar(planId);
+    return plan.avatar.avatarId === avatarId || plan.status === Status.PUBLIC;
+  }
+
   // ============================================================
   // =========================== SUB ============================
   // ============================================================
@@ -330,28 +352,6 @@ export class PlanService {
     }
 
     return plan;
-  }
-
-  /**
-   * PRIVATE이든 PUBLIC이든 본인만 접근 가능
-   * @param planId
-   * @param avatarId
-   * @returns
-   */
-  async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanWithAvatar(planId);
-    return plan.avatar.avatarId === avatarId;
-  }
-
-  /**
-   * PRIVATE이라면 본인만 접근 가능
-   * @param planId
-   * @param avatarId
-   * @returns
-   */
-  async isPlanAccessible(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanWithAvatar(planId);
-    return plan.avatar.avatarId === avatarId || plan.status !== Status.PRIVATE;
   }
 
   /**

@@ -248,9 +248,11 @@ export class PlanController {
   async addLike(@Param('planId') planId: number, @Request() req: any) {
     // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 할 수 없음
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planService.isPlanAccessible(planId, avatarId);
-    const plan = await this.planService.findPlanById(planId);
-    if (plan.status === Status.PRIVATE && !isOwner) {
+    const isAccessible = await this.planService.isPlanAccessible(
+      planId,
+      avatarId,
+    );
+    if (!isAccessible) {
       throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
