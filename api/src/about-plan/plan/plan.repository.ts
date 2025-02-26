@@ -45,15 +45,16 @@ export class PlanRepository {
     return plan;
   }
 
-  async findPlanDetailById(planId: number): Promise<PlanEntity | undefined> {
+  async findPlanAllInfo(planId: number): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.category', 'category')
+      .leftJoin('plan.avatar', 'avatar', 'avatar.isDeleted = false')
+      .leftJoin('plan.category', 'category', 'category.isDeleted = false')
       .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
       .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
+      .addSelect(['avatar.avatarId', 'category.categoryId'])
       .getOne();
 
     return plan;
@@ -87,16 +88,30 @@ export class PlanRepository {
    * @param planId
    * @returns
    */
-  async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
+  async findPlanWithDetail(planId: number): Promise<PlanEntity> {
     return await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.details', 'detail')
+      .leftJoinAndSelect('plan.avatar', 'avatar', 'avatar.isDeleted = false')
+      .leftJoinAndSelect('plan.details', 'detail', 'detail.isDeleted = false')
       .leftJoinAndSelect('detail.location', 'location')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
-      .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
       .orderBy('detail.endTime', 'ASC')
+      .getOne();
+  }
+
+  /**
+   * 특정 여행 계획의 모든 detail 정보를 가져옴
+   * plan 페이지에서 detail이 보여야 하기에 필요한 로직
+   * @param planId
+   * @returns
+   */
+  async findPlanWithAvatar(planId: number): Promise<PlanEntity> {
+    return await this.repository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.avatar', 'avatar', 'avatar.isDeleted = false')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('plan.isDeleted = false')
       .getOne();
   }
 
@@ -106,7 +121,7 @@ export class PlanRepository {
    * 메인페이지 배너에서 사용됨
    * 공개 플랜만 가능
    */
-  async findTopTenTravelPlan(): Promise<PlanEntity[]> {
+  async findPopularPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
@@ -116,7 +131,7 @@ export class PlanRepository {
       .andWhere('plan.status = :status', { status: 'PUBLIC' })
       .orderBy('plan.likesCount', 'DESC')
       .addOrderBy('plan.createdAt', 'DESC')
-      .limit(10)
+      .limit(5)
       .getMany();
 
     return plans;
@@ -164,7 +179,7 @@ export class PlanRepository {
   /**
    * 특정 여행 컨테이너를 소프트 삭제
    */
-  async softDeletedTravelPlan(planId: number): Promise<void> {
+  async softDeletedPlan(planId: number): Promise<void> {
     await this.repository.update(planId, {
       isDeleted: true,
       deletedAt: new Date(),
@@ -187,10 +202,10 @@ export class PlanRepository {
   }
 
   async replaceMainImage(
-    categoryId: number,
+    planId: number,
     mainImageUrl: string,
   ): Promise<UpdateResult> {
-    return await this.repository.update(categoryId, {
+    return await this.repository.update(planId, {
       planMainImage: mainImageUrl,
       updatedAt: new Date(),
     });

@@ -79,24 +79,6 @@ export class PlanService {
    * @param isOwner
    * @returns
    */
-  async findPlanDetailById(planId: number): Promise<PlanEntity | undefined> {
-    const plan = await this.planRepository.findPlanDetailById(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
-  }
-
-  /**
-   *
-   * @param planId
-   * @param isOwner
-   * @returns
-   */
   async findPlansByCategoryId(
     categoryId: number,
   ): Promise<PlanEntity[] | undefined> {
@@ -111,31 +93,12 @@ export class PlanService {
   }
 
   /**
-   * 여행 계획 조회
-   * @param planId - 조회할 여행 계획의 ID
-   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
-   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 또는 undefined
-   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
-   */
-  async findPlanById(planId: number): Promise<PlanEntity | undefined> {
-    const plan = await this.planRepository.findPlanById(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
-  }
-
-  /**
    * 특정 여행 계획에 속한 여행 디테일들의 제목을 조회하는 서비스 로직
    * @param planId 여행 계획 ID
    * @returns 여행 디테일 제목 리스트를 반환
    */
-  async findPlanWithDetailByPlanId(planId: number) {
-    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
+  async findPlanWithDetail(planId: number) {
+    const plan = await this.planRepository.findPlanWithDetail(planId);
 
     if (!plan) {
       throw new NotFoundException(
@@ -154,22 +117,8 @@ export class PlanService {
    * @returns {Promise<PlanEntity[]>} - 좋아요 순위 상위 10개의 여행 계획 목록
    * @throws {Error} - 여행 계획 데이터를 조회하거나 처리 중 오류가 발생할 경우
    */
-  async findTopTenTravelPlan(): Promise<PlanEntity[]> {
-    const plans = await this.planRepository.findTopTenTravelPlan();
-
-    if (!plans) {
-      throw new NotFoundException('플랜을 찾을 수 없습니다.');
-    }
-
-    return plans;
-  }
-
-  /**
-   * <테스트용>
-   * 모든 plan 조회
-   */
-  async findAllPlans(): Promise<PlanEntity[]> {
-    const plans = await this.planRepository.findAllPlans();
+  async findPopularPlans(): Promise<PlanEntity[]> {
+    const plans = await this.planRepository.findPopularPlans();
 
     if (!plans) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
@@ -191,7 +140,8 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanDetailById(planId);
+    const plan = await this.findPlanAllInfo(planId);
+
     // 1. planTitle 예외처리
     validatePlanTitle(updatePlanWithDestinationDto.planTitle);
 
@@ -234,12 +184,12 @@ export class PlanService {
    * @returns {Promise<{ message: string; plan: PlanEntity }>} - 삭제 성공 메시지와 삭제된 계획 데이터
    * @throws {InternalServerErrorException} - 해당 ID의 여행 계획이 존재하지 않을 경우 발생
    */
-  async softDeletedTravelPlan(
+  async softDeletedPlan(
     planId: number,
   ): Promise<{ message: string; plan: PlanEntity }> {
     const plan = await this.findPlanById(planId);
     if (plan) {
-      await this.planRepository.softDeletedTravelPlan(planId);
+      await this.planRepository.softDeletedPlan(planId);
       return { message: '성공적으로 삭제되었습니다.', plan };
     } else {
       throw new InternalServerErrorException(
@@ -335,13 +285,61 @@ export class PlanService {
   // ============================================================
 
   /**
+   * 여행 계획 조회
+   * @param planId - 조회할 여행 계획의 ID
+   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
+   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 또는 undefined
+   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
+   */
+  async findPlanById(planId: number): Promise<PlanEntity | undefined> {
+    const plan = await this.planRepository.findPlanById(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
+   *
+   * @param planId
+   * @param isOwner
+   * @returns
+   */
+  async findPlanAllInfo(planId: number): Promise<PlanEntity | undefined> {
+    const plan = await this.planRepository.findPlanAllInfo(planId);
+
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
+  async findPlanWithAvatar(planId: number): Promise<PlanEntity | undefined> {
+    const plan = await this.planRepository.findPlanWithAvatar(planId);
+    if (!plan) {
+      throw new NotFoundException(
+        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
    * PRIVATE이든 PUBLIC이든 본인만 접근 가능
    * @param planId
    * @param avatarId
    * @returns
    */
   async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanDetailById(planId);
+    const plan = await this.findPlanWithAvatar(planId);
     return plan.avatar.avatarId === avatarId;
   }
 
@@ -352,7 +350,7 @@ export class PlanService {
    * @returns
    */
   async isPlanAccessible(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanDetailById(planId);
+    const plan = await this.findPlanWithAvatar(planId);
     return plan.avatar.avatarId === avatarId || plan.status !== Status.PRIVATE;
   }
 
@@ -445,7 +443,7 @@ export class PlanService {
     planId: number,
     targetCurrency: Currency,
   ): Promise<number> {
-    const plan = await this.planRepository.findPlanWithDetailByPlanId(planId);
+    const plan = await this.planRepository.findPlanWithDetail(planId);
 
     const exchangeRates = {
       USD: 1,
