@@ -434,7 +434,26 @@ export class PlanService {
   }
 
   /**
-   * 특정 여행 계획의 총 비용을 주어진 통화로 변환하여 계산하는 서비스 로직
+   * 플랜의 전체 비용을 KRW로 저장해둠
+   * @param planId 여행 계획 ID
+   * @returns void
+   */
+  async updateTotalPrice(planId: number): Promise<void> {
+    try {
+      const totalExpenses = await this.calculateTotalPrice(
+        planId,
+        Currency.KRW,
+      );
+
+      await this.planRepository.updateTotalExpenses(planId, totalExpenses);
+    } catch (error) {
+      console.error(`전체비용 업데이트 안됨 ${planId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * detail의 화폐 단위를 비교하여 각각 KRW로 환산
    * @param planId 여행 계획 ID
    * @param targetCurrency 변환할 통화 (USD, JPY, KRW, EUR)
    * @returns 총 비용
@@ -445,21 +464,18 @@ export class PlanService {
   ): Promise<number> {
     const plan = await this.planRepository.findPlanWithDetail(planId);
 
+    // 환율을 가져와야함
     const exchangeRates = {
       USD: 1,
       KRW: 1450,
-      EUR: 0.92,
+      EUR: 0.96,
       JPY: 145,
     };
 
     let total = 0;
 
     // details가 존재하지 않으면 빈 배열로 처리
-    let details = [];
-
-    if (plan) {
-      details = plan.details;
-    }
+    const details = plan.details || null;
 
     if (plan && details.length > 0) {
       for (const detail of details) {
@@ -475,25 +491,5 @@ export class PlanService {
 
     // 소수점 2자리까지 반올림
     return parseFloat(total.toFixed(2));
-  }
-
-  /**
-   * 특정 여행 계획의 총 비용을 갱신하는 로직
-   * @param planId 여행 계획 ID
-   * @returns void
-   */
-  async updateTotalPrice(planId: number): Promise<void> {
-    try {
-      const totalExpenses = await this.calculateTotalPrice(
-        planId,
-        Currency.KRW,
-      );
-
-      await this.planRepository.updateTotalExpenses(planId, totalExpenses);
-      console.log(`전체 비용 업데이트 됨 ${planId}`);
-    } catch (error) {
-      console.error(`전체비용 업데이트 안됨 ${planId}:`, error);
-      throw error;
-    }
   }
 }
