@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { PlanEntity } from '../plan/plan.entity';
 import { PlanCommentEntity } from './plan-comment.entity';
 
@@ -24,5 +24,29 @@ export class PlanCommentRepository {
     });
 
     return await this.repository.save(planComment);
+  }
+
+  async findPlanCommentById(pCommentId: number): Promise<PlanCommentEntity> {
+    return await this.repository
+      .createQueryBuilder('pComment')
+      .where('pComment.pCommentId = :pCommentId', { pCommentId })
+      .getOne();
+  }
+
+  async updatePlanComment(
+    pCommentId: number,
+    pCommentContent: string,
+  ): Promise<UpdateResult> {
+    return await this.repository.update(pCommentId, {
+      pCommentContent: pCommentContent,
+      updatedAt: new Date(),
+    });
+  }
+
+  async softDeletePlanComment(pCommentId: number): Promise<UpdateResult> {
+    return await this.repository.update(pCommentId, {
+      isDeleted: true,
+      deletedAt: new Date(),
+    });
   }
 }
