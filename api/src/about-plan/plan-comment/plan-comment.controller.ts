@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -40,12 +41,33 @@ export class PlanCommentController {
     return await this.planCommentService.findPlanCommentById(pCommentId);
   }
 
+  @Get('my/comments')
+  @UseGuards(JwtAuthGuard)
+  async findPlanCommentsByAvatarId(
+    @Request() req: any,
+  ): Promise<PlanCommentEntity[]> {
+    const avatarId = req.user.avatar.avatarId;
+    return await this.planCommentService.findPlanCommentsByAvatarId(avatarId);
+  }
+
   @Patch(':pCommentId/update')
   @UseGuards(JwtAuthGuard)
   async updatePlanComment(
     @Param('pCommentId') pCommentId: number,
     @Body() pCommentContent: string,
+    @Request() req: any,
   ): Promise<UpdateResult> {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planCommentService.isCommentOwner(
+      pCommentId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new ForbiddenException('해당 댓글에 접근 권한이 없습니다.');
+    }
+
+    // plan 비공개/공개 여부는 updatePlanComment 내부에서 검증
     return await this.planCommentService.updatePlanComment(
       pCommentId,
       pCommentContent,
@@ -56,7 +78,18 @@ export class PlanCommentController {
   @UseGuards(JwtAuthGuard)
   async softDeletePlanComment(
     @Param('pCommentId') pCommentId: number,
+    @Request() req: any,
   ): Promise<UpdateResult> {
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planCommentService.isCommentOwner(
+      pCommentId,
+      avatarId,
+    );
+
+    if (!isOwner) {
+      throw new ForbiddenException('해당 댓글에 접근 권한이 없습니다.');
+    }
+
     return await this.planCommentService.softDeletePlanComment(pCommentId);
   }
 }

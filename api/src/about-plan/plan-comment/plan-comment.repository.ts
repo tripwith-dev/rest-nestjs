@@ -29,6 +29,28 @@ export class PlanCommentRepository {
   async findPlanCommentById(pCommentId: number): Promise<PlanCommentEntity> {
     return await this.repository
       .createQueryBuilder('pComment')
+      .leftJoinAndSelect('pComment.avatar', 'avatar')
+      .where('pComment.pCommentId = :pCommentId', { pCommentId })
+      .getOne();
+  }
+
+  async findPlanCommentsByAvatarId(
+    avatarId: number,
+  ): Promise<PlanCommentEntity[]> {
+    return await this.repository
+      .createQueryBuilder('pComment')
+      .leftJoinAndSelect('pComment.avatar', 'avatar')
+      .where('avatar.avatarId = :avatarId', { avatarId })
+      .getMany();
+  }
+
+  async findPlanCommentDetailById(
+    pCommentId: number,
+  ): Promise<PlanCommentEntity> {
+    return await this.repository
+      .createQueryBuilder('pComment')
+      .leftJoinAndSelect('pComment.avatar', 'avatar')
+      .leftJoinAndSelect('pComment.plan', 'plan')
       .where('pComment.pCommentId = :pCommentId', { pCommentId })
       .getOne();
   }
