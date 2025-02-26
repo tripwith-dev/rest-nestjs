@@ -124,7 +124,7 @@ export class PlanRepository {
   async findPopularPlans(): Promise<PlanEntity[]> {
     const plans = await this.repository
       .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.avatar', 'avatar')
+      .leftJoinAndSelect('plan.avatar', 'avatar', 'avatar.isDeleted = false')
       .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
       .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .andWhere('plan.isDeleted = false')

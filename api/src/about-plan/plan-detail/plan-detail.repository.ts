@@ -28,13 +28,12 @@ export class PlanDetailRepository {
   async findPlanDetailById(detailId: number): Promise<PlanDetailEntity> {
     const travelDetail = await this.repository
       .createQueryBuilder('plan_detail')
-      .leftJoinAndSelect('plan_detail.plan', 'plan')
+      .leftJoinAndSelect('plan_detail.plan', 'plan', 'plan.isDeleted = false')
       .leftJoinAndSelect('plan_detail.location', 'location')
       .leftJoinAndSelect('location.typeMappings', 'typeMapping')
       .leftJoinAndSelect('typeMapping.type', 'type')
       .where('plan_detail.detailId = :detailId', { detailId })
       .andWhere('plan_detail.isDeleted = false')
-      .andWhere('plan.isDeleted = false')
       .getOne();
 
     return travelDetail;
@@ -50,7 +49,6 @@ export class PlanDetailRepository {
       .leftJoinAndSelect('plan.avatar', 'avatar', 'avatar.isDeleted = false')
       .where('plan_detail.detailId = :detailId', { detailId })
       .andWhere('plan_detail.isDeleted = false')
-      .andWhere('plan.isDeleted = false')
       .getOne();
 
     return travelDetail;
@@ -86,7 +84,7 @@ export class PlanDetailRepository {
   ): Promise<PlanDetailEntity[]> {
     const query = this.repository
       .createQueryBuilder('plan_detail')
-      .leftJoinAndSelect('plan_detail.plan', 'plan')
+      .leftJoinAndSelect('plan_detail.plan', 'plan', 'plan.isDeleted = false')
       .where('plan_detail.planId = :planId', { planId })
       .andWhere(
         '(plan_detail.startTime < :endTime AND plan_detail.endTime > :startTime)',
