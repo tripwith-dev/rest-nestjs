@@ -45,24 +45,10 @@ export class PlanRepository {
     return plan;
   }
 
-  async findPlanWithOwnerByPlanId(
-    planId: number,
-  ): Promise<PlanEntity | undefined> {
+  async findPlanDetailById(planId: number): Promise<PlanEntity | undefined> {
     const plan = await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
-      .where('plan.planId = :planId', { planId })
-      .andWhere('plan.isDeleted = false')
-      .getOne();
-
-    return plan;
-  }
-
-  async findPlanWithCategoryByPlanId(
-    planId: number,
-  ): Promise<PlanEntity | undefined> {
-    const plan = await this.repository
-      .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.category', 'category')
       .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
       .leftJoinAndSelect('tagMapping.planTag', 'planTag')
@@ -74,22 +60,22 @@ export class PlanRepository {
   }
 
   /**
-   * 특정 여행 계획과 아바타까지 조회
-   * 업데이트 시에 중복 확인을 위해서 사용
+   * 특정 여행 계획의 모든 detail 정보를 가져옴
+   * plan 페이지에서 detail이 보여야 하기에 필요한 로직
+   * @param planId
+   * @returns
    */
-  async findPlanWithAvatarByPlanId(
-    planId: number,
-  ): Promise<PlanEntity | undefined> {
-    const plan = await this.repository
+  async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
+    return await this.repository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
-      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
+      .leftJoinAndSelect('plan.details', 'detail')
+      .leftJoinAndSelect('detail.location', 'location')
       .where('plan.planId = :planId', { planId })
       .andWhere('plan.isDeleted = false')
+      .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
+      .orderBy('detail.endTime', 'ASC')
       .getOne();
-
-    return plan;
   }
 
   /**
@@ -192,23 +178,6 @@ export class PlanRepository {
       .getOne();
 
     return plan;
-  }
-
-  /**
-   * 특정 여행 계획의 모든 detail 정보를 가져옴
-   * plan 페이지에서 detail이 보여야 하기에 필요한 로직
-   */
-  async findPlanWithDetailByPlanId(planId: number): Promise<PlanEntity> {
-    return await this.repository
-      .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.avatar', 'avatar')
-      .leftJoinAndSelect('plan.details', 'detail')
-      .leftJoinAndSelect('detail.location', 'location')
-      .where('plan.planId = :planId', { planId })
-      .andWhere('plan.isDeleted = false')
-      .andWhere('(detail.isDeleted = false OR detail.detailId IS NULL)')
-      .orderBy('detail.endTime', 'ASC')
-      .getOne();
   }
 
   async replaceMainImage(

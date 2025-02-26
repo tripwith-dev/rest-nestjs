@@ -75,26 +75,18 @@ export class PlanService {
   }
 
   /**
-   * 여행 계획과 카테고리까지 조회
-   * @param planId - 조회할 여행 계획의 ID
-   * @param currency - 반환할 금액의 통화 단위 (기본값: KRW)
-   * @returns {Promise<PlanEntity | undefined>} - 조회된 여행 계획 엔티티 (카테고리 포함) 또는 undefined
-   * @throws {NotFoundException} - 주어진 planId에 해당하는 여행 계획이 없을 경우
+   *
+   * @param planId
+   * @param isOwner
+   * @returns
    */
-  async findPlanWithAvatarByPlanId(
-    planId: number,
-    isOwner?: boolean,
-  ): Promise<PlanEntity | undefined> {
-    const plan = await this.planRepository.findPlanWithAvatarByPlanId(planId);
+  async findPlanDetailById(planId: number): Promise<PlanEntity | undefined> {
+    const plan = await this.planRepository.findPlanDetailById(planId);
 
     if (!plan) {
       throw new NotFoundException(
         `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
       );
-    }
-
-    if (plan.status === Status.PRIVATE && !isOwner) {
-      throw new NotFoundException('해당 여행 계획은 비공개 상태입니다.');
     }
 
     return plan;
@@ -181,7 +173,7 @@ export class PlanService {
     planId: number,
     updatePlanWithDestinationDto: UpdatePlanWithDestinationDto,
   ): Promise<PlanEntity> {
-    const plan = await this.findPlanWithCategoryByPlanId(planId);
+    const plan = await this.findPlanDetailById(planId);
     // 1. planTitle 예외처리
     validatePlanTitle(updatePlanWithDestinationDto.planTitle);
 
@@ -260,7 +252,6 @@ export class PlanService {
    */
   async deleteMainImage(planId: number): Promise<PlanEntity> {
     const plan = await this.findPlanById(planId);
-
     await this.planRepository.deleteMainImage(plan.planId);
     return await this.findPlanById(planId);
   }
@@ -325,46 +316,26 @@ export class PlanService {
   // =========================== SUB ============================
   // ============================================================
 
+  /**
+   * PRIVATE이든 PUBLIC이든 본인만 접근 가능
+   * @param planId
+   * @param avatarId
+   * @returns
+   */
   async isPlanOwner(planId: number, avatarId: number): Promise<boolean> {
-    const plan = await this.findPlanWithOwnerByPlanId(planId);
+    const plan = await this.findPlanDetailById(planId);
     return plan.avatar.avatarId === avatarId;
   }
 
   /**
-   * plan을 업데이트할 때 카테고리 중복을 확인하기 위해서
-   * 카테고리 정보를 가져와야 함
-   * 아주 조금 더 빠름. 딱히 큰 차이는 없음
+   * PRIVATE이라면 본인만 접근 가능
    * @param planId
+   * @param avatarId
    * @returns
    */
-  async findPlanWithCategoryByPlanId(planId: number): Promise<PlanEntity> {
-    const plan = await this.planRepository.findPlanWithCategoryByPlanId(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
-  }
-
-  /**
-   * findPlanWithAvatarByPlanId와 비슷해보이지만, tag를 조인하지 않기에
-   * 아주 조금 더 빠름. 딱히 큰 차이는 없음
-   * @param planId
-   * @returns
-   */
-  async findPlanWithOwnerByPlanId(planId: number): Promise<PlanEntity> {
-    const plan = await this.planRepository.findPlanWithOwnerByPlanId(planId);
-
-    if (!plan) {
-      throw new NotFoundException(
-        `${planId}에 해당하는 여행 계획 목록을 찾을 수 없습니다.`,
-      );
-    }
-
-    return plan;
+  async isPlanAccessible(planId: number, avatarId: number): Promise<boolean> {
+    const plan = await this.findPlanDetailById(planId);
+    return plan.avatar.avatarId === avatarId || plan.status !== Status.PRIVATE;
   }
 
   /**
