@@ -31,6 +31,7 @@ export class PlanCommentRepository {
       .createQueryBuilder('pComment')
       .leftJoinAndSelect('pComment.avatar', 'avatar')
       .where('pComment.pCommentId = :pCommentId', { pCommentId })
+      .andWhere('pComment.isDeleted = false')
       .getOne();
   }
 
@@ -41,6 +42,20 @@ export class PlanCommentRepository {
       .createQueryBuilder('pComment')
       .leftJoinAndSelect('pComment.avatar', 'avatar')
       .where('avatar.avatarId = :avatarId', { avatarId })
+      .andWhere('pComment.isDeleted = false')
+      .andWhere('avatar.isDeleted = false')
+      .getMany();
+  }
+
+  async findPlanCommentsByPlanId(planId: number): Promise<PlanCommentEntity[]> {
+    return await this.repository
+      .createQueryBuilder('pComment')
+      .leftJoinAndSelect('pComment.avatar', 'avatar')
+      .leftJoinAndSelect('pComment.plan', 'plan')
+      .where('plan.planId = :planId', { planId })
+      .andWhere('pComment.isDeleted = false')
+      .andWhere('plan.isDeleted = false')
+      .andWhere('avatar.isDeleted = false')
       .getMany();
   }
 
