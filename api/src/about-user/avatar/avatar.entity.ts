@@ -1,6 +1,7 @@
 import { ArticleCommentEntity } from 'src/about-article/article-comment/article-comment.entity';
 import { ArticleEntity } from 'src/about-article/article/article.entity';
 import { CategoryEntity } from 'src/about-plan/category/category.entity';
+import { PlanCommentEntity } from 'src/about-plan/plan-comment/plan-comment.entity';
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
 import { AvatarLikePlanEntity } from 'src/avatar-like-plan/avatar-like-plan.entity';
 import { CommonEntity } from 'src/common/entity/common.entity';
@@ -42,11 +43,14 @@ export class AvatarEntity extends CommonEntity {
   @OneToMany(() => AvatarLikePlanEntity, (like) => like.avatar)
   likePlans: AvatarLikePlanEntity[];
 
-  @OneToMany(() => ArticleEntity, (article) => article.avatar)
-  articles: ArticleEntity[];
-
   @OneToMany(() => PlanEntity, (plan) => plan.avatar)
   plans: PlanEntity[];
+
+  @OneToMany(() => PlanCommentEntity, (planComment) => planComment.avatar)
+  planComments: PlanCommentEntity[];
+
+  @OneToMany(() => ArticleEntity, (article) => article.avatar)
+  articles: ArticleEntity[];
 
   @OneToMany(
     () => ArticleCommentEntity,

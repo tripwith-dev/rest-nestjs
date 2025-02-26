@@ -11,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CategoryEntity } from '../category/category.entity';
+import { PlanCommentEntity } from '../plan-comment/plan-comment.entity';
 import { PlanDetailEntity } from '../plan-detail/plan-detail.entity';
 import { PlanTagMappingEntity } from '../plan-tag-mapping/plan-tag-mapping.entity';
 
@@ -60,4 +61,7 @@ export class PlanEntity extends CommonEntity {
 
   @OneToMany(() => AvatarLikePlanEntity, (like) => like.plan)
   likes: AvatarLikePlanEntity[];
+
+  @OneToMany(() => PlanCommentEntity, (planComment) => planComment.avatar)
+  planComments: PlanCommentEntity[];
 }

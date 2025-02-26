@@ -33,7 +33,7 @@ export class ArticleRepository {
       .getOne();
   }
 
-  async findAllComments(): Promise<ArticleEntity[]> {
+  async findAllArticles(): Promise<ArticleEntity[]> {
     return await this.repository
       .createQueryBuilder('article')
       .where('article.isDeleted: false')
