@@ -10,8 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
-import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
 import { UpdateResult } from 'typeorm';
+import { CategoryEntity } from './category.entity';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dtos/category.create.dto';
 import { UpdateCategoryDto } from './dtos/category.update.dto';
@@ -32,7 +32,7 @@ export class CategoryController {
   async createCategory(
     @Body() createCategoryDto: CreateCategoryDto,
     @Request() req: any,
-  ) {
+  ): Promise<CategoryEntity> {
     return await this.categoryService.createCategory(
       createCategoryDto,
       req.user.avatar.avatarId,
@@ -50,35 +50,17 @@ export class CategoryController {
   }
 
   /**
-   * 카테고리 id를 통해서 카테고리와 카테고리에 속한 여행 계획을 함께 조회한다.
-   * 로그인 인증이 없어도 조회가 가능하지만 Plan 자체에는 공개/비공개 상태가
-   * 존재하기 때문에 본인이 인증이 된다면 private 여행 계획도 조회가 가능하다.
-   * 즉, 본인 카테고리를 조회하는 것이 아니라면 private은 걸러내는 예외처리가 필요하다.
+   * 특정 카테고리를 조회
    * @param categoryId
-   * @param req
    * @returns
    */
-  @Get(':categoryId/with-plans')
-  @UseGuards(OptionalAuthGuard) // 로그인 안해도 조회 가능
-  async findCategoryWithPlansByCategoryId(
-    @Param('categoryId') categoryId: number,
+  @Get('my/categories')
+  @UseGuards(JwtAuthGuard)
+  async findCategoriesByAvatarId(
     @Request() req: any,
-  ) {
-    const avatarId = req?.user?.avatar?.avatarId;
-    const isOwner = await this.categoryService.isCategoryOwner(
-      categoryId,
-      avatarId,
-    );
-
-    // 로그인 한 사용자가 카테고리 오너라면 모든 카테고리 조회, 아니면 PUBLIC만
-    if (isOwner) {
-      return await this.categoryService.findCategoryWithPlansByCategoryId(
-        categoryId,
-      );
-    }
-    return await this.categoryService.findCategoryWithPublicPlansByCategoryId(
-      categoryId,
-    );
+  ): Promise<CategoryEntity[]> {
+    const avatarId = req.user.avatar.avatarId;
+    return await this.categoryService.findCategoriesByAvatarId(avatarId);
   }
 
   /**
@@ -97,10 +79,7 @@ export class CategoryController {
     @Request() req: any,
   ): Promise<UpdateResult> {
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.categoryService.isCategoryOwner(
-      categoryId,
-      avatarId,
-    );
+    const isOwner = await this.categoryService.isOwner(categoryId, avatarId);
 
     if (!isOwner) {
       throw new ForbiddenException('카테고리 수정 권한이 없습니다.');
@@ -128,10 +107,7 @@ export class CategoryController {
     @Request() req: any,
   ) {
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.categoryService.isCategoryOwner(
-      categoryId,
-      avatarId,
-    );
+    const isOwner = await this.categoryService.isOwner(categoryId, avatarId);
 
     if (!isOwner) {
       throw new ForbiddenException('카테고리 삭제 권한이 없습니다.');

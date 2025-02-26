@@ -22,6 +22,7 @@ import { Status } from 'src/common/enum/status';
 import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
+import { PlanEntity } from './plan.entity';
 import { PlanService } from './plan.service';
 
 @Controller('plans')
@@ -48,7 +49,7 @@ export class PlanController {
     @Request() req: any,
   ) {
     const avatar = req.user.avatar;
-    const isOwner = await this.categoryService.isCategoryOwner(
+    const isOwner = await this.categoryService.isOwner(
       categoryId,
       avatar.avatarId,
     );
@@ -91,6 +92,36 @@ export class PlanController {
     }
 
     return await this.planService.findPlanDetailById(planId);
+  }
+
+  /**
+   * 사용자 페이지에서 사용됨.
+   * 따라서 본인만 PRIVATE 플랜을 볼 수 있고, 다른 사용자는 PUBLIC 플랜에만 접근 가능
+   * @param categoryId
+   * @param req
+   * @returns
+   */
+  @Get()
+  @UseGuards(OptionalAuthGuard)
+  async findPlansByCategoryId(
+    @Query('categoryId') categoryId: number,
+    @Request() req?: any,
+  ): Promise<PlanEntity[]> {
+    const avatarId = req?.user?.avatar?.avatarId || null;
+    const plans = await this.planService.findPlansByCategoryId(categoryId);
+
+    // 접근 가능한 플랜만 필터링
+    const filteredPlans = await Promise.all(
+      plans.map(async (plan) => {
+        const isAccessible = await this.planService.isPlanAccessible(
+          plan.planId,
+          avatarId,
+        );
+        return isAccessible ? plan : null;
+      }),
+    );
+
+    return filteredPlans.filter((plan) => plan !== null);
   }
 
   /**

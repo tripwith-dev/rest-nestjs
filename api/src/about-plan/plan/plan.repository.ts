@@ -60,6 +60,28 @@ export class PlanRepository {
   }
 
   /**
+   *
+   * @param planId
+   * @param isOwner
+   * @returns
+   */
+  async findPlansByCategoryId(
+    categoryId: number,
+  ): Promise<PlanEntity[] | undefined> {
+    return await this.repository
+      .createQueryBuilder('plan')
+      .leftJoin('plan.avatar', 'avatar', 'avatar.isDeleted = false')
+      .leftJoin('plan.category', 'category', 'category.isDeleted = false')
+      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
+      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
+      .where('category.categoryId = :categoryId', { categoryId })
+      .andWhere('plan.isDeleted = false')
+      .addSelect(['avatar.avatarId'])
+      .addSelect(['category.categoryId'])
+      .getMany();
+  }
+
+  /**
    * 특정 여행 계획의 모든 detail 정보를 가져옴
    * plan 페이지에서 detail이 보여야 하기에 필요한 로직
    * @param planId
@@ -111,22 +133,6 @@ export class PlanRepository {
       .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .andWhere('plan.isDeleted = false')
       .orderBy('plan.updatedAt', 'DESC')
-      .getMany();
-
-    return plans;
-  }
-
-  /**
-   * 특정 카테고리의 모든 여행 계획을 조회
-   * 카테고리 내에 중복되는 planTitle이 있는지 확인할 때 사용
-   */
-  async findPlansByCategoryId(categoryId: number): Promise<PlanEntity[]> {
-    const plans = await this.repository
-      .createQueryBuilder('plan')
-      .leftJoinAndSelect('plan.category', 'category')
-      .where('category.categoryId = :categoryId', { categoryId })
-      .andWhere('category.isDeleted = false')
-      .andWhere('plan.isDeleted = false')
       .getMany();
 
     return plans;

@@ -30,19 +30,6 @@ export class CategoryRepository {
     return await this.repository.save(travelCategory);
   }
 
-  async findCategoryWithAvatarByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
-    const travelCategory = await this.repository
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.avatar', 'avatar')
-      .where('category.categoryId = :categoryId', { categoryId })
-      .andWhere('category.isDeleted = false')
-      .getOne();
-
-    return travelCategory;
-  }
-
   async findCategoryById(categoryId: number): Promise<CategoryEntity> {
     const travelCategory = await this.repository
       .createQueryBuilder('category')
@@ -53,39 +40,30 @@ export class CategoryRepository {
     return travelCategory;
   }
 
-  async findCategoryWithPlansByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
-    const travelCategory = await this.repository
+  async findCategoryWithAvatar(categoryId: number): Promise<CategoryEntity> {
+    return await this.repository
       .createQueryBuilder('category')
-      .leftJoinAndSelect('category.plans', 'plan')
-      .leftJoinAndSelect('category.avatar', 'avatar')
-      .leftJoinAndSelect('plan.tagMappings', 'tagMapping')
-      .leftJoinAndSelect('tagMapping.planTag', 'planTag')
       .where('category.categoryId = :categoryId', { categoryId })
+      .leftJoinAndSelect(
+        'category.avatar',
+        'avatar',
+        'avatar.isDeleted = false',
+      )
       .andWhere('category.isDeleted = false')
       .getOne();
-
-    return travelCategory;
   }
 
-  /**
-   * 특정 사용자의 모든 여행 카테고리를 조회하는 리포지토리 로직
-   * @param userId 사용자 ID
-   * @returns 특정 사용자의 여행 카테고리 엔티티 배열을 반환
-   */
-  async findCategoriesOfAvatarByAvatarId(
-    avatarId: number,
-  ): Promise<CategoryEntity[]> {
-    const travelCategories = await this.repository
+  async findCategoriesByAvatarId(avatarId: number): Promise<CategoryEntity[]> {
+    return await this.repository
       .createQueryBuilder('category')
-      .where('category.avatar.avatarId = :avatarId', { avatarId })
+      .where('avatar.avatarId = :avatarId', { avatarId })
+      .leftJoinAndSelect(
+        'category.avatar',
+        'avatar',
+        'avatar.isDeleted = false',
+      )
       .andWhere('category.isDeleted = false')
-      .orderBy('category.createdAt', 'DESC')
-      .select(['category.categoryId', 'category.categoryTitle'])
       .getMany();
-
-    return travelCategories;
   }
 
   /**

@@ -46,8 +46,7 @@ export class PlanService {
     categoryId: number,
     createTravelPlanDto: CreatePlanDto,
   ): Promise<PlanEntity> {
-    const category =
-      await this.categoryService.findCategoryWithAvatarByCategoryId(categoryId);
+    const category = await this.categoryService.findCategoryById(categoryId);
 
     // 1. title 검증
     validatePlanTitle(createTravelPlanDto.planTitle);
@@ -90,6 +89,25 @@ export class PlanService {
     }
 
     return plan;
+  }
+
+  /**
+   *
+   * @param planId
+   * @param isOwner
+   * @returns
+   */
+  async findPlansByCategoryId(
+    categoryId: number,
+  ): Promise<PlanEntity[] | undefined> {
+    const plans = await this.planRepository.findPlansByCategoryId(categoryId);
+    if (!plans) {
+      throw new NotFoundException(
+        `${categoryId}의 여행 계획 목록을 찾을 수 없습니다.`,
+      );
+    }
+
+    return plans;
   }
 
   /**

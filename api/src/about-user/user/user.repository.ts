@@ -25,12 +25,13 @@ export class UserRepository {
     return user;
   }
 
-  async findUserDetailById(userId: number): Promise<UserEntity> {
+  async findUserWithAvatar(userId: number): Promise<UserEntity> {
     return await this.repository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.avatar', 'avatar')
+      .leftJoinAndSelect('user.avatar', 'avatar', 'avatar.isDeleted = false')
       .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
+      .andWhere('avatar.isDeleted = false')
       .getOne();
   }
 
@@ -43,8 +44,10 @@ export class UserRepository {
   async validateUserBySub(sub: string): Promise<UserEntity | undefined> {
     return await this.repository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.avatar', 'avatar')
+      .leftJoinAndSelect('user.avatar', 'avatar', 'avatar.isDeleted = false')
       .where('user.id = :sub', { sub })
+      .andWhere('user.isDeleted = false')
+      .andWhere('avatar.isDeleted = false')
       .getOne();
   }
 
@@ -83,20 +86,6 @@ export class UserRepository {
       .getOne();
 
     return user;
-  }
-
-  /**
-   * 주어진 닉네임이 데이터베이스에 존재하는지 확인.
-   * 닉네임 존재 여부를 반환 (true: 존재, false: 미존재)
-   */
-  async existsByNickname(nickname: string): Promise<boolean> {
-    const user = await this.repository
-      .createQueryBuilder('user')
-      .where('user.nickname = :nickname', { nickname: nickname })
-      .andWhere('user.isDeleted = false')
-      .getOne();
-
-    return !!user;
   }
 
   async updateUserName(
