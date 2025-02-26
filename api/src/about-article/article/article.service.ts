@@ -29,8 +29,8 @@ export class ArticleService {
     return article;
   }
 
-  async findAllComments(): Promise<ArticleEntity[]> {
-    return await this.articleRepository.findAllComments();
+  async findAllArticles(): Promise<ArticleEntity[]> {
+    return await this.articleRepository.findAllArticles();
   }
 
   async updateArticle(
