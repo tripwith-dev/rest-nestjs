@@ -30,6 +30,8 @@ export class PlanDetailRepository {
       .createQueryBuilder('plan_detail')
       .leftJoinAndSelect('plan_detail.plan', 'plan')
       .leftJoinAndSelect('plan_detail.location', 'location')
+      .leftJoinAndSelect('location.typeMappings', 'typeMapping')
+      .leftJoinAndSelect('typeMapping.type', 'type')
       .where('plan_detail.detailId = :detailId', { detailId })
       .andWhere('plan_detail.isDeleted = false')
       .andWhere('plan.isDeleted = false')
@@ -43,8 +45,8 @@ export class PlanDetailRepository {
   ): Promise<PlanDetailEntity> {
     const travelDetail = await this.repository
       .createQueryBuilder('plan_detail')
-      .leftJoinAndSelect('plan_detail.plan', 'plan')
       .leftJoinAndSelect('plan_detail.location', 'location')
+      .leftJoinAndSelect('plan_detail.plan', 'plan')
       .leftJoinAndSelect('plan.avatar', 'avatar')
       .where('plan_detail.detailId = :detailId', { detailId })
       .andWhere('plan_detail.isDeleted = false')
@@ -52,16 +54,6 @@ export class PlanDetailRepository {
       .getOne();
 
     return travelDetail;
-  }
-
-  async findAllPlanDetails(): Promise<PlanDetailEntity[]> {
-    return await this.repository
-      .createQueryBuilder('plan_detail')
-      .leftJoinAndSelect('plan_detail.plan', 'plan')
-      .leftJoinAndSelect('plan_detail.location', 'location')
-      .where('plan_detail.isDeleted = false')
-      .andWhere('plan.isDeleted = false')
-      .getMany();
   }
 
   async updateTravelDetail(
