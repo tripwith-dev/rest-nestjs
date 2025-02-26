@@ -12,39 +12,26 @@ export class UserRepository {
     private readonly repository: Repository<UserEntity>,
   ) {}
 
-  /** <주의>
-   * 모든 사용자에 대한
-   * 모든 정보 가져옴
-   */
-  async findAllUsers(): Promise<UserEntity[]> {
-    return await this.repository.find({ where: { isDeleted: false } });
-  }
-
   /**
    * 사용자 패스워드를 제외한 모든 정보 가져옴.
    */
-  async findUserWithAvatarByUserId(userId: number): Promise<UserEntity> {
+  async findUserById(userId: number): Promise<UserEntity> {
     const user = await this.repository
+      .createQueryBuilder('user')
+      .where('user.id = :userId', { userId })
+      .andWhere('user.isDeleted = false')
+      .getOne();
+
+    return user;
+  }
+
+  async findUserDetailById(userId: number): Promise<UserEntity> {
+    return await this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
       .where('user.id = :userId', { userId })
       .andWhere('user.isDeleted = false')
       .getOne();
-
-    return user;
-  }
-
-  /**
-   * 사용자 패스워드를 제외한 모든 정보 가져옴.
-   */
-  async findUserById(userId): Promise<UserEntity> {
-    const user = await this.repository
-      .createQueryBuilder('user')
-      .where('user.id = :userId', { userId })
-      .andWhere('user.isDeleted = false')
-      .getOne();
-
-    return user;
   }
 
   /**
@@ -143,17 +130,5 @@ export class UserRepository {
       isDeleted: true,
       deletedAt: new Date(),
     });
-  }
-
-  async findUserAllInfo(userId: number): Promise<UserEntity> {
-    return await this.repository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.avatar', 'avatar')
-      .leftJoinAndSelect('avatar.categories', 'category')
-      .leftJoinAndSelect('avatar.articles', 'article')
-      .leftJoinAndSelect('avatar.articleComments', 'articleComment')
-      .where('user.id = :userId', { userId })
-      .andWhere('user.isDeleted = false')
-      .getOne();
   }
 }

@@ -65,7 +65,7 @@ export class AuthService {
       await this.avatarService.createAvatar(registerDto.avatar, registeredUser);
     }
 
-    return await this.userService.findUserWithAvatarByUserId(registeredUser.id);
+    return await this.userService.findUserDetailById(registeredUser.id);
   }
 
   /**
@@ -83,15 +83,13 @@ export class AuthService {
       secure: true,
     });
 
-    const loginUser = await this.userService.findUserWithAvatarByUserId(
-      user.id,
-    );
+    const loginUser = await this.userService.findUserDetailById(user.id);
 
     return { loginUser, jwt };
   }
 
   async softDeleteUser(userId: number): Promise<UpdateResult> {
-    const user = await this.userService.findUserAllInfo(userId);
+    const user = await this.userService.findUserDetailById(userId);
     await this.categoryService.softDeleteCategoriesByAvatar(
       user.avatar.avatarId,
     );
