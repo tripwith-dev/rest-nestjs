@@ -24,6 +24,9 @@ export class UserEntity extends CommonEntity {
   @Column({ nullable: false, length: 30 })
   username: string;
 
+  @Column({ default: false })
+  admin: boolean;
+
   @OneToOne(() => AvatarEntity, (avatar) => avatar.user, {
     cascade: true,
     eager: true,

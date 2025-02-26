@@ -19,7 +19,7 @@ export class UserController {
   async findUserByIdForVerify(
     @Param('userId') userId,
   ): Promise<UserEntity | undefined> {
-    return await this.userService.findUserWithAvatarByUserId(userId);
+    return await this.userService.findUserDetailById(userId);
   }
 
   /**

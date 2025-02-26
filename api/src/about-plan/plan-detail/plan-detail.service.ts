@@ -212,10 +212,6 @@ export class PlanDetailService {
     return await this.planDetailRepository.deleteOverlap(overlappingDetails);
   }
 
-  async findAllPlanDetails(): Promise<PlanDetailEntity[]> {
-    return await this.planDetailRepository.findAllPlanDetails();
-  }
-
   async findOverlap(
     planId: number,
     startTime: string,

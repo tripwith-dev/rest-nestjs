@@ -33,24 +33,6 @@ export class UserService {
     return user;
   }
 
-  /**
-   * user와 avatar를 같이 반환함.
-   * req.user에 avatar 정보도 같이 전달하기 위해서 사용됨.
-   * @param userId
-   * @returns
-   */
-  async findUserWithAvatarByUserId(
-    userId: number,
-  ): Promise<UserEntity | undefined> {
-    const user = await this.userRepository.findUserWithAvatarByUserId(userId);
-
-    if (!user) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    return user;
-  }
-
   async createUser(userRegisterDto: RegisterUserDto): Promise<UserEntity> {
     const createdUser = await this.userRepository.createUser(userRegisterDto);
 
@@ -108,8 +90,8 @@ export class UserService {
     }
   }
 
-  async findUserAllInfo(userId: number): Promise<UserEntity> {
-    const user = await this.userRepository.findUserAllInfo(userId);
+  async findUserDetailById(userId: number): Promise<UserEntity> {
+    const user = await this.userRepository.findUserDetailById(userId);
 
     if (!user) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');

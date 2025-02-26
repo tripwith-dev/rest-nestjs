@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpException,
   HttpStatus,
@@ -10,7 +11,6 @@ import {
   Post,
   Query,
   Request,
-  UnauthorizedException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -54,7 +54,7 @@ export class PlanController {
     );
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 카테고리에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 카테고리에 접근 권한이 없습니다.');
     }
 
     return await this.planService.createPlan(
@@ -75,14 +75,22 @@ export class PlanController {
    */
   @Get(':planId')
   @UseGuards(OptionalAuthGuard)
-  async findPlanWithAvatarByPlanId(
+  async findPlanDetailBy(
     @Param('planId') planId: number,
     @Request() req?: any,
   ) {
-    // 소유자가 아니면 비공개 플랜은 조회할 수 없음
-    const avatarId = req?.user?.avatar?.avatarId;
-    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-    return await this.planService.findPlanWithAvatarByPlanId(planId, isOwner);
+    const avatarId = req?.user?.avatar?.avatarId || null;
+    // plan 접근 가능 여부: 소유자가 아니면 PRIVATE 플랜은 조회할 수 없음
+    const isPlanAccessible = await this.planService.isPlanAccessible(
+      planId,
+      avatarId,
+    );
+
+    if (!isPlanAccessible) {
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
+    return await this.planService.findPlanDetailById(planId);
   }
 
   /**
@@ -140,7 +148,7 @@ export class PlanController {
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
@@ -166,7 +174,7 @@ export class PlanController {
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     if (!file) {
@@ -193,7 +201,7 @@ export class PlanController {
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planService.deleteMainImage(planId);
@@ -215,7 +223,7 @@ export class PlanController {
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     const plan = await this.planService.findPlanById(planId);
     if (plan.status === Status.PRIVATE && !isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planService.addLike(planId, avatarId);
@@ -237,7 +245,7 @@ export class PlanController {
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     const plan = await this.planService.findPlanById(planId);
     if (plan.status === Status.PRIVATE && !isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
     return await this.planService.deleteLike(planId, avatarId);
   }
@@ -261,7 +269,7 @@ export class PlanController {
     const avatarId = req.user.avatar.avatarId;
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return this.planService.softDeletedTravelPlan(planId);

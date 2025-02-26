@@ -40,8 +40,8 @@ export class ArticleController {
   }
 
   @Get()
-  async findAllComments(): Promise<ArticleEntity[]> {
-    return await this.articleService.findAllComments();
+  async findAllArticles(): Promise<ArticleEntity[]> {
+    return await this.articleService.findAllArticles();
   }
 
   @Patch(':articleId/update')

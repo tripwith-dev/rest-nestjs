@@ -30,24 +30,6 @@ export class AvatarService {
     return await this.avatarRepository.createAvatar(createAvatarDto, user);
   }
 
-  /**
-   * 사용자 페이지에서 사용됨.
-   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
-   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
-   */
-  async findAvatarWithCategoryByAvatarId(
-    avatarId: number,
-  ): Promise<AvatarEntity | undefined> {
-    const avatar =
-      await this.avatarRepository.findAvatarWithCategoryByAvatarId(avatarId);
-
-    if (!avatar) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    return avatar;
-  }
-
   async findAvatarById(avatarId: number): Promise<AvatarEntity | undefined> {
     const avatar = await this.avatarRepository.findAvatarById(avatarId);
 
@@ -58,11 +40,44 @@ export class AvatarService {
     return avatar;
   }
 
+  /**
+   * 사용자 페이지에서 사용됨.
+   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
+   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
+   */
+  async findAvatarDetailById(
+    avatarId: number,
+  ): Promise<AvatarEntity | undefined> {
+    const avatar = await this.avatarRepository.findAvatarDetailById(avatarId);
+
+    if (!avatar) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    return avatar;
+  }
+
+  async findAvatarPublicDetailById(
+    avatarId: number,
+  ): Promise<AvatarEntity | undefined> {
+    const avatar = await this.avatarRepository.findAvatarDetailById(avatarId);
+
+    if (!avatar) {
+      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
+    }
+
+    // PUBLIC인 플랜만 필터링
+    avatar.plans =
+      avatar.plans?.filter((plan) => plan.status === 'PUBLIC') || [];
+
+    return avatar;
+  }
+
   async findAvatarWithLikePlansByAvatarId(
     avatarId: number,
   ): Promise<AvatarEntity | undefined> {
     const avatar =
-      await this.avatarRepository.findAvatarWithLikePlansByAvatarId(avatarId);
+      await this.avatarRepository.findAvatarLikePlansByAvatarId(avatarId);
 
     if (!avatar) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
@@ -155,5 +170,13 @@ export class AvatarService {
     if (isNicknameExist) {
       throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
     }
+  }
+
+  async isAvatarOwner(
+    loggedAvatarId?: number,
+    avatarId?: number,
+  ): Promise<boolean> {
+    if (!loggedAvatarId || !avatarId) return false;
+    return loggedAvatarId === avatarId;
   }
 }

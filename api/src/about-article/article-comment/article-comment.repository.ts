@@ -1,11 +1,11 @@
-import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { ArticleEntity } from '../article/article.entity';
 import { ArticleCommentEntity } from './article-comment.entity';
 import { CreateArticleCommentDto } from './dtos/article-comment.create.dto';
-import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { ArticleEntity } from '../article/article.entity';
+import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 
 @Injectable()
 export class ArticleCommentRepository {
@@ -28,13 +28,13 @@ export class ArticleCommentRepository {
   }
 
   async findArticleCommentById(
-    commentId: number,
+    aCommentId: number,
   ): Promise<ArticleCommentEntity> {
     return await this.repository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.avatar', 'avatar')
       .leftJoinAndSelect('comment.article', 'article')
-      .where('comment.commentId = :commentId', { commentId })
+      .where('comment.aCommentId = :aCommentId', { aCommentId })
       .andWhere('comment.isDeleted = false')
       .getOne();
   }

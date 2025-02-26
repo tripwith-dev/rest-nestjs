@@ -13,7 +13,7 @@ import { ArticleEntity } from '../article/article.entity';
 @Entity('article_comment')
 export class ArticleCommentEntity extends CommonEntity {
   @PrimaryGeneratedColumn()
-  articleCommentId: number;
+  aCommentId: number;
 
   @Column({ length: 300 })
   @IsNotEmpty()

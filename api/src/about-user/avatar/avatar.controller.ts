@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Request,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -14,6 +15,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
+import { OptionalAuthGuard } from '../jwt/jwt.optionalAuthGuard';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarService } from './avatar.service';
 import { UpdateIntroduceDto } from './dtos/introduce.update.dto';
@@ -24,16 +26,29 @@ export class AvatarController {
   constructor(private readonly avatarService: AvatarService) {}
 
   /**
-   * 마이페이지에서 사용자 프로필 정보와
-   * 사용자의 카테고리를 조회할 수 있어야 한다.
+   * 사용자의 프로필 정보를 반환
+   * 카테고리, public 플랜(본인이면 private도 포함), 게시글, 댓글 등
    * @param avatarId
+   * @param req
    * @returns
    */
   @Get(':avatarId')
-  async findAvatarWithCategoryByAvatarId(
+  @UseGuards(OptionalAuthGuard)
+  async findAvatarDetailById(
     @Param('avatarId') avatarId,
+    @Request() req?: any,
   ): Promise<AvatarEntity | undefined> {
-    return await this.avatarService.findAvatarWithCategoryByAvatarId(avatarId);
+    const loggedAvatarId = req?.user?.avatar?.avatarId || null;
+    const isOwner = await this.avatarService.isAvatarOwner(
+      loggedAvatarId,
+      avatarId,
+    );
+
+    if (isOwner) {
+      return await this.avatarService.findAvatarDetailById(avatarId);
+    }
+
+    return await this.avatarService.findAvatarPublicDetailById(avatarId);
   }
 
   /**
