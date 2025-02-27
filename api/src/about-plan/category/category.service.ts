@@ -182,7 +182,9 @@ export class CategoryService {
         (category) => category.categoryTitle === categoryTitle,
       )
     ) {
-      throw new ConflictException('동일한 제목의 카테고리가 이미 존재합니다.');
+      throw new ConflictException(
+        '내 계정에 이미 동일한 제목의 카테고리가 이미 존재합니다.',
+      );
     }
   }
 

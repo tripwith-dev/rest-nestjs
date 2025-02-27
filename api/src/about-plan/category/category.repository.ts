@@ -57,12 +57,9 @@ export class CategoryRepository {
     return await this.repository
       .createQueryBuilder('category')
       .where('avatar.avatarId = :avatarId', { avatarId })
-      .leftJoinAndSelect(
-        'category.avatar',
-        'avatar',
-        'avatar.isDeleted = false',
-      )
+      .leftJoin('category.avatar', 'avatar', 'avatar.isDeleted = false')
       .andWhere('category.isDeleted = false')
+      .addSelect(['avatar.avatarId'])
       .getMany();
   }
 
