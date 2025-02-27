@@ -90,7 +90,7 @@ export class AvatarService {
   ): Promise<AvatarEntity | undefined> {
     const avatar = await this.findAvatarById(avatarId);
 
-    if (!updateIntroduceDto.introduce.length > 150) {
+    if (updateIntroduceDto.introduce.length > 150) {
       throw new BadRequestException(
         '자기소개는 150자 이내로만 작성할 수 있습니다.',
       );
