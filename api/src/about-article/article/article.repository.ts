@@ -27,7 +27,14 @@ export class ArticleRepository {
   async findArticleById(articleId: number): Promise<ArticleEntity> {
     return await this.repository
       .createQueryBuilder('article')
-      .leftJoinAndSelect('article.avatar', 'avatar')
+      .leftJoinAndSelect('article.avatar', 'avatar', 'avatar.isDeleted = false')
+      .leftJoinAndSelect('article.articleComments', 'aComment')
+      .leftJoin('aComment.avatar', 'cAvatar')
+      .addSelect([
+        'cAvatar.avatarId',
+        'cAvatar.nickname',
+        'cAvatar.profileImage',
+      ])
       .where('article.articleId = :articleId', { articleId })
       .andWhere('article.isDeleted = false')
       .getOne();
