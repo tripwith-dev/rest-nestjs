@@ -8,20 +8,10 @@ export function validatePassword(password: string): void {
   const hasUppercase = /[A-Z]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-  if (!hasUppercase) {
+  if (!hasUppercase || !hasSpecialChar || password.length < 10) {
     throw new UnauthorizedException(
-      '비밀번호는 최소 하나의 대문자를 포함해야 합니다.',
+      '비밀번호는 최소 하나의 대문자와 특수기호를 포함하여야 하며, 최소 10자 이상이어야 합니다.',
     );
-  }
-
-  if (!hasSpecialChar) {
-    throw new UnauthorizedException(
-      '비밀번호는 최소 하나의 특수기호를 포함해야 합니다.',
-    );
-  }
-
-  if (password.length < 10) {
-    throw new BadRequestException('비밀번호는 최소 10자 이상이어야 합니다.');
   }
 }
 

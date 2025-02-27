@@ -137,33 +137,7 @@
 ## User
 
 <details>
-  <summary>1. 사용자 조회(테스트용): GET `users/verify-users/:userId` </summary>
-
-**response**:
-
-```
-{
-    "createdAt": "2025-02-11T08:54:42.775Z",
-    "updatedAt": "2025-02-11T08:54:42.000Z",
-    "isUpdated": false,
-    "id": 1,
-    "email": "test@example.com",
-    "username": "username",
-    "avatar": {
-        "createdAt": "2025-02-11T08:54:42.813Z",
-        "updatedAt": "2025-02-11T08:54:42.813Z",
-        "isUpdated": false,
-        "avatarId": 1,
-        "nickname": "user_nickname",
-        "introduce": null,
-        "profileImage": "uploads/profileImages/default.png"
-    }
-}
-```
-
-</details>
-<details>
-  <summary>2. [인증 필요]사용자 계정 정보 조회: GET `/users/:userId`</summary>
+  <summary>1. [인증 필요]사용자 계정 정보 조회: GET `/users/:userId`</summary>
 
 **response**:
 
