@@ -23,6 +23,7 @@ npm i
 ```
 # swagger
 npm i --save @nestjs/swagger swagger-ui-express
+npm install @nestjs/cli
 npm i --save @nestjs/typeorm typeorm
 npm i --save class-validator class-transformer
 npm i --save @nestjs/config
