@@ -1,16 +1,17 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
   Query,
   Request,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
+import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
 import { PlanService } from '../plan/plan.service';
 import { CreateDetailWithLocationDto } from './dtos/plandetail.withLocation..create.dto';
 import { UpdateDetailWithLocationDto } from './dtos/plandetail.withLocation.update.dto';
@@ -42,7 +43,7 @@ export class PlanDetailController {
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planDetailService.createPlanDetail(
@@ -58,19 +59,19 @@ export class PlanDetailController {
    * @returns
    */
   @Get(':detailId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalAuthGuard)
   async findPlanDetailById(
     @Param('detailId') detailId: number,
-    @Request() req: any,
+    @Request() req?: any,
   ) {
-    const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planDetailService.isPlanDetailOwner(
+    const avatarId = req?.user?.avatar?.avatarId;
+    const isOwner = await this.planDetailService.isAccessible(
       detailId,
       avatarId,
     );
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planDetailService.findPlanDetailById(detailId);
@@ -92,13 +93,10 @@ export class PlanDetailController {
     @Request() req: any,
   ) {
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planDetailService.isPlanDetailOwner(
-      detailId,
-      avatarId,
-    );
+    const isOwner = await this.planDetailService.isOwner(detailId, avatarId);
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planDetailService.updateTravelDetail(
@@ -129,7 +127,7 @@ export class PlanDetailController {
     const isOwner = await this.planService.isPlanOwner(planId, avatarId);
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
     return await this.planDetailService.confirmTimeOverlap(
@@ -150,13 +148,10 @@ export class PlanDetailController {
   @Patch('delete/:detailId')
   async remove(@Param('detailId') detailId: number, @Request() req: any) {
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planDetailService.isPlanDetailOwner(
-      detailId,
-      avatarId,
-    );
+    const isOwner = await this.planDetailService.isOwner(detailId, avatarId);
 
     if (!isOwner) {
-      throw new UnauthorizedException('해당 플랜에 접근 권한이 없습니다.');
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
     return await this.planDetailService.softDeletePlanDetail(detailId);
   }

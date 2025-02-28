@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -40,35 +41,15 @@ export class AvatarService {
     return avatar;
   }
 
-  /**
-   * 사용자 페이지에서 사용됨.
-   * 사용자가 생성한 카테고리도 같이 볼 수 있음.
-   * 다른 사람도 볼 수 있는 기본 정보만 리턴.
-   */
-  async findAvatarDetailById(
+  async findAvatarWithCategories(
     avatarId: number,
   ): Promise<AvatarEntity | undefined> {
-    const avatar = await this.avatarRepository.findAvatarDetailById(avatarId);
+    const avatar =
+      await this.avatarRepository.findAvatarWithCategories(avatarId);
 
     if (!avatar) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
     }
-
-    return avatar;
-  }
-
-  async findAvatarPublicDetailById(
-    avatarId: number,
-  ): Promise<AvatarEntity | undefined> {
-    const avatar = await this.avatarRepository.findAvatarDetailById(avatarId);
-
-    if (!avatar) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    // PUBLIC인 플랜만 필터링
-    avatar.plans =
-      avatar.plans?.filter((plan) => plan.status === 'PUBLIC') || [];
 
     return avatar;
   }
@@ -108,6 +89,12 @@ export class AvatarService {
     updateIntroduceDto: UpdateIntroduceDto,
   ): Promise<AvatarEntity | undefined> {
     const avatar = await this.findAvatarById(avatarId);
+
+    if (updateIntroduceDto.introduce.length > 150) {
+      throw new BadRequestException(
+        '자기소개는 150자 이내로만 작성할 수 있습니다.',
+      );
+    }
 
     await this.avatarRepository.updateIntroduce(
       avatar.avatarId,

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { Status } from 'src/common/enum/status';
 import { LocationEntity } from '../location/location.entity';
 import { LocationService } from '../location/location.service';
 import { PlanService } from '../plan/plan.service';
@@ -178,6 +179,19 @@ export class PlanDetailService {
     return overlappingDetails.length > 0 ? true : false;
   }
 
+  async isOwner(detailId: number, avatarId: number): Promise<boolean> {
+    const detail = await this.findPlanDetailOwnerByDetailId(detailId);
+    return detail.plan.avatar.avatarId === avatarId;
+  }
+
+  async isAccessible(detailId: number, avatarId: number): Promise<boolean> {
+    const detail = await this.findPlanDetailOwnerByDetailId(detailId);
+    return (
+      detail.plan.status === Status.PUBLIC ||
+      detail.plan.avatar.avatarId === avatarId
+    );
+  }
+
   // ===========================================================
   // =========================== SUB ===========================
   // ===========================================================
@@ -224,14 +238,6 @@ export class PlanDetailService {
       endTime,
       excludeDetailId,
     );
-  }
-
-  async isPlanDetailOwner(
-    detailId: number,
-    avatarId: number,
-  ): Promise<boolean> {
-    const detail = await this.findPlanDetailOwnerByDetailId(detailId);
-    return detail.plan.avatar.avatarId === avatarId;
   }
 
   async findPlanDetailOwnerByDetailId(

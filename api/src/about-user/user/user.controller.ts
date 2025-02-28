@@ -12,17 +12,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /**
-   * <테스트용> 배포 시에 주석 처리
-   * 사용자 패스워드를 제외한 모든 정보 가져옴.
-   */
-  @Get('verify-users/:userId')
-  async findUserByIdForVerify(
-    @Param('userId') userId,
-  ): Promise<UserEntity | undefined> {
-    return await this.userService.findUserDetailById(userId);
-  }
-
-  /**
    * 사용자 계정 설정 페이지에서 계정 정보를 조회하기 위해서 사용.
    * 따라서 본인만 조회 가능하도록 IsUserSelfGuard를 사용.
    * @param userId

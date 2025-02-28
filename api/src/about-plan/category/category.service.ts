@@ -66,19 +66,9 @@ export class CategoryService {
     return category;
   }
 
-  /**
-   * 카테고리에 포함된 plan도 같이 조회하는 메서드
-   * @param isOwner
-   * @param categoryId
-   * @returns
-   */
-  async findCategoryWithPlansByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
+  async findCategoryWithAvatar(categoryId: number): Promise<CategoryEntity> {
     const category =
-      await this.categoryRepository.findCategoryWithPlansByCategoryId(
-        categoryId,
-      );
+      await this.categoryRepository.findCategoryWithAvatar(categoryId);
 
     if (!category) {
       throw new NotFoundException(
@@ -86,20 +76,7 @@ export class CategoryService {
       );
     }
 
-    // 본인 카테고리 아니면 public만 보여줌
     return category;
-  }
-
-  /**
-   * 카테고리와 PUBLIC 플랜만 조회
-   * @param categoryId
-   * @returns
-   */
-  async findCategoryWithPublicPlansByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
-    const category = await this.findCategoryWithPlansByCategoryId(categoryId);
-    return await this.filterOnlyPublicPlan(category);
   }
 
   /**
@@ -110,9 +87,7 @@ export class CategoryService {
     updateCategoryDto: UpdateCategoryDto,
   ): Promise<UpdateResult> {
     const category =
-      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
-        categoryId,
-      );
+      await this.categoryRepository.findCategoryWithAvatar(categoryId);
 
     // 1. categoryTitle이 바꼈을 때, 한 사용자 내에서 CategoryTitle 중복 확인
     if (updateCategoryDto.categoryTitle !== category.categoryTitle) {
@@ -161,45 +136,13 @@ export class CategoryService {
   // ============================================================
 
   /**
-   * 카테고리와 카테고리 오너의 정보를 같이 조회하는 메서드
-   * @param categoryId
-   * @returns
-   */
-  async findCategoryWithAvatarByCategoryId(
-    categoryId: number,
-  ): Promise<CategoryEntity> {
-    const category =
-      await this.categoryRepository.findCategoryWithAvatarByCategoryId(
-        categoryId,
-      );
-
-    if (!category) {
-      throw new NotFoundException(
-        `${categoryId}에 해당하는 카테고리를 찾을 수 없습니다.`,
-      );
-    }
-
-    return category;
-  }
-
-  private async filterOnlyPublicPlan(
-    category: CategoryEntity,
-  ): Promise<CategoryEntity> {
-    category.plans = category.plans.filter((plan) => plan.status === 'PUBLIC');
-    return category;
-  }
-
-  /**
    * 카테고리 오너가 맞는지 확인하는 메서드
    * @param categoryId
    * @param avatarId
    * @returns
    */
-  async isCategoryOwner(
-    categoryId: number,
-    avatarId: number,
-  ): Promise<boolean> {
-    const category = await this.findCategoryWithAvatarByCategoryId(categoryId);
+  async isOwner(categoryId: number, avatarId: number): Promise<boolean> {
+    const category = await this.findCategoryWithAvatar(categoryId);
     return category.avatar.avatarId === avatarId;
   }
 
@@ -208,15 +151,13 @@ export class CategoryService {
    * @param avatar
    * @returns
    */
-  async findCategoriesOfAvatarByAvatarId(avatar: number) {
+  async findCategoriesByAvatarId(avatarId: number): Promise<CategoryEntity[]> {
     const categories =
-      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(avatar);
+      await this.categoryRepository.findCategoriesByAvatarId(avatarId);
 
     // 카테고리가 없으면 예외를 발생시킴
     if (!categories || categories.length === 0) {
-      throw new NotFoundException(
-        `${avatar}의 travel category를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`${avatarId}의 category를 찾을 수 없습니다.`);
     }
 
     return categories;
@@ -231,8 +172,9 @@ export class CategoryService {
     avatarId: number,
     categoryTitle: string,
   ): Promise<void> {
-    const existingCategories =
-      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(avatarId);
+    const existingCategories = (
+      await this.avatarService.findAvatarWithCategories(avatarId)
+    ).categories;
 
     // 하나라도 중복 요소가 있으면 예외처리
     if (
@@ -240,7 +182,9 @@ export class CategoryService {
         (category) => category.categoryTitle === categoryTitle,
       )
     ) {
-      throw new ConflictException('동일한 제목의 카테고리가 이미 존재합니다.');
+      throw new ConflictException(
+        '내 계정에 이미 동일한 제목의 카테고리가 이미 존재합니다.',
+      );
     }
   }
 
@@ -251,12 +195,11 @@ export class CategoryService {
    * @param categoryTitle
    */
   private async checkDuplicateTitleWhenUpdate(
-    userId: number,
+    avatarId: number,
     categoryId: number,
     categoryTitle: string,
   ): Promise<void> {
-    const existingCategories =
-      await this.categoryRepository.findCategoriesOfAvatarByAvatarId(userId);
+    const existingCategories = await this.findCategoriesByAvatarId(avatarId);
 
     const isDuplicate = existingCategories.some(
       (category) =>

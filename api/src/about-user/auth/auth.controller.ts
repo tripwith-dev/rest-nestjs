@@ -24,6 +24,9 @@ export class AuthController {
    */
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
+    // 이메일 유효성 검증 추가해야 함 @, .com 형태, 및 특수기호 . 제외
+    // 이름 유효성 검증할 때, 문자열 사이에 띄어쓰기는 허용해야 함
+    // 단 공백은 허용하면 안됨.
     return await this.authService.register(registerDto);
   }
 

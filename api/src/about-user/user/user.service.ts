@@ -90,8 +90,8 @@ export class UserService {
     }
   }
 
-  async findUserDetailById(userId: number): Promise<UserEntity> {
-    const user = await this.userRepository.findUserDetailById(userId);
+  async findUserWithAvatar(userId: number): Promise<UserEntity> {
+    const user = await this.userRepository.findUserWithAvatar(userId);
 
     if (!user) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');

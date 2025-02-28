@@ -19,10 +19,10 @@ export class ArticleCommentRepository {
     createArticleCommentDto: CreateArticleCommentDto,
     avatar: AvatarEntity,
   ): Promise<ArticleCommentEntity> {
-    const comment = await this.repository.create({
+    const comment = this.repository.create({
       article,
-      ...createArticleCommentDto,
       avatar,
+      ...createArticleCommentDto,
     });
     return await this.repository.save(comment);
   }

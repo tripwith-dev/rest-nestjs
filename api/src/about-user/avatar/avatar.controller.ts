@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Request,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -15,7 +14,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IsAvatarSelfGuard } from '../jwt/avatar.self.guard';
 import { JwtAuthGuard } from '../jwt/jwt.guard';
-import { OptionalAuthGuard } from '../jwt/jwt.optionalAuthGuard';
 import { AvatarEntity } from './avatar.entity';
 import { AvatarService } from './avatar.service';
 import { UpdateIntroduceDto } from './dtos/introduce.update.dto';
@@ -33,22 +31,10 @@ export class AvatarController {
    * @returns
    */
   @Get(':avatarId')
-  @UseGuards(OptionalAuthGuard)
-  async findAvatarDetailById(
+  async findAvatarWithCategories(
     @Param('avatarId') avatarId,
-    @Request() req?: any,
   ): Promise<AvatarEntity | undefined> {
-    const loggedAvatarId = req?.user?.avatar?.avatarId || null;
-    const isOwner = await this.avatarService.isAvatarOwner(
-      loggedAvatarId,
-      avatarId,
-    );
-
-    if (isOwner) {
-      return await this.avatarService.findAvatarDetailById(avatarId);
-    }
-
-    return await this.avatarService.findAvatarPublicDetailById(avatarId);
+    return await this.avatarService.findAvatarWithCategories(avatarId);
   }
 
   /**
