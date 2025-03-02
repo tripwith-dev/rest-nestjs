@@ -1,0 +1,4 @@
+EC2 1: React + Nginx Docker 컨테이너 (정적 파일 제공)
+EC2 2: NestJS Docker 컨테이너 (API 서버)
+RDS: MySQL 데이터베이스
+S3: 이미지 파일 저장

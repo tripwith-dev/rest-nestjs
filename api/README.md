@@ -22,13 +22,13 @@ npm i
 
 ```
 # swagger
+npm i @nestjs/cli
 npm i --save @nestjs/swagger swagger-ui-express
-npm install @nestjs/cli
 npm i --save @nestjs/typeorm typeorm
 npm i --save class-validator class-transformer
 npm i --save @nestjs/config
 npm i @nestjs/schedule
-npm i --save mysql2
+npm i --save mysql2g
 npm i bcrypt
 npm i --save @nestjs/passport passport
 npm i --save @nestjs/jwt passport-jwt
