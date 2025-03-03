@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -21,10 +22,11 @@ import { UpdateArticleCommentDto } from './dtos/article-comment.update.dto';
 export class ArticleCommentController {
   constructor(private readonly articleCommentService: ArticleCommentService) {}
 
-  @Post('create/:articleId')
+  // article-comment/create?articleId=2
+  @Post('create')
   @UseGuards(JwtAuthGuard)
   async CreateArticleComment(
-    @Param('articleId') articleId: number,
+    @Query('articleId') articleId: number,
     @Body() createArticleCommentDto: CreateArticleCommentDto,
     @Request() req: any,
   ): Promise<ArticleCommentEntity> {

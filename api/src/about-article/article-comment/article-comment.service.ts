@@ -27,6 +27,10 @@ export class ArticleCommentService {
     const avatar = await this.avatarService.findAvatarById(avatarId);
     const article = await this.articleService.findArticleById(articleId);
 
+    if (createArticleCommentDto.aCommentContent.length > 300) {
+      throw new UnauthorizedException('댓글은 300자 이하로 작성해 주세요. ');
+    }
+
     return await this.articleCommentRepository.createArticleComment(
       article,
       createArticleCommentDto,
@@ -40,7 +44,7 @@ export class ArticleCommentService {
     const comment =
       await this.articleCommentRepository.findArticleCommentById(commentId);
     if (!comment || !comment.article) {
-      throw new NotFoundException('해당하는 게시물에 접근할 수 없습니다 ');
+      throw new NotFoundException('해당하는 댓글에 접근할 수 없습니다 ');
     }
     // 공개 비공개 게시글인지 확인 후 게시글 주인과 로그인한 아바타와 동일한지 비교하고 게시글의 댓글을 확인
     // 근데 이거를 게시글 find함수에서 불러올 수 있나
@@ -64,6 +68,11 @@ export class ArticleCommentService {
     avatarId: number,
   ): Promise<UpdateResult> {
     await this.isOwnerOfComment(commentId, avatarId);
+
+    if (updateArticleCommentDto.aCommentContent.length > 300) {
+      throw new UnauthorizedException('댓글은 300자 이하로 작성해 주세요. ');
+    }
+
     return await this.articleCommentRepository.updateArticleCommentById(
       commentId,
       updateArticleCommentDto,
