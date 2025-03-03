@@ -47,7 +47,7 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      synchronize: true, // 배포환경에서는 false
+      synchronize: false, // 배포환경에서는 false
       logging: true,
       entities: [
         UserEntity,

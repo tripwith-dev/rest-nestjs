@@ -3,9 +3,9 @@
 /uploads
 
 #Docker
-Dockerfile
+# Dockerfile
+# docker-compose.yml
 .dockerignore
-docker-compose.yml
 
 # compiled output
 /dist
