@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AvatarService } from 'src/about-user/avatar/avatar.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { ArticleEntity } from './article.entity';
@@ -18,6 +22,16 @@ export class ArticleService {
     avatarId: number,
   ): Promise<ArticleEntity> {
     const avatar = await this.avatarService.findAvatarById(avatarId);
+
+    if (
+      createArticleDto.articleTitle.length > 30 ||
+      createArticleDto.articleContent.length > 500
+    ) {
+      throw new UnauthorizedException(
+        '게시글 제목은 30자 이하, 내용은 500자로 이하로 작성해주세요. ',
+      );
+    }
+
     return await this.articleRepository.createArticle(createArticleDto, avatar);
   }
 
@@ -61,7 +75,7 @@ export class ArticleService {
 
     const isOwner = await this.isOwner(ownerId, avatarId);
     if (!isOwner) {
-      throw new NotFoundException('게시글 작성자만 수정할 수 있습니다.');
+      throw new NotFoundException('게시글 작성자만 삭제할 수 있습니다.');
     }
 
     return await this.articleRepository.deleteArticle(articleId);
