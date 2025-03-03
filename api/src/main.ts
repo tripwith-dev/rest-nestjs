@@ -26,8 +26,7 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: '*', 
-    // process.env.FRONT_PORT, // 프론트엔드 주소
+    origin: process.env.FRONT_PORT, // 프론트엔드 주소
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
