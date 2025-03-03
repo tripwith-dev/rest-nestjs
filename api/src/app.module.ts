@@ -29,6 +29,10 @@ import { AvatarLikeArticleModule } from './avatar-like-article/user-like-article
 import { AvatarLikePlanEntity } from './avatar-like-plan/avatar-like-plan.entity';
 import { AvatarLikePlanModule } from './avatar-like-plan/avatar-like-plan.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
+import { LocationTypeEntity } from './about-plan/location/location-type.entity';
+import { PlanCommentEntity } from './about-plan/plan-comment/plan-comment.entity';
+import { ArticleEntity } from './about-article/article/article.entity';
+import { ArticleCommentEntity } from './about-article/article-comment/article-comment.entity';
 
 @Module({
   imports: [
@@ -47,18 +51,22 @@ import { LoggerMiddleware } from './common/logger/logger.middleware';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      synchronize: true, // 배포환경에서는 false
+      synchronize: true, // 배포환경에서는 false, 일단 table 자동 생성을 위해 true
       logging: true,
       entities: [
         UserEntity,
         AvatarEntity,
         CategoryEntity,
         PlanEntity,
-        PlanDetailEntity,
-        LocationEntity,
-        AvatarLikePlanEntity,
         PlanTagEntity,
         PlanTagMappingEntity,
+        PlanDetailEntity,
+        LocationEntity,
+        LocationTypeEntity,
+        AvatarLikePlanEntity,
+        PlanCommentEntity,
+        ArticleEntity,
+        ArticleCommentEntity,
       ],
       autoLoadEntities: true,
     }),
