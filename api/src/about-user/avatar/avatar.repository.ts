@@ -33,13 +33,14 @@ export class AvatarRepository {
    * 사용자가 좋아요를 누른 플랜을 제외한 사용자가 생성한
    * 카테고리, 플랜, 게시글, 댓글을 반환함
    */
-  async findAvatarDetailById(avatarId: number): Promise<AvatarEntity> {
+  async findAvatarWithCategories(avatarId: number): Promise<AvatarEntity> {
     const avatar = await this.repository
       .createQueryBuilder('avatar')
-      .leftJoinAndSelect('avatar.categories', 'category')
-      .leftJoinAndSelect('avatar.plans', 'plan')
-      .leftJoinAndSelect('avatar.articles', 'article')
-      .leftJoinAndSelect('avatar.articleComments', 'articleComment')
+      .leftJoinAndSelect(
+        'avatar.categories',
+        'category',
+        'category.isDeleted = false',
+      )
       .where('avatar.avatarId = :avatarId', { avatarId })
       .andWhere('avatar.isDeleted = false')
       .getOne();

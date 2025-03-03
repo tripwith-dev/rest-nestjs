@@ -22,6 +22,7 @@ import { Status } from 'src/common/enum/status';
 import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
+import { PlanEntity } from './plan.entity';
 import { PlanService } from './plan.service';
 
 @Controller('plans')
@@ -48,7 +49,7 @@ export class PlanController {
     @Request() req: any,
   ) {
     const avatar = req.user.avatar;
-    const isOwner = await this.categoryService.isCategoryOwner(
+    const isOwner = await this.categoryService.isOwner(
       categoryId,
       avatar.avatarId,
     );
@@ -65,32 +66,60 @@ export class PlanController {
   }
 
   /**
-   * 특정 여행 계획을 조회하는 엔드포인트.
-   * 로그인을 하지 않은 사용자도 조회가 가능하지만 private은 조회할 수 없다.
-   * 따라서 OptionalAuthGuard와 req를 통해 소유자인지 확인해야 한다.
-   * @param planId
-   * @param currency
+   * 사용자 페이지에서 사용됨.
+   * 따라서 본인만 PRIVATE 플랜을 볼 수 있고, 다른 사용자는 PUBLIC 플랜에만 접근 가능
+   * @param categoryId
    * @param req
    * @returns
    */
-  @Get(':planId')
+  @Get()
   @UseGuards(OptionalAuthGuard)
-  async findPlanDetailBy(
+  async findPlansByCategoryId(
+    @Query('categoryId') categoryId: number,
+    @Request() req?: any,
+  ): Promise<PlanEntity[]> {
+    const avatarId = req?.user?.avatar?.avatarId || null;
+    const plans = await this.planService.findPlansByCategoryId(categoryId);
+
+    // 접근 가능한 플랜만 필터링
+    const filteredPlans = await Promise.all(
+      plans.map(async (plan) => {
+        const isAccessible = await this.planService.isPlanAccessible(
+          plan.planId,
+          avatarId,
+        );
+        return isAccessible ? plan : null;
+      }),
+    );
+
+    return filteredPlans.filter((plan) => plan !== null);
+  }
+
+  /**
+   * 플랜 상세 페이지에서 사용됨.
+   * 특정 플랜과 그 플랜의 세부 일정을 조회하는 엔드포인트
+   * private일 경우 본인 플랜이 아니면 조회할 수 없다.
+   * 따라서 OptionalAuthGuard와 req를 통해 소유자인지 확인해야 한다.
+   * @param planId
+   * @returns
+   */
+  @Get(':planId/details')
+  @UseGuards(OptionalAuthGuard)
+  async findPlanWithDetail(
     @Param('planId') planId: number,
     @Request() req?: any,
   ) {
     const avatarId = req?.user?.avatar?.avatarId || null;
-    // plan 접근 가능 여부: 소유자가 아니면 PRIVATE 플랜은 조회할 수 없음
-    const isPlanAccessible = await this.planService.isPlanAccessible(
+    const isAccessible = await this.planService.isPlanAccessible(
       planId,
       avatarId,
     );
 
-    if (!isPlanAccessible) {
-      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
+    if (!isAccessible) {
+      throw new ForbiddenException('해당 플랜에 접근할 수 없습니다.');
     }
 
-    return await this.planService.findPlanDetailById(planId);
+    return await this.planService.findPlanWithDetail(planId);
   }
 
   /**
@@ -100,33 +129,10 @@ export class PlanController {
    * @param currency
    * @returns
    */
-  @Get('top-ten/likes')
+  @Get('popular/plans')
   @UseGuards(OptionalAuthGuard)
-  async findTopTenTravelPlans() {
-    return await this.planService.findTopTenTravelPlan();
-  }
-
-  /**
-   * 모든 여행 계획을 조회하는 엔드포인트. public만 조회 가능하다.
-   * currency를 쿼리로 받아서 avatar의 currency에 맞게 변환하여 보여준다.
-   * @param currency
-   * @returns
-   */
-  @Get()
-  async findAllTravelPlans() {
-    return await this.planService.findAllPlans();
-  }
-
-  /**
-   * 특정 플랜과 그 플랜의 디테일을 조회하는 엔드포인트
-   * private일 경우 본인 플랜이 아니면 조회할 수 없다.
-   * 따라서 OptionalAuthGuard와 req를 통해 소유자인지 확인해야 한다.
-   * @param planId
-   * @returns
-   */
-  @Get(':planId/details')
-  async findPlanWithDetailByPlanId(@Param('planId') planId: number) {
-    return await this.planService.findPlanWithDetailByPlanId(planId);
+  async findPopularPlans() {
+    return await this.planService.findPopularPlans();
   }
 
   /**
@@ -152,6 +158,28 @@ export class PlanController {
     }
 
     return this.planService.updatePlan(planId, updatePlanWithDestinationDto);
+  }
+
+  /**
+   * 특정 여행 계획을 삭제하는 엔드포인트. 본인 플랜만 삭제 가능하다.
+   * JwtAuthGuard와 req를 통해 로그인 여부를 확인해야 한다.
+   * hard delete가 아닌 soft delete로 처리하기에
+   * planDetail, planComment, planDestination, avatarLikePlan도 삭제해야 한다.
+   * @param planId
+   * @param req
+   * @returns
+   */
+  @Patch(':planId/delete')
+  @UseGuards(JwtAuthGuard)
+  async softDeletedPlan(@Param('planId') planId: number, @Request() req: any) {
+    // 소유자만 가능
+    const avatarId = req.user.avatar.avatarId;
+    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
+    if (!isOwner) {
+      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
+    }
+
+    return this.planService.softDeletedPlan(planId);
   }
 
   /**
@@ -220,9 +248,11 @@ export class PlanController {
   async addLike(@Param('planId') planId: number, @Request() req: any) {
     // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 할 수 없음
     const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-    const plan = await this.planService.findPlanById(planId);
-    if (plan.status === Status.PRIVATE && !isOwner) {
+    const isAccessible = await this.planService.isPlanAccessible(
+      planId,
+      avatarId,
+    );
+    if (!isAccessible) {
       throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
 
@@ -248,30 +278,5 @@ export class PlanController {
       throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
     }
     return await this.planService.deleteLike(planId, avatarId);
-  }
-
-  /**
-   * 특정 여행 계획을 삭제하는 엔드포인트. 본인 플랜만 삭제 가능하다.
-   * JwtAuthGuard와 req를 통해 로그인 여부를 확인해야 한다.
-   * hard delete가 아닌 soft delete로 처리하기에
-   * planDetail, planComment, planDestination, avatarLikePlan도 삭제해야 한다.
-   * @param planId
-   * @param req
-   * @returns
-   */
-  @Patch(':planId/delete')
-  @UseGuards(JwtAuthGuard)
-  async softDeletedTravelPlan(
-    @Param('planId') planId: number,
-    @Request() req: any,
-  ) {
-    // 소유자만 가능
-    const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-    if (!isOwner) {
-      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
-    }
-
-    return this.planService.softDeletedTravelPlan(planId);
   }
 }

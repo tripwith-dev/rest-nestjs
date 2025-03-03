@@ -62,6 +62,6 @@ export class PlanEntity extends CommonEntity {
   @OneToMany(() => AvatarLikePlanEntity, (like) => like.plan)
   likes: AvatarLikePlanEntity[];
 
-  @OneToMany(() => PlanCommentEntity, (planComment) => planComment.avatar)
+  @OneToMany(() => PlanCommentEntity, (planComment) => planComment.plan)
   planComments: PlanCommentEntity[];
 }

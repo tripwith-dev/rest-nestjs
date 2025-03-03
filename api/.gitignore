@@ -2,6 +2,11 @@
 .env
 /uploads
 
+#Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
 # compiled output
 /dist
 /node_modules

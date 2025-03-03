@@ -26,5 +26,5 @@ export class PlanCommentEntity extends CommonEntity {
 
   @ManyToOne(() => PlanEntity, (plan) => plan.planComments)
   @JoinColumn({ name: 'planId' })
-  article: PlanEntity;
+  plan: PlanEntity;
 }

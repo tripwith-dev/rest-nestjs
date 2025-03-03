@@ -8,20 +8,10 @@ export function validatePassword(password: string): void {
   const hasUppercase = /[A-Z]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-  if (!hasUppercase) {
+  if (!hasUppercase || !hasSpecialChar || password.length < 10) {
     throw new UnauthorizedException(
-      '비밀번호는 최소 하나의 대문자를 포함해야 합니다.',
+      '비밀번호는 최소 하나의 대문자와 특수기호를 포함하여야 하며, 최소 10자 이상이어야 합니다.',
     );
-  }
-
-  if (!hasSpecialChar) {
-    throw new UnauthorizedException(
-      '비밀번호는 최소 하나의 특수기호를 포함해야 합니다.',
-    );
-  }
-
-  if (password.length < 10) {
-    throw new BadRequestException('비밀번호는 최소 10자 이상이어야 합니다.');
   }
 }
 
@@ -30,11 +20,11 @@ export function validatePassword(password: string): void {
  * @param username 이름 문자열
  */
 export function validateUsername(username: string): void {
-  const nameRegex = /^[a-zA-Z가-힣]{2,20}$/;
+  const nameRegex = /^[a-zA-Z가-힣\t' ']{2,20}$/;
 
   if (!nameRegex.test(username)) {
     throw new BadRequestException(
-      '이름은 2~30자 이내여야 하며, 숫자와 특수기호를 포함할 수 없습니다.',
+      '이름은 2~20자 이내여야 하며, 숫자와 특수기호를 포함할 수 없습니다.',
     );
   }
 }
