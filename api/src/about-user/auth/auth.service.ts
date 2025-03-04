@@ -77,11 +77,11 @@ export class AuthService {
       userLoginDto.password,
     );
 
-    // response.cookie('jwt', jwt, {
-    //   httpOnly: true,
-    //   sameSite: 'none',
-    //   secure: true,
-    // });
+    response.cookie('jwt', jwt, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
 
     const loginUser = await this.userService.findUserWithAvatar(user.id);
 
