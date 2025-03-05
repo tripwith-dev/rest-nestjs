@@ -59,7 +59,6 @@ export class CategoryRepository {
       .where('avatar.avatarId = :avatarId', { avatarId })
       .leftJoin('category.avatar', 'avatar', 'avatar.isDeleted = false')
       .andWhere('category.isDeleted = false')
-      .addSelect(['avatar.avatarId'])
       .getMany();
   }
 

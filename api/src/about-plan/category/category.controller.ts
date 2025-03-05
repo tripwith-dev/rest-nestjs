@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
@@ -82,7 +82,7 @@ export class CategoryController {
     const isOwner = await this.categoryService.isOwner(categoryId, avatarId);
 
     if (!isOwner) {
-      throw new ForbiddenException('카테고리 수정 권한이 없습니다.');
+      throw new UnauthorizedException('카테고리 수정 권한이 없습니다.');
     }
 
     return this.categoryService.updateCategory(
@@ -110,7 +110,7 @@ export class CategoryController {
     const isOwner = await this.categoryService.isOwner(categoryId, avatarId);
 
     if (!isOwner) {
-      throw new ForbiddenException('카테고리 삭제 권한이 없습니다.');
+      throw new UnauthorizedException('카테고리 삭제 권한이 없습니다.');
     }
     return this.categoryService.softDeletedCategory(categoryId);
   }
