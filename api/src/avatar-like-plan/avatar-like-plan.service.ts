@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AvatarLikePlanRepository } from './avatar-like-plan.repository';
 import { PlanService } from 'src/about-plan/plan/plan.service';
 import { DeleteResult, InsertResult } from 'typeorm';
@@ -25,7 +25,7 @@ export class AvatarLikePlanService {
 
     // 해당 플랜이 private이고, owner가 아니라면 like/dislike 불가능
     if (!isAccessible)
-      throw new ForbiddenException('해당 플랜에 접근할 권한이 없습니다.');
+      throw new UnauthorizedException('해당 플랜에 접근할 권한이 없습니다.');
 
     return await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
@@ -54,8 +54,23 @@ export class AvatarLikePlanService {
   async findAvatarLikePlanByAvatarId(
     avatarId: number,
   ): Promise<AvatarLikePlanEntity[]> {
-    return await this.avatarLikePlanRepository.findAvatarLikePlanByAvatarId(
-      avatarId,
-    );
+    const plans =
+      await this.avatarLikePlanRepository.findAvatarLikePlanByAvatarId(
+        avatarId,
+      );
+
+    // 각 plan에 대해서 owner인지 확인하고 status에 따라 필터링
+    const filteredPlans = [];
+
+    for (const plan of plans) {
+      const isOwner = await this.planSerive.isPlanOwner(plan.planId, avatarId);
+
+      // isOwner가 true이면 모든 status 표시, 아니면 public만 표시
+      if (isOwner || plan.plan.status === 'PUBLIC') {
+        filteredPlans.push(plan);
+      }
+    }
+
+    return filteredPlans;
   }
 }

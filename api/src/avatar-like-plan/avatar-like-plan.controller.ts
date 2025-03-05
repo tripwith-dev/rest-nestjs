@@ -1,4 +1,11 @@
-import { Controller, Param, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AvatarLikePlanService } from './avatar-like-plan.service';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { DeleteResult, InsertResult } from 'typeorm';
@@ -24,7 +31,7 @@ export class AvatarLikePlanController {
     await this.avatarLikePlanService.addLike(planId, avatarId);
   }
 
-  @Post()
+  @Get()
   @UseGuards(JwtAuthGuard)
   async findAvatarLikePlanByAvatarId(
     @Request() req: any,

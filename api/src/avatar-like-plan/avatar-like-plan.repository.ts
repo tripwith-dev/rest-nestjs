@@ -72,10 +72,10 @@ export class AvatarLikePlanRepository {
   async findAvatarLikePlanByAvatarId(
     avatarId: number,
   ): Promise<AvatarLikePlanEntity[]> {
-    return await this.repository.find({
-      where: {
-        avatar: { avatarId },
-      },
-    });
+    return await this.repository
+      .createQueryBuilder('avatar-like-plan')
+      .leftJoinAndSelect('avatar-like-plan.plan', 'plan')
+      .where('avatar-like-plan.avatarId = :avatarId', { avatarId })
+      .getMany();
   }
 }
