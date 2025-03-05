@@ -1,12 +1,10 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { AvatarEntity } from 'src/about-user/avatar/avatar.entity';
-import { AvatarLikePlanService } from 'src/avatar-like-plan/avatar-like-plan.service';
 import { Currency } from 'src/common/enum/currency';
 import { Status } from 'src/common/enum/status';
 import { validateDates, validatePlanTitle } from 'src/utils/validateUserInput';
@@ -25,7 +23,6 @@ export class PlanService {
     private readonly categoryService: CategoryService,
     private readonly planTagService: PlanTagService,
     private readonly planTagMappingService: PlanTagMappingService,
-    private readonly avatarLikePlanService: AvatarLikePlanService,
   ) {}
 
   // ============================================================
@@ -222,62 +219,6 @@ export class PlanService {
     const plan = await this.findPlanById(planId);
     await this.planRepository.deleteMainImage(plan.planId);
     return await this.findPlanById(planId);
-  }
-
-  /**
-   * 여행 계획에 좋아요 추가
-   * @param planId 여행 계획 ID
-   * @param userId 사용자 ID
-   */
-  async addLike(
-    planId: number,
-    avatarId: number,
-  ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.avatarLikePlanService.hasUserLikedPlan(
-      planId,
-      avatarId,
-    );
-
-    if (alreadyLiked) {
-      throw new ConflictException('이미 좋아요를 누른 여행 계획입니다.');
-    }
-
-    await this.avatarLikePlanService.addLike(planId, avatarId);
-    const plan = await this.findPlanById(planId);
-
-    if (!plan) {
-      throw new NotFoundException('여행 계획을 찾을 수 없습니다.');
-    }
-
-    return { message: '좋아요가 추가되었습니다.', plan };
-  }
-
-  /**
-   * 여행 계획에서 좋아요 제거
-   * @param planId 여행 계획 ID
-   * @param userId 사용자 ID
-   */
-  async deleteLike(
-    planId: number,
-    avatarId: number,
-  ): Promise<{ message: string; plan: PlanEntity }> {
-    const alreadyLiked = await this.avatarLikePlanService.hasUserLikedPlan(
-      planId,
-      avatarId,
-    );
-
-    if (!alreadyLiked) {
-      throw new BadRequestException('좋아요를 누르지 않은 여행 계획입니다.');
-    }
-
-    await this.avatarLikePlanService.deleteLike(planId, avatarId);
-    const plan = await this.findPlanById(planId);
-
-    if (!plan) {
-      throw new NotFoundException('여행 계획을 찾을 수 없습니다.');
-    }
-
-    return { message: '좋아요가 추가되었습니다.', plan };
   }
 
   /**

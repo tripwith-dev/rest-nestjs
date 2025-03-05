@@ -3,7 +3,6 @@ import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { AvatarLikePlanModule } from 'src/avatar-like-plan/avatar-like-plan.module';
 import { CategoryModule } from '../category/category.module';
 import { PlanTagMappingModule } from '../plan-tag-mapping/plan-tag-mapping.module';
 import { PlanTagModule } from '../plan-tag/plan-tag.module';
@@ -31,7 +30,6 @@ import { PlanService } from './plan.service';
     CategoryModule,
     PlanTagModule,
     PlanTagMappingModule,
-    AvatarLikePlanModule,
   ],
   controllers: [PlanController],
   providers: [PlanService, PlanRepository],

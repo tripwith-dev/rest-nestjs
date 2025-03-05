@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AvatarLikePlanRepository } from './avatar-like-plan.repository';
+import { PlanService } from 'src/about-plan/plan/plan.service';
 
 @Injectable()
 export class AvatarLikePlanService {
   constructor(
     private readonly avatarLikePlanRepository: AvatarLikePlanRepository,
+    private readonly planSerive: PlanService,
   ) {}
 
   /**
@@ -14,6 +16,15 @@ export class AvatarLikePlanService {
    * @returns boolean (true: 이미 좋아요 함, false: 좋아요 안 함)
    */
   async hasUserLikedPlan(planId: number, avatarId: number): Promise<boolean> {
+    const isAccessible = await this.planSerive.isPlanAccessible(
+      planId,
+      avatarId,
+    );
+
+    // 해당 플랜이 private이고, owner가 아니라면 like/dislike 불가능
+    if (!isAccessible)
+      throw new ForbiddenException('해당 플랜에 접근할 권한이 없습니다.');
+
     return await this.avatarLikePlanRepository.hasUserLikedPlan(
       planId,
       avatarId,

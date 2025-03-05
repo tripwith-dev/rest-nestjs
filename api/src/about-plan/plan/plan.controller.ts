@@ -18,7 +18,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/about-user/jwt/jwt.guard';
 import { OptionalAuthGuard } from 'src/about-user/jwt/jwt.optionalAuthGuard';
-import { Status } from 'src/common/enum/status';
 import { CategoryService } from '../category/category.service';
 import { UpdatePlanWithDestinationDto } from './dto/plan-destination.update.dto';
 import { CreatePlanDto } from './dto/plan.create.dto';
@@ -233,50 +232,5 @@ export class PlanController {
     }
 
     return await this.planService.deleteMainImage(planId);
-  }
-
-  /**
-   * 특정 플랜에 좋아요를 추가하는 엔드포인트.
-   * 로그인한 사용자만 가능하기에 JwtAuthGuard를 사용한다.
-   * 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 할 수 없다.
-   * @param planId
-   * @param req
-   * @returns
-   */
-  @Post(':planId/like')
-  @UseGuards(JwtAuthGuard)
-  async addLike(@Param('planId') planId: number, @Request() req: any) {
-    // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 할 수 없음
-    const avatarId = req.user.avatar.avatarId;
-    const isAccessible = await this.planService.isPlanAccessible(
-      planId,
-      avatarId,
-    );
-    if (!isAccessible) {
-      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
-    }
-
-    return await this.planService.addLike(planId, avatarId);
-  }
-
-  /**
-   * 여행 계획에서 좋아요를 제거하는 엔드포인트
-   * 로그인한 사용자만 가능하기에 JwtAuthGuard를 사용한다.
-   * 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 취소할 수 없다.
-   * @param planId 여행 계획 ID
-   * @param req 요청 객체 (사용자 정보)
-   * @returns 성공 메시지
-   */
-  @Patch(':planId/like')
-  @UseGuards(JwtAuthGuard)
-  async deleteLike(@Param('planId') planId: number, @Request() req: any) {
-    // 플랜이 비공개이고, 소유자가 아닌 경우 좋아요를 제거할 수 없음
-    const avatarId = req.user.avatar.avatarId;
-    const isOwner = await this.planService.isPlanOwner(planId, avatarId);
-    const plan = await this.planService.findPlanById(planId);
-    if (plan.status === Status.PRIVATE && !isOwner) {
-      throw new ForbiddenException('해당 플랜에 접근 권한이 없습니다.');
-    }
-    return await this.planService.deleteLike(planId, avatarId);
   }
 }
