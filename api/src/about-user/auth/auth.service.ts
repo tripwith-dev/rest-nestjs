@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { CategoryService } from 'src/about-plan/category/category.service';
 import {
+  validateEmail,
   validateNickname,
   validatePassword,
   validateUsername,
@@ -41,16 +42,17 @@ export class AuthService {
     const { email, password, username } = registerDto.user;
     const { nickname } = registerDto.avatar;
 
-    // 1. email 중복 확인
-    await this.userService.existsByEmail(email);
-
-    // 2. 닉네임 중복 확인
-    await this.avatarService.existsByNickname(nickname);
-
-    // 3. 유효성 검사
+    // 1. 유효성 검사
+    validateEmail(email);
     validatePassword(password);
     validateUsername(username);
     validateNickname(nickname);
+
+    // 2. email 중복 확인
+    await this.userService.existsByEmail(email);
+
+    // 3. 닉네임 중복 확인
+    await this.avatarService.existsByNickname(nickname);
 
     // 4. 패스워드 해시화 후 user 데이터 생성
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -109,11 +111,12 @@ export class AuthService {
     password: LoginUserDto['password'],
   ): Promise<{ jwt: string; user: ConfirmUserDto }> {
     const user = await this.userService.findUserByEmail(email);
-    if (!user)
-      throw new UnauthorizedException('해당 이메일 계정은 존재하지 않습니다.');
 
-    if (!(await bcrypt.compare(password, user.password)))
-      throw new UnauthorizedException('로그인에 실패하였습니다.');
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
+    }
 
     try {
       const jwt = await this.jwtService.signAsync(

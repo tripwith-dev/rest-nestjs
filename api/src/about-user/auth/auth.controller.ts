@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -34,6 +35,7 @@ export class AuthController {
    * 로그인
    */
   @Post('login')
+  @HttpCode(200)
   logIn(
     @Body() userLoginDto: LoginUserDto,
     @Res({ passthrough: true }) response: Response,

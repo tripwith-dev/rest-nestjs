@@ -1,4 +1,16 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
+
+/**
+ * 이메일 유효성 검사
+ * @param email 이메일 문자열
+ */
+export function validateEmail(email: string): void {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    throw new BadRequestException('유효한 이메일 형식이 아닙니다.');
+  }
+}
 
 /**
  * 비밀번호 유효성 검사
@@ -9,7 +21,7 @@ export function validatePassword(password: string): void {
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   if (!hasUppercase || !hasSpecialChar || password.length < 10) {
-    throw new UnauthorizedException(
+    throw new BadRequestException(
       '비밀번호는 최소 하나의 대문자와 특수기호를 포함하여야 하며, 최소 10자 이상이어야 합니다.',
     );
   }
