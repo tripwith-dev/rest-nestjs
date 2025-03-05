@@ -1,6 +1,8 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AvatarLikePlanRepository } from './avatar-like-plan.repository';
 import { PlanService } from 'src/about-plan/plan/plan.service';
+import { DeleteResult, InsertResult } from 'typeorm';
+import { AvatarLikePlanEntity } from './avatar-like-plan.entity';
 
 @Injectable()
 export class AvatarLikePlanService {
@@ -36,8 +38,8 @@ export class AvatarLikePlanService {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async addLike(planId: number, avatarId: number): Promise<void> {
-    await this.avatarLikePlanRepository.addLike(planId, avatarId);
+  async addLike(planId: number, avatarId: number): Promise<InsertResult> {
+    return await this.avatarLikePlanRepository.addLike(planId, avatarId);
   }
 
   /**
@@ -45,7 +47,15 @@ export class AvatarLikePlanService {
    * @param planId 여행 계획 ID
    * @param avatarId 사용자 ID
    */
-  async deleteLike(planId: number, avatarId: number): Promise<void> {
-    await this.avatarLikePlanRepository.deleteLike(planId, avatarId);
+  async deleteLike(planId: number, avatarId: number): Promise<DeleteResult> {
+    return await this.avatarLikePlanRepository.deleteLike(planId, avatarId);
+  }
+
+  async findAvatarLikePlanByAvatarId(
+    avatarId: number,
+  ): Promise<AvatarLikePlanEntity[]> {
+    return await this.avatarLikePlanRepository.findAvatarLikePlanByAvatarId(
+      avatarId,
+    );
   }
 }

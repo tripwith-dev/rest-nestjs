@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -86,7 +87,7 @@ export class UserService {
   async existsByEmail(email: string): Promise<void> {
     const isEmailExist = await this.userRepository.existsByEmail(email);
     if (isEmailExist) {
-      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+      throw new ConflictException('이미 존재하는 이메일입니다.');
     }
   }
 
@@ -111,7 +112,7 @@ export class UserService {
   ): Promise<void> {
     const isCorrect = await bcrypt.compare(inputOldPassword, realUserPassword);
     if (!isCorrect) {
-      throw new UnauthorizedException('기존 패스워드가 틀렸습니다.');
+      throw new UnauthorizedException('기존 패스워드가 일치하지 않습니다.');
     }
   }
 
@@ -136,12 +137,7 @@ export class UserService {
    * @returns
    */
   async findUserByEmail(email: string): Promise<any | null> {
-    const user = await this.userRepository.findUserByEmail(email);
-
-    if (!user) {
-      throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');
-    }
-
-    return user;
+    // 예외처리 다른 파일에서 따로
+    return await this.userRepository.findUserByEmail(email);
   }
 }

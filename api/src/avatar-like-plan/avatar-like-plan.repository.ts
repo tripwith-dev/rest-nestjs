@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PlanEntity } from 'src/about-plan/plan/plan.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, DeleteResult, InsertResult, Repository } from 'typeorm';
 import { AvatarLikePlanEntity } from './avatar-like-plan.entity';
 
 @Injectable()
@@ -33,17 +33,19 @@ export class AvatarLikePlanRepository {
    * @param planId 여행 계획 ID
    * @param userId 사용자 ID
    */
-  async addLike(planId: number, avatarId: number): Promise<void> {
-    await this.dataSource.transaction(async (manager) => {
+  async addLike(planId: number, avatarId: number): Promise<InsertResult> {
+    return await this.dataSource.transaction(async (manager) => {
       // 좋아요 추가
       const like = this.repository.create({
         plan: { planId },
         avatar: { avatarId },
       });
-      await manager.save(like);
+      const result = await manager.insert(AvatarLikePlanEntity, like);
 
       // likesCount 증가
       await manager.increment(PlanEntity, { planId }, 'likesCount', 1);
+
+      return result;
     });
   }
 
@@ -52,12 +54,28 @@ export class AvatarLikePlanRepository {
    * @param planId 여행 계획 ID
    * @param avatarId 사용자 ID
    */
-  async deleteLike(planId: number, avatarId: number): Promise<void> {
-    await this.dataSource.transaction(async (manager) => {
-      await manager.delete(AvatarLikePlanEntity, { planId, avatarId });
+  async deleteLike(planId: number, avatarId: number): Promise<DeleteResult> {
+    return await this.dataSource.transaction(async (manager) => {
+      // 좋아요 삭제
+      const deleteResult = await manager.delete(AvatarLikePlanEntity, {
+        planId,
+        avatarId,
+      });
 
       // likesCount 감소
       await manager.decrement(PlanEntity, { planId }, 'likesCount', 1);
+
+      return deleteResult;
+    });
+  }
+
+  async findAvatarLikePlanByAvatarId(
+    avatarId: number,
+  ): Promise<AvatarLikePlanEntity[]> {
+    return await this.repository.find({
+      where: {
+        avatar: { avatarId },
+      },
     });
   }
 }

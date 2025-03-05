@@ -19,7 +19,9 @@ export class UserController {
    */
   @Get('/:userId')
   @UseGuards(JwtAuthGuard, IsUserSelfGuard) // IsUserSelfGuard로 로그인 한 사용자가 파라미터 userId와 같아야만 요청 가능
-  async findUserById(@Param('userId') userId): Promise<UserEntity | undefined> {
+  async findUserById(
+    @Param('userId') userId: number,
+  ): Promise<UserEntity | undefined> {
     return await this.userService.findUserById(userId);
   }
 

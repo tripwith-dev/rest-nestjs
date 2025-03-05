@@ -1,8 +1,8 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { validateNickname } from 'src/utils/validateUserInput';
 import { UpdateResult } from 'typeorm';
@@ -155,7 +155,7 @@ export class AvatarService {
     const isNicknameExist =
       await this.avatarRepository.existsByNickname(nickname);
     if (isNicknameExist) {
-      throw new UnauthorizedException('이미 존재하는 닉네임입니다.');
+      throw new ConflictException('이미 존재하는 닉네임입니다.');
     }
   }
 

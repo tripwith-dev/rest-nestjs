@@ -1,6 +1,5 @@
 # secret
 .env
-/uploads
 
 #Docker
 # Dockerfile

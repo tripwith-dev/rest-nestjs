@@ -4,10 +4,10 @@
  */
 
 import {
-  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 @Injectable()
@@ -18,11 +18,13 @@ export class IsUserSelfGuard implements CanActivate {
     const userId = parseInt(request.params.userId, 10);
 
     if (!user) {
-      throw new BadRequestException('인증되지 않은 요청입니다.');
+      throw new UnauthorizedException('인증되지 않은 요청입니다.');
     }
 
     if (user.id !== userId) {
-      throw new BadRequestException('다른 사용자의 정보를 조회할 수 없습니다.');
+      throw new UnauthorizedException(
+        '다른 사용자의 정보를 조회할 수 없습니다.',
+      );
     }
 
     return true;
