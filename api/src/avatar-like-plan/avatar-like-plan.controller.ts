@@ -28,7 +28,7 @@ export class AvatarLikePlanController {
     if (alreadyLike)
       return await this.avatarLikePlanService.deleteLike(planId, avatarId);
 
-    await this.avatarLikePlanService.addLike(planId, avatarId);
+    return await this.avatarLikePlanService.addLike(planId, avatarId);
   }
 
   @Get()
