@@ -26,8 +26,8 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    // origin: process.env.FRONT_PORT, 
-    origin: "*",
+    // origin: process.env.FRONT_PORT,
+    origin: process.env.FRONT_PORT,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
